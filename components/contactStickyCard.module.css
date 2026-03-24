@@ -1,0 +1,190 @@
+.stickyContainer {
+    position: sticky;
+    top: 100px;
+    width: 100%;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.priceSection {
+    margin-bottom: 2rem;
+}
+
+.priceLabel {
+    display: block;
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.priceValue {
+    display: block;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.5rem;
+}
+
+.formSection {
+    margin-bottom: 1.5rem;
+}
+
+.formTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1rem;
+}
+
+.formGroup {
+    margin-bottom: 0.75rem;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #334155;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: #fff;
+}
+
+.input:focus {
+    border-color: #ff6e00;
+    box-shadow: 0 0 0 1px rgba(255, 110, 0, 0.1);
+}
+
+.textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #334155;
+    outline: none;
+    height: 80px;
+    resize: none;
+    transition: border-color 0.2s;
+    background-color: #fff;
+}
+
+.textarea:focus {
+    border-color: #ff6e00;
+    box-shadow: 0 0 0 1px rgba(255, 110, 0, 0.1);
+}
+
+.extraCosts {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.costItem {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.costItem span:last-child {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.primaryBtn {
+    width: 100%;
+    padding: 1rem;
+    background-color: #ff6e00;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.primaryBtn:hover {
+    background-color: #e66300;
+    transform: translateY(-1px);
+}
+
+.whatsappBtn {
+    width: 100%;
+    padding: 1rem;
+    background-color: white;
+    color: #25d366;
+    border: 1.5px solid #25d366;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.whatsappBtn:hover {
+    background-color: #f0fff4;
+    transform: translateY(-1px);
+}
+
+.footer {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+.footer a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+    .stickyContainer {
+        position: static;
+        margin-top: 2rem;
+    }
+}

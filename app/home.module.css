@@ -1,0 +1,216 @@
+/* Hero Section */
+.hero {
+  padding: 6rem 0;
+  text-align: center;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
+
+.heroContent {
+  /* Container styles handled by global .container */
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  background-color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  color: var(--secondary);
+}
+
+.title {
+  font-size: 3.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  color: #0f172a;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.highlight {
+  color: var(--primary);
+  position: relative;
+  white-space: nowrap;
+}
+
+.subtitleWrapper {
+  margin-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.subtitle {
+  font-size: 1.35rem;
+  color: #475569;
+  margin: 0;
+  max-width: 700px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.buttonLink {
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.buttonLink:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.whatsappButton {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.whatsappButton:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+}
+
+/* Benefits Section */
+.benefitsSection {
+  padding: 5rem 0;
+  background: white;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
+}
+
+.benefitCard {
+  padding: 2.5rem 2rem;
+  border-radius: 1.25rem;
+  border: 1px solid #f1f5f9;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.benefitCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: #e2e8f0;
+}
+
+.benefitIcon {
+  width: 3rem;
+  height: 3rem;
+  background: #ecfdf5;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: var(--primary);
+}
+
+.benefitTitle {
+  margin-bottom: 0.5rem;
+}
+
+.benefitText {
+  color: var(--secondary);
+}
+
+/* Featured Section */
+.featuredSection {
+  padding: 6rem 0;
+}
+
+.featuredHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 3rem;
+}
+
+.featuredTitle {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.featuredSubtitle {
+  color: var(--secondary);
+  font-size: 1.1rem;
+}
+
+.viewAllButton {
+  border: 1px solid var(--border);
+  background: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero {
+    padding: 4rem 0;
+  }
+
+  .title {
+    font-size: 2.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1.15rem;
+  }
+
+  .subtitleWrapper {
+    margin-bottom: 2.5rem;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .buttonLink,
+  .whatsappButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .featuredHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .featuredTitle {
+    font-size: 2rem;
+  }
+}

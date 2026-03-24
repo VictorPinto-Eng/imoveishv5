@@ -1,0 +1,339 @@
+.card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  border-color: #e2e8f0;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background-color: #f8fafc;
+  overflow: hidden;
+}
+
+.imageWrapper a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.05);
+}
+
+.noPhotoPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 2rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.noPhotoIcon {
+  color: #cbd5e1;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .noPhotoIcon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.noPhotoText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.noPhotoText span {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.1em;
+}
+
+.noPhotoText p {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1e293b;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.card:hover .navBtn {
+  opacity: 1;
+}
+
+.prevBtn { left: 12px; }
+.nextBtn { right: 12px; }
+
+.imageCounter {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.newBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: white;
+  color: #0f172a;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.content {
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  flex: 1;
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.propertyTitle {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+}
+
+.locationSubtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.featuresRow {
+  display: flex;
+  gap: 1.2rem;
+  color: #64748b;
+  font-size: 0.9375rem; /* Increased 15% from 0.8125rem */
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  position: relative;
+  cursor: help;
+}
+
+.featureItem[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: #0f172a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.featureItem[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  border: 4px solid transparent;
+  border-top-color: #0f172a;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.featureItem[data-tooltip]:hover::after,
+.featureItem[data-tooltip]:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.featureItem svg {
+  color: #cbd5e1;
+}
+
+.addressSub {
+  font-size: 0.8125rem;
+  color: #475569;
+  font-weight: 700;
+  margin: -0.25rem 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.priceContainer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.priceValue {
+  font-size: 1.625rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.cardFooter {
+  padding: 0.875rem 1rem;
+  display: flex;
+  gap: 0.625rem;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid #f1f5f9;
+  background-color: #fcfcfd;
+}
+
+.phoneBtn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.phoneBtn:hover {
+  background-color: #f8fafc;
+  border-color: #ff6e00;
+  color: #ff6e00;
+}
+
+.whatsappBtnPremium {
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+  padding: 0 1rem;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);
+}
+
+.whatsappBtnPremium:hover {
+  background-color: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.contactBtnPremium {
+  background-color: #ff6e00;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  padding: 0 1rem;
+  box-shadow: 0 2px 6px rgba(255, 110, 0, 0.2);
+}
+
+.contactBtnPremium:hover {
+  background-color: #e66300;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 110, 0, 0.3);
+}

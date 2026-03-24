@@ -1,0 +1,1506 @@
+'use client'
+
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
+import NextImage from 'next/image';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import {
+    ArrowLeft, Loader2, Save, Home,
+    Maximize2, Bed, Bath, Car, MapPin,
+    FileText, Building2, DollarSign, Sparkles, Ruler
+} from 'lucide-react';
+import styles from './editar.module.css';
+import { formatCurrency, maskCurrencyInput, parseCurrencyToNumber, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
+import { sanitizeLocationName } from '@/lib/sanitize-location';
+
+interface CustomFields {
+    endereco?: string;
+    numero?: string;
+    bairro?: string;
+    cidade?: string;
+    uf?: string;
+    cep?: string;
+    complemento?: string;
+    objetivo?: string;
+    finalidade?: string;
+    paga_iptu?: boolean;
+    iptu?: number;
+    condominio?: number;
+    tipo_imovel?: string;
+    statimovel_id?: string | number;
+}
+
+interface Imovel {
+    id: number;
+    nome: string;
+    preco_base: number;
+    descricao: string;
+    status: string;
+    imagens_urls: string[];
+    custom_fields: CustomFields;
+    photos: any[];
+    // Location DB Columns
+    logradouro: string;
+    numero: string;
+    complemento: string;
+    quadra_torre_bloco: string;
+    unidade: string;
+    andar: string;
+    cep: string;
+    // Characteristics DB Columns
+    dormitorios: number;
+    suites: number;
+    varandas: number;
+    banheiros: number;
+    vagas: number;
+    areaservico: number;
+    quartoservico: number;
+    area_util: number;
+    area_construida: number;
+    area_terreno: number;
+    cozinha: number;
+    lavabo: number;
+    sala: number;
+    dimensoes_terreno: string;
+    imbtpoperacao_id?: number;
+    imbfinalidade_id?: number;
+    imbtpimovel_id?: number;
+    statusimovel?: number;
+    empreendimento?: number;
+    estado_id?: number;
+    cidade_id?: number;
+    bairro_id?: number;
+}
+
+export default function EditarImovelPage() {
+    const { id } = useParams();
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [activeField, setActiveField] = useState<string | null>(null);
+    const [displayValue, setDisplayValue] = useState<string>('');
+    const [imovel, setImovel] = useState<Imovel | null>(null);
+    const [categories, setCategories] = useState<{ id: number; descricao: string }[]>([]);
+    const [propertyTypesList, setPropertyTypesList] = useState<{ id: number; descricao: string }[]>([]);
+    const [statuses, setStatuses] = useState<{ id: number; nome: string }[]>([]);
+    const [estados, setEstados] = useState<{ id: number; nome: string; sigla: string }[]>([]);
+    const [cidades, setCidades] = useState<{ id: number; nome: string }[]>([]);
+    const [bairros, setBairros] = useState<{ id: number; nome: string }[]>([]);
+    const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
+    const [operacoes, setOperacoes] = useState<{ id: number; descricao: string }[]>([]);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [showBairroCreateModal, setShowBairroCreateModal] = useState(false);
+    const [bairroCreateLabel, setBairroCreateLabel] = useState('');
+    const [activeVerification, setActiveVerification] = useState<'estado' | 'cidade' | 'bairro' | null>(null);
+    const [resolvedIds, setResolvedIds] = useState({ estadoId: 0, cidadeId: 0, bairroId: 0 });
+    const [locationRefreshTrigger, setLocationRefreshTrigger] = useState(0);
+    const [pendingSavePayload, setPendingSavePayload] = useState<any | null>(null);
+
+    const handleBack = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        router.push(`/meus-imoveis?id=${id}`);
+    };
+
+    useEffect(() => {
+        const fetchImovel = async () => {
+            try {
+                const res = await fetch(`/api/property/${id}`);
+                if (!res.ok) {
+                    router.push('/meus-imoveis?id=' + id);
+                    return;
+                }
+                const data = await res.json();
+                const imovelData = data.imovel;
+                if (imovelData && imovelData.cep) {
+                    imovelData.cep = maskCep(imovelData.cep);
+                }
+                setImovel(imovelData);
+            } catch (error) {
+                console.error('Error fetching imovel:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) fetchImovel();
+    }, [id, router]);
+
+    const generateAiTitle = async () => {
+        if (!imovel) return;
+        setAiLoading(true);
+        try {
+            const res = await fetch('/api/property/generate-title', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: imovel.custom_fields.tipo_imovel,
+                    rooms: imovel.dormitorios,
+                    bathrooms: imovel.banheiros,
+                    suites: imovel.suites,
+                    parking: imovel.vagas,
+                    area: imovel.area_util,
+                    areaTerreno: imovel.area_terreno,
+                    areaConstruida: imovel.area_construida,
+                    varandas: imovel.varandas,
+                    address: imovel.logradouro,
+                    finalidade: imovel.custom_fields.finalidade,
+                    objective: imovel.custom_fields.objetivo,
+                    condoFee: imovel.custom_fields.condominio,
+                    iptuValue: imovel.custom_fields.iptu,
+                    price: imovel.preco_base
+                })
+            });
+            const data = await res.json();
+            if (data.title) {
+                setImovel(prev => prev ? ({ ...prev, nome: data.title.toUpperCase() }) : null);
+            }
+        } catch (error) {
+            console.error('Error with AI title generation:', error);
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    // Fetch Estados from hv5db
+    useEffect(() => {
+        const fetchEstados = async () => {
+            try {
+                const res = await fetch('/api/property/estados');
+                const data = await res.json();
+                if (Array.isArray(data)) setEstados(data);
+            } catch (error) {
+                console.error('Error fetching estados:', error);
+            }
+        };
+        fetchEstados();
+    }, [locationRefreshTrigger]);
+
+    // Fetch Cidades from hv5db when UF changes
+    useEffect(() => {
+        const fetchCidades = async () => {
+            const uf = imovel?.custom_fields?.uf;
+            if (!uf) {
+                setCidades([]);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/property/cidades?uf=${uf}`);
+                const data = await res.json();
+                if (Array.isArray(data)) setCidades(data);
+            } catch (error) {
+                console.error('Error fetching cidades:', error);
+            }
+        };
+        if (imovel?.custom_fields?.uf) {
+            fetchCidades();
+        }
+    }, [imovel?.custom_fields?.uf, locationRefreshTrigger]);
+
+    // Fetch Bairros from hv5db when Cidade (or UF) changes
+    useEffect(() => {
+        const fetchBairros = async () => {
+            const uf = imovel?.custom_fields?.uf;
+            const cidade = imovel?.custom_fields?.cidade;
+            if (!uf || !cidade) {
+                setBairros([]);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/property/bairros?uf=${uf}&cidade=${encodeURIComponent(cidade)}`);
+                const data = await res.json();
+                if (Array.isArray(data)) setBairros(data);
+            } catch (error) {
+                console.error('Error fetching bairros:', error);
+            }
+        };
+        if (imovel?.custom_fields?.uf && imovel?.custom_fields?.cidade) {
+            fetchBairros();
+        }
+    }, [imovel?.custom_fields?.uf, imovel?.custom_fields?.cidade, locationRefreshTrigger]);
+
+    // Fetch Categories
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/property/categories');
+                const data = await res.json();
+                setCategories(data);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
+        const fetchStatuses = async () => {
+            try {
+                const res = await fetch('/api/property/status');
+                const data = await res.json();
+                setStatuses(data);
+            } catch (error) {
+                console.error('Error fetching statuses:', error);
+            }
+        };
+        const fetchEmpreendimentos = async () => {
+            try {
+                const res = await fetch('/api/property/empreendimentos');
+                const data = await res.json();
+                if (Array.isArray(data)) setEmpreendimentos(data);
+            } catch (error) {
+                console.error('Error fetching empreendimentos:', error);
+            }
+        };
+        const fetchOperacoes = async () => {
+            try {
+                const res = await fetch('/api/property/operacoes');
+                const data = await res.json();
+                if (Array.isArray(data)) setOperacoes(data);
+            } catch (error) {
+                console.error('Error fetching operacoes:', error);
+            }
+        };
+        fetchCategories();
+        fetchStatuses();
+        fetchEmpreendimentos();
+        fetchOperacoes();
+    }, []);
+
+    useEffect(() => {
+        const fetchTypes = async () => {
+            if (!imovel?.imbfinalidade_id) {
+                setPropertyTypesList([]);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/property/types?category_id=${imovel.imbfinalidade_id}`);
+                const data = await res.json();
+                setPropertyTypesList(data);
+            } catch (error) {
+                console.error('Error fetching property types:', error);
+            }
+        };
+        if (imovel?.imbfinalidade_id) {
+            fetchTypes();
+        }
+    }, [imovel?.imbfinalidade_id]);
+
+
+    const handleKeyDown = (e: React.KeyboardEvent, nextField: string, isCustom = false) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const next = document.querySelector(`[name="${nextField}"]`) as HTMLElement;
+            if (next) {
+                next.focus();
+                if (next instanceof HTMLInputElement || next instanceof HTMLTextAreaElement) {
+                    next.select();
+                }
+            }
+        }
+    };
+
+
+    const handleCharChange = (field: string, value: string, isCustom = false) => {
+        if (!imovel) return;
+
+        // Decimais: area_util, area_construida, area_terreno
+        const isDecimal = ['area_util', 'area_construida', 'area_terreno'].includes(field);
+
+        let numericValue: number;
+        if (isDecimal) {
+            const maskedValue = maskCurrencyInput(value, false);
+            numericValue = parseCurrencyToNumber(maskedValue);
+        } else {
+            // Inteiros: apenas dígitos
+            const maskedValue = maskIntegerInput(value);
+            numericValue = parseInt(maskedValue) || 0;
+        }
+
+        if (isCustom) {
+            setImovel({
+                ...imovel,
+                custom_fields: { ...imovel.custom_fields, [field]: numericValue }
+            });
+        } else {
+            setImovel({
+                ...imovel,
+                [field as keyof Imovel]: numericValue
+            });
+        }
+    };
+
+    const [cepLoading, setCepLoading] = useState(false);
+    const [cepData, setCepData] = useState<{ logradouro: string; bairro: string; localidade: string; uf: string; cep: string } | null>(null);
+    const [showCepConfirm, setShowCepConfirm] = useState(false);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const lastSearchedCep = useRef<string>('');
+    const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+    const originalCepBeforeTyping = useRef<string | null>(null);
+
+    const fetchWithTimeout = async (url: string, options: any = {}, timeout = 5000) => {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        } catch (error) {
+            clearTimeout(id);
+            throw error;
+        }
+    };
+
+    const handleCepChange = (value: string) => {
+        const cleanCep = value.replace(/\D/g, '').substring(0, 8);
+        
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+
+        const display = maskCep(cleanCep);
+
+        if (cleanCep.length === 1 && originalCepBeforeTyping.current === null) {
+            originalCepBeforeTyping.current = imovel?.cep || '';
+        }
+
+        setImovel(prev => prev ? { ...prev, cep: display } : null);
+        setShowCepConfirm(false);
+        setCepLoading(false);
+
+        if (cleanCep.length === 0) {
+            originalCepBeforeTyping.current = null;
+        }
+
+        if (cleanCep.length === 8 && cleanCep !== lastSearchedCep.current) {
+            setCepLoading(true);
+            debounceTimer.current = setTimeout(async () => {
+                const controller = new AbortController();
+                abortControllerRef.current = controller;
+
+                try {
+                    const res = await fetchWithTimeout(`https://viacep.com.br/ws/${cleanCep}/json/`, {
+                        signal: controller.signal
+                    }, 4000);
+                    const data = await res.json();
+                    if (!data.erro) {
+                        lastSearchedCep.current = cleanCep;
+                        setCepData({ ...data, cep: maskCep(cleanCep) });
+                        setShowCepConfirm(true);
+                    }
+                } catch (error: any) {
+                    if (error.name !== 'AbortError') console.error('Error fetching CEP:', error);
+                } finally {
+                    if (abortControllerRef.current === controller) {
+                        setCepLoading(false);
+                        abortControllerRef.current = null;
+                    }
+                }
+            }, 300);
+        } else if (cleanCep.length < 8) {
+            lastSearchedCep.current = '';
+            setCepData(null);
+        }
+    };
+
+    const applyCepData = async () => {
+        if (!cepData) return;
+        
+        const siglaViaCep = (cepData.uf || '').toUpperCase();
+        const matchedEstado = estados.find(e => e.sigla.toUpperCase() === siglaViaCep);
+        const ufValue = matchedEstado ? matchedEstado.sigla : siglaViaCep;
+        
+        const logradouro = sanitizeLocationName(cepData.logradouro || '');
+        const bairro = sanitizeLocationName(cepData.bairro || '');
+        const cidade = sanitizeLocationName(cepData.localidade || '');
+        const cepParaAplicar = maskCep(cepData.cep);
+
+        setImovel(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                logradouro,
+                cep: cepParaAplicar,
+                estado_id: undefined,
+                cidade_id: undefined,
+                bairro_id: undefined,
+                custom_fields: {
+                    ...prev.custom_fields,
+                    bairro,
+                    cidade,
+                    uf: ufValue,
+                }
+            };
+        });
+
+        setShowCepConfirm(false);
+        setCepData(null);
+        originalCepBeforeTyping.current = null;
+        await verifyLocationSequence();
+    };
+
+    const declineCep = () => {
+        // Revert to original value if stored
+        if (originalCepBeforeTyping.current !== null) {
+            const oldValue = originalCepBeforeTyping.current;
+            setImovel(prev => prev ? { ...prev, cep: oldValue } : null);
+        }
+        
+        setShowCepConfirm(false);
+        setCepData(null);
+        lastSearchedCep.current = ''; 
+        originalCepBeforeTyping.current = null;
+    };
+
+
+    const handleEnterKey = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            const target = e.target as HTMLInputElement;
+            // Permitir Enter em textareas para quebra de linha
+            if (target.tagName === 'TEXTAREA') return;
+
+            e.preventDefault();
+
+            // Formatação especial para campos de moeda ao apertar Enter
+            if (['preco_base', 'condominio', 'iptu'].includes(target.name)) {
+                const completed = completeCurrencyWithZeros(target.value, false);
+                const numericValue = parseCurrencyToNumber(completed);
+
+                if (target.name === 'preco_base') {
+                    setImovel(prev => prev ? { ...prev, preco_base: numericValue } : null);
+                } else if (target.name === 'condominio') {
+                    setImovel(prev => prev ? {
+                        ...prev,
+                        custom_fields: { ...prev.custom_fields, condominio: numericValue }
+                    } : null);
+                } else if (target.name === 'iptu') {
+                    setImovel(prev => prev ? {
+                        ...prev,
+                        custom_fields: { ...prev.custom_fields, iptu: numericValue }
+                    } : null);
+                }
+            }
+
+            // Busca o formulário ou container principal
+            const form = target.closest('main') || document.body;
+
+            // Seleciona todos os elementos focáveis
+            const focusable = Array.from(form.querySelectorAll('input, select, textarea, button'))
+                .filter(el => {
+                    const htmlEl = el as HTMLElement;
+                    // Filtra apenas elementos visíveis e habilitados
+                    return !(htmlEl as any).disabled &&
+                        htmlEl.tabIndex !== -1 &&
+                        htmlEl.offsetParent !== null &&
+                        (htmlEl.tagName !== 'BUTTON' || htmlEl.classList.contains(styles.saveBtn));
+                });
+
+            const index = focusable.indexOf(target);
+            if (index > -1 && index < focusable.length - 1) {
+                const nextEl = focusable[index + 1] as HTMLElement;
+                nextEl.focus();
+                if (nextEl instanceof HTMLInputElement || nextEl instanceof HTMLTextAreaElement) {
+                    nextEl.select();
+                }
+            }
+        }
+    };
+
+    const handleSave = async () => {
+        if (!imovel) return;
+        setSaving(true);
+        try {
+            // 1. Sequential Verification Chain
+            const success = await verifyLocationSequence();
+            if (!success) {
+                setSaving(false);
+                return;
+            }
+
+            const payload = {
+                title: imovel.nome,
+                description: imovel.descricao,
+                price: imovel.preco_base,
+                status: imovel.status,
+                custom_fields: {
+                    ...imovel.custom_fields,
+                    estado_id: resolvedIds.estadoId || imovel.estado_id,
+                    cidade_id: resolvedIds.cidadeId || imovel.cidade_id,
+                    bairro_id: resolvedIds.bairroId || imovel.bairro_id,
+                    cep: imovel.cep ? imovel.cep.replace(/\D/g, '') : '',
+                },
+                estado_id: resolvedIds.estadoId || imovel.estado_id,
+                cidade_id: resolvedIds.cidadeId || imovel.cidade_id,
+                bairro_id: resolvedIds.bairroId || imovel.bairro_id,
+                logradouro: imovel.logradouro,
+                numero: imovel.numero,
+                complemento: imovel.complemento,
+                quadra_torre_bloco: imovel.quadra_torre_bloco,
+                unidade: imovel.unidade,
+                andar: imovel.andar,
+                cep: imovel.cep ? imovel.cep.replace(/\D/g, '') : '',
+                dormitorio: imovel.dormitorios,
+                suite: imovel.suites,
+                varanda: imovel.varandas,
+                banheiro: imovel.banheiros,
+                vaga: imovel.vagas,
+                areaservico: imovel.areaservico,
+                quartoservico: imovel.quartoservico,
+                area_util: imovel.area_util,
+                area_construida: imovel.area_construida,
+                area_terreno: imovel.area_terreno,
+                cozinha: imovel.cozinha,
+                lavabo: imovel.lavabo,
+                sala: imovel.sala,
+                dimensoes_terreno: imovel.dimensoes_terreno,
+                imbtpoperacao_id: imovel.imbtpoperacao_id,
+                imbfinalidade_id: imovel.imbfinalidade_id,
+                imbtpimovel_id: imovel.imbtpimovel_id,
+                statusimovel: imovel.statusimovel
+            };
+
+            const res = await fetch(`/api/property/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                window.location.href = `/meus-imoveis?id=${id}&refresh=${Date.now()}`;
+                return;
+            }
+
+            alert(data.error || 'Erro ao atualizar imóvel');
+        } catch (error) {
+            console.error('Error saving imovel:', error);
+            alert('Erro de conexão');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const verifyLocationSequence = async (overrideImovel?: any) => {
+        const targetImovel = overrideImovel || imovel;
+        if (!targetImovel) return false;
+        try {
+            // 1. Check Estado
+            const sigla = targetImovel.custom_fields?.uf;
+            if (!sigla) return true; // Fallback or partial data
+
+            const allEstsRes = await fetchWithTimeout('/api/property/estados', {}, 3000);
+            const allEsts = await allEstsRes.json();
+            const normalizedSigla = sigla.trim().toUpperCase();
+            const matchedEst = allEsts.find((e: any) => e.sigla.trim().toUpperCase() === normalizedSigla);
+
+            if (!matchedEst) {
+                setBairroCreateLabel(sigla);
+                setActiveVerification('estado');
+                setShowBairroCreateModal(true);
+                return false;
+            }
+            const estadoId = matchedEst.id;
+            setResolvedIds(prev => ({ ...prev, estadoId }));
+
+            // 2. Check Cidade
+            const cidadeNome = targetImovel.custom_fields?.cidade;
+            if (!cidadeNome) return true;
+
+            const cidRes = await fetchWithTimeout(`/api/property/cidades?estado_id=${estadoId}`, {}, 3000);
+            const cities = await cidRes.json();
+            const normalizedCid = cidadeNome.trim().toUpperCase();
+            const matchedCid = cities.find((c: any) => c.nome.trim().toUpperCase() === normalizedCid);
+
+            if (!matchedCid) {
+                setBairroCreateLabel(cidadeNome);
+                setActiveVerification('cidade');
+                setShowBairroCreateModal(true);
+                return false;
+            }
+            const cidadeId = matchedCid.id;
+            setResolvedIds(prev => ({ ...prev, cidadeId }));
+
+            // 3. Check Bairro
+            const bairroNome = targetImovel.custom_fields?.bairro;
+            if (!bairroNome) return true;
+
+            const baiRes = await fetchWithTimeout(`/api/property/bairros?cidade_id=${cidadeId}`, {}, 3000);
+            const bairros = await baiRes.json();
+            const normalizedBai = bairroNome.trim().toUpperCase();
+            const matchedBai = bairros.find((b: any) => b.nome.trim().toUpperCase() === normalizedBai);
+
+            if (!matchedBai) {
+                setBairroCreateLabel(bairroNome);
+                setActiveVerification('bairro');
+                setShowBairroCreateModal(true);
+                return false;
+            }
+            setResolvedIds(prev => ({ ...prev, bairroId: matchedBai.id }));
+
+            return true;
+        } catch (error) {
+            console.error('Error verifying sequence:', error);
+            return false;
+        }
+    };
+
+    const handleConfirmCreateBairro = async () => {
+        setSaving(true);
+        try {
+            let res;
+            if (activeVerification === 'estado') {
+                res = await fetch('/api/property/estados', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sigla: imovel?.custom_fields?.uf, nome: imovel?.custom_fields?.uf })
+                });
+            } else if (activeVerification === 'cidade') {
+                res = await fetch('/api/property/cidades', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ descricao: imovel?.custom_fields?.cidade, estado_id: resolvedIds.estadoId })
+                });
+            } else if (activeVerification === 'bairro') {
+                res = await fetch('/api/property/bairros', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        descricao: imovel?.custom_fields?.bairro,
+                        cidade_id: resolvedIds.cidadeId,
+                        estado_id: resolvedIds.estadoId
+                    })
+                });
+            }
+
+            const data = await res?.json();
+            if (data?.success) {
+                const newId = Number(data.id);
+                if (activeVerification === 'estado') setResolvedIds(prev => ({ ...prev, estadoId: newId }));
+                else if (activeVerification === 'cidade') setResolvedIds(prev => ({ ...prev, cidadeId: newId }));
+                else if (activeVerification === 'bairro') setResolvedIds(prev => ({ ...prev, bairroId: newId }));
+
+                // Force refresh of dropdown lists
+                setLocationRefreshTrigger(prev => prev + 1);
+
+                setShowBairroCreateModal(false);
+                setActiveVerification(null);
+                // Return focus to CEP
+                const cepInput = document.getElementsByClassName(styles.cepInput)[0];
+                if (cepInput) (cepInput as HTMLElement).focus();
+                return;
+            }
+            alert(data?.error || 'Erro ao cadastrar');
+        } catch (error) {
+            console.error('Error confirming registration:', error);
+            alert('Erro de conexão');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Add effect to sync resolvedIds back to imovel if they change
+    useEffect(() => {
+        if (resolvedIds.estadoId || resolvedIds.cidadeId || resolvedIds.bairroId) {
+            setImovel(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    estado_id: resolvedIds.estadoId || prev.estado_id,
+                    cidade_id: resolvedIds.cidadeId || prev.cidade_id,
+                    bairro_id: resolvedIds.bairroId || prev.bairro_id,
+                };
+            });
+        }
+    }, [resolvedIds]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="animate-spin text-purple-600" size={48} />
+            </div>
+        );
+    }
+
+    if (!imovel) {
+        console.log('>>> ERRO: Imóvel não carregado em Editar');
+        return null;
+    }
+
+    return (
+        <main className="min-h-screen bg-gray-50 pt-48 pb-20" onKeyDown={handleEnterKey}>
+            <Header />
+            <div className={styles.container}>
+                <div className={styles.stickyHeader}>
+                    <div className={styles.header}>
+                        <button
+                            onClick={handleBack}
+                            className={styles.backBtn}
+                        >
+                            <ArrowLeft size={20} />
+                            <span>Voltar</span>
+                        </button>
+                        <div className={styles.headerActions}>
+                            <button
+                                onClick={handleSave}
+                                className={styles.saveBtn}
+                                disabled={saving}
+                            >
+                                {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                                <span>Salvar Alterações</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {showBairroCreateModal && (
+                    <div
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            background: 'rgba(15, 23, 42, 0.45)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 2000,
+                        }}
+                        onClick={() => setShowBairroCreateModal(false)}
+                    >
+                        <div
+                            style={{
+                                width: '100%',
+                                maxWidth: '520px',
+                                background: '#fff',
+                                borderRadius: '14px',
+                                padding: '20px',
+                                boxShadow: '0 18px 48px rgba(0,0,0,0.2)',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '10px' }}>
+                                {activeVerification === 'estado' && 'Estado não cadastrado'}
+                                {activeVerification === 'cidade' && 'Cidade não cadastrada'}
+                                {activeVerification === 'bairro' && 'Bairro não cadastrado'}
+                            </h3>
+                            <p style={{ color: '#334155', marginBottom: '18px' }}>
+                                O {activeVerification === 'estado' ? 'estado' : activeVerification === 'cidade' ? 'município' : 'bairro'} <strong>{bairroCreateLabel}</strong> não existe em nossa base master.
+                                Nenhum imóvel cadastrado na região. Deseja prosseguir com a inclusão?
+                            </p>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => setShowBairroCreateModal(false)}
+                                    style={{
+                                        padding: '10px 18px',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        border: '1px solid #e2e8f0',
+                                        background: '#fff',
+                                        color: '#475569',
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleConfirmCreateBairro}
+                                    disabled={saving}
+                                    style={{
+                                        padding: '10px 22px',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        background: '#4f46e5',
+                                        color: '#fff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                    }}
+                                >
+                                    {saving && <Loader2 className="animate-spin" size={16} />}
+                                    <span>Cadastrar e continuar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Loading Overlay/Modal */}
+                {saving && !showBairroCreateModal && (
+                    <div
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            background: 'rgba(255, 255, 255, 0.8)',
+                            backdropFilter: 'blur(4px)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 3000,
+                        }}
+                    >
+                        <div className="flex flex-col items-center gap-4 bg-white p-8 rounded-2xl shadow-xl border border-purple-100">
+                            <Loader2 className="animate-spin text-purple-600" size={48} />
+                            <div className="text-center">
+                                <h3 className="text-xl font-bold text-gray-900">Salvando Alterações</h3>
+                                <p className="text-gray-500">Aguarde enquanto atualizamos os dados do imóvel...</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className={styles.grid}>
+                    {/* Coluna Esquerda: Dados Principais */}
+                    <div className={styles.mainColumn}>
+                        {/* 1. Localização */}
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>
+                                <div className={styles.iconBox}><MapPin size={20} /></div>
+                                Localização
+                            </h2>
+
+                            {/* -- Endereço (full width) -- */}
+                            <div className={styles.formGroupFullWidth}>
+                                <h3 className={styles.question}>Endereço</h3>
+                                <input
+                                    type="text"
+                                    value={imovel.logradouro || ''}
+                                    onChange={(e) => setImovel({ ...imovel, logradouro: sanitizeLocationName(e.target.value, false) })}
+                                    placeholder="Rua, Avenida, Alameda..."
+                                />
+                            </div>
+
+                            {/* -- Row: Número + Complemento (inline after Endereço) -- */}
+                            <div className={styles.featGrid}>
+                                <div className={styles.formGroup}>
+                                    <h3 className={styles.question}>Número</h3>
+                                    <input
+                                        type="text"
+                                        value={imovel.numero || ''}
+                                        onChange={(e) => setImovel({ ...imovel, numero: sanitizeLocationName(e.target.value, false) })}
+                                    />
+                                </div>
+                                <div className={styles.formGroupWide}>
+                                    <h3 className={styles.question}>Complemento</h3>
+                                    <input
+                                        type="text"
+                                        value={imovel.complemento || ''}
+                                        onChange={(e) => setImovel({ ...imovel, complemento: sanitizeLocationName(e.target.value, false) })}
+                                        placeholder="Ex: APTO 123"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.featGrid}>
+                                {/* -- Unidade -- */}
+                                <div className={styles.formGroup}>
+                                    <h3 className={styles.question}>Unidade</h3>
+                                    <input
+                                        type="text"
+                                        value={imovel.unidade || ''}
+                                        onChange={(e) => setImovel({ ...imovel, unidade: sanitizeLocationName(e.target.value, false) })}
+                                        placeholder="Ex: 12B"
+                                    />
+                                </div>
+
+                                {/* -- Andar -- */}
+                                <div className={styles.formGroup}>
+                                    <h3 className={styles.question}>Andar</h3>
+                                    <input
+                                        type="text"
+                                        value={imovel.andar || ''}
+                                        onChange={(e) => setImovel({ ...imovel, andar: sanitizeLocationName(e.target.value, false) })}
+                                        placeholder="Ex: 5"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.featGrid}>
+                                {/* -- Empreendimento -- */}
+                                <div className={styles.formGroupWide}>
+                                    <h3 className={styles.question}>Empreendimento</h3>
+                                    <select
+                                        value={imovel.empreendimento || ''}
+                                        onChange={(e) => setImovel({
+                                            ...imovel,
+                                            empreendimento: parseInt(e.target.value) || undefined
+                                        })}
+                                        className={styles.select}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {empreendimentos.map(emp => (
+                                            <option key={emp.id} value={emp.id}>{emp.descricao}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* -- Quadra / Torre / Bloco -- */}
+                                <div className={`${styles.formGroup} ${styles.quadraSelect}`}>
+                                    <h3 className={styles.question}>Quadra / Torre / Bloco</h3>
+                                    <input
+                                        type="text"
+                                        value={imovel.quadra_torre_bloco || ''}
+                                        onChange={(e) => setImovel({ ...imovel, quadra_torre_bloco: sanitizeLocationName(e.target.value, false) })}
+                                        placeholder="Ex: TORRE A"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* -- Row: Estado + Cidade -- */}
+                            <div className={styles.featGrid}>
+                                {/* -- Estado (UF) -- */}
+                                <div className={`${styles.formGroup} ${styles.estadoSelect}`}>
+                                    <h3 className={styles.question}>Estado</h3>
+                                    <select
+                                        value={imovel.custom_fields.uf || ''}
+                                        onChange={(e) => setImovel({
+                                            ...imovel,
+                                            custom_fields: { ...imovel.custom_fields, uf: e.target.value }
+                                        })}
+                                        className={styles.select}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {estados.map(est => (
+                                            <option key={est.id} value={est.sigla}>{est.sigla} — {est.nome}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* -- Cidade -- */}
+                                <div className={styles.formGroupWide}>
+                                    <h3 className={styles.question}>Cidade</h3>
+                                    <select
+                                        value={imovel.custom_fields.cidade || ''}
+                                        onChange={(e) => setImovel({
+                                            ...imovel,
+                                            custom_fields: { ...imovel.custom_fields, cidade: sanitizeLocationName(e.target.value, false) }
+                                        })}
+                                        className={styles.select}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {cidades.map(cid => (
+                                            <option key={cid.id} value={cid.nome}>{cid.nome}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* -- Row: Bairro + CEP -- */}
+                            <div className={styles.featGrid}>
+                                <div className={styles.formGroupWide}>
+                                    <h3 className={styles.question}>Bairro</h3>
+                                    <select
+                                        value={imovel.custom_fields.bairro || ''}
+                                        onChange={(e) => setImovel({
+                                            ...imovel,
+                                            custom_fields: { ...imovel.custom_fields, bairro: sanitizeLocationName(e.target.value, false) }
+                                        })}
+                                        className={styles.select}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {bairros.map(b => (
+                                            <option key={b.id} value={b.nome}>{b.nome}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* -- CEP -- */}
+                                <div className={styles.formGroup}>
+                                    <h3 className={styles.question}>CEP</h3>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type="text"
+                                            className={styles.cepInput}
+                                            value={imovel.cep || ''}
+                                            onChange={(e) => handleCepChange(e.target.value)}
+                                            placeholder="00000-000"
+                                            maxLength={9}
+                                        />
+                                        {cepLoading && (
+                                            <div style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                                                <Loader2 className="animate-spin text-purple-600" size={18} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {showCepConfirm && cepData && (
+                                        <div key={`cep-confirm-${cepData.cep}`} className={styles.cepConfirmBanner}>
+                                            <div className={styles.cepConfirmText}>
+                                                <MapPin size={18} style={{marginTop: '2px'}} />
+                                                <div className={styles.cepConfirmDetails}>
+                                                    <span className={styles.cepConfirmStreet}>{(cepData.logradouro || '').split(',')[0].split('-')[0].trim().toUpperCase()}</span>
+                                                    <span className={styles.cepConfirmSub}>
+                                                        {(cepData.bairro || '').toUpperCase()}, {(cepData.localidade || '').toUpperCase()} / {(cepData.uf || '').toUpperCase()}
+                                                    </span>
+                                                    <span className={styles.cepConfirmCep}>CEP: {cepData.cep}</span>
+                                                </div>
+                                            </div>
+                                            <div className={styles.cepConfirmActions}>
+                                                <button onClick={applyCepData} className={styles.cepConfirmYes}>Atualizar campos</button>
+                                                <button onClick={declineCep} className={styles.cepConfirmNo}>Manter atual</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 2. Imóvel */}
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>
+                                <div className={styles.iconBox}><Building2 size={20} /></div>
+                                Imóvel
+                            </h2>
+                            <div className={styles.featGrid}>
+                                <div className={styles.formGroupFullWidth}>
+                                    <label>Tipo de Operação</label>
+                                    <select
+                                        value={imovel.imbtpoperacao_id || ''}
+                                        onChange={(e) => {
+                                            const id = parseInt(e.target.value);
+                                            const opObj = operacoes.find(op => op.id === id);
+                                            setImovel({
+                                                ...imovel,
+                                                imbtpoperacao_id: id || undefined,
+                                                custom_fields: { ...imovel.custom_fields, objetivo: opObj ? opObj.descricao : '' }
+                                            });
+                                        }}
+                                        className={styles.select}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {operacoes.map(op => (
+                                            <option key={op.id} value={op.id}>{op.descricao}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className={styles.featGrid}>
+                                <div className={styles.formGroupLarge}>
+                                    <label>Finalidade</label>
+                                    <select
+                                        value={imovel.imbfinalidade_id || ''}
+                                        onChange={(e) => {
+                                            const id = parseInt(e.target.value);
+                                            const cat = categories.find(c => c.id === id);
+                                            setImovel({
+                                                ...imovel,
+                                                imbfinalidade_id: id || undefined,
+                                                custom_fields: { ...imovel.custom_fields, finalidade: cat ? cat.descricao : '' }
+                                            });
+                                        }}
+                                        className={styles.select}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.descricao}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Tipo de Imóvel</label>
+                                    <select
+                                        value={imovel.imbtpimovel_id || ''}
+                                        onChange={(e) => {
+                                            const id = parseInt(e.target.value);
+                                            const typeObj = propertyTypesList.find(t => t.id === id);
+                                            setImovel({
+                                                ...imovel,
+                                                imbtpimovel_id: id || undefined,
+                                                custom_fields: { ...imovel.custom_fields, tipo_imovel: typeObj ? typeObj.descricao : '' }
+                                            });
+                                        }}
+                                        className={styles.select}
+                                        disabled={!imovel.imbfinalidade_id}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {propertyTypesList.map(tp => (
+                                            <option key={tp.id} value={tp.id}>{tp.descricao}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className={styles.formGroupFull}>
+                                    <label>Status do Imóvel</label>
+                                    <select
+                                        value={imovel.statusimovel || ''}
+                                        onChange={(e) => setImovel({
+                                            ...imovel,
+                                            statusimovel: parseInt(e.target.value) || undefined
+                                        })}
+                                        className={styles.select}
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {statuses.map(st => (
+                                            <option key={st.id} value={st.id}>{st.nome}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 3. Características */}
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>
+                                <div className={styles.iconBox}><Home size={20} /></div>
+                                Características
+                            </h2>
+                            <div className={styles.featGrid}>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Ruler size={14} /> Área Útil (m²)</label>
+                                    <input
+                                        type="text"
+                                        value={activeField === 'area_util' ? displayValue : formatCurrency(imovel.area_util, false, false, 2)}
+                                        onChange={(e) => {
+                                            const masked = maskCurrencyInput(e.target.value, false);
+                                            setDisplayValue(masked);
+                                            handleCharChange('area_util', masked);
+                                        }}
+                                        onFocus={(e) => {
+                                            setActiveField('area_util');
+                                            setDisplayValue(formatCurrency(imovel.area_util, false, false, 0));
+                                            setTimeout(() => e.target.select(), 0);
+                                        }}
+                                        onBlur={(e) => {
+                                            const completed = completeCurrencyWithZeros(e.target.value);
+                                            handleCharChange('area_util', completed);
+                                            setActiveField(null);
+                                        }}
+                                        placeholder="0,00"
+                                        className={styles.rightAlignInput}
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Ruler size={14} /> Área Const. (m²)</label>
+                                    <input
+                                        type="text"
+                                        value={activeField === 'area_construida' ? displayValue : formatCurrency(imovel.area_construida, false, false, 2)}
+                                        onChange={(e) => {
+                                            const masked = maskCurrencyInput(e.target.value, false);
+                                            setDisplayValue(masked);
+                                            handleCharChange('area_construida', masked);
+                                        }}
+                                        onFocus={(e) => {
+                                            setActiveField('area_construida');
+                                            setDisplayValue(formatCurrency(imovel.area_construida, false, false, 0));
+                                            setTimeout(() => e.target.select(), 0);
+                                        }}
+                                        onBlur={(e) => {
+                                            const completed = completeCurrencyWithZeros(e.target.value);
+                                            handleCharChange('area_construida', completed);
+                                            setActiveField(null);
+                                        }}
+                                        placeholder="0,00"
+                                        className={styles.rightAlignInput}
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Ruler size={14} /> Área Terreno (m²)</label>
+                                    <input
+                                        type="text"
+                                        value={activeField === 'area_terreno' ? displayValue : formatCurrency(imovel.area_terreno, false, false, 2)}
+                                        onChange={(e) => {
+                                            const masked = maskCurrencyInput(e.target.value, false);
+                                            setDisplayValue(masked);
+                                            handleCharChange('area_terreno', masked);
+                                        }}
+                                        onFocus={(e) => {
+                                            setActiveField('area_terreno');
+                                            setDisplayValue(formatCurrency(imovel.area_terreno, false, false, 0));
+                                            setTimeout(() => e.target.select(), 0);
+                                        }}
+                                        onBlur={(e) => {
+                                            const completed = completeCurrencyWithZeros(e.target.value);
+                                            handleCharChange('area_terreno', completed);
+                                            setActiveField(null);
+                                        }}
+                                        placeholder="0,00"
+                                        className={styles.rightAlignInput}
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Bed size={14} /> Dormitório</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.dormitorios ?? ''}
+                                        onChange={(e) => handleCharChange('dormitorios', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Bed size={14} /> Suíte</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.suites ?? ''}
+                                        onChange={(e) => handleCharChange('suites', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Bath size={14} /> Banheiro</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.banheiros ?? ''}
+                                        onChange={(e) => handleCharChange('banheiros', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Car size={14} /> Vaga</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.vagas ?? ''}
+                                        onChange={(e) => handleCharChange('vagas', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Maximize2 size={14} /> Varanda</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.varandas ?? ''}
+                                        onChange={(e) => handleCharChange('varandas', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Bed size={14} /> Quarto de Serviço</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.quartoservico ?? ''}
+                                        onChange={(e) => handleCharChange('quartoservico', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Home size={14} /> Cozinha</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.cozinha ?? 0}
+                                        onChange={(e) => handleCharChange('cozinha', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Bath size={14} /> Lavabo</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.lavabo ?? 0}
+                                        onChange={(e) => handleCharChange('lavabo', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Home size={14} /> Sala</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.sala ?? 0}
+                                        onChange={(e) => handleCharChange('sala', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupSmall}>
+                                    <label><Sparkles size={14} /> Área Serv.</label>
+                                    <input
+                                        type="number"
+                                        value={imovel.areaservico ?? 0}
+                                        onChange={(e) => handleCharChange('areaservico', e.target.value)}
+                                        placeholder="0"
+                                        className={styles.rightAlignInput}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className={styles.formGroupFullWidth}>
+                                    <label><Ruler size={14} /> Dim. Terreno</label>
+                                    <input
+                                        type="text"
+                                        value={imovel.dimensoes_terreno || ''}
+                                        onChange={(e) => setImovel(prev => prev ? ({ ...prev, dimensoes_terreno: e.target.value }) : null)}
+                                        placeholder="EX: 10 X 30"
+                                        className={styles.input}
+                                    />
+                                    <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', lineHeight: '1.2' }}>
+                                        Exemplo: TT: 8m; FR 3,95m; LE 18,11m; LD 25m; FD 4,10m
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 4. Valores */}
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>
+                                <div className={styles.iconBox}><DollarSign size={20} /></div>
+                                Valores
+                            </h2>
+                            <div className={styles.featGrid} style={{ marginBottom: '1.5rem' }}>
+                                <div className={styles.formGroup}>
+                                    <label>Preço Base ( R$ )</label>
+                                    <input
+                                        type="text"
+                                        name="preco_base"
+                                        value={activeField === 'preco_base' ? displayValue : formatCurrency(imovel.preco_base, false, false)}
+                                        className={styles.priceInput}
+                                        onChange={(e) => {
+                                            const masked = maskCurrencyInput(e.target.value, false);
+                                            setDisplayValue(masked);
+                                            setImovel({ ...imovel, preco_base: parseCurrencyToNumber(masked) });
+                                        }}
+                                        onFocus={(e) => {
+                                            setActiveField('preco_base');
+                                            const val = formatCurrency(imovel.preco_base, false, false, 0);
+                                            setDisplayValue(val);
+                                            setTimeout(() => e.target.select(), 0);
+                                        }}
+                                        onBlur={(e) => {
+                                            const completed = completeCurrencyWithZeros(e.target.value);
+                                            setImovel({ ...imovel, preco_base: parseCurrencyToNumber(completed) });
+                                            setActiveField(null);
+                                        }}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Condomínio ( R$ )</label>
+                                    <input
+                                        type="text"
+                                        name="condominio"
+                                        className={styles.rightAlignInput}
+                                        value={activeField === 'condominio' ? displayValue : formatCurrency(imovel.custom_fields.condominio || 0, false, false)}
+                                        onChange={(e) => {
+                                            const masked = maskCurrencyInput(e.target.value, false);
+                                            setDisplayValue(masked);
+                                            setImovel({
+                                                ...imovel,
+                                                custom_fields: { ...imovel.custom_fields, condominio: parseCurrencyToNumber(masked) }
+                                            });
+                                        }}
+                                        onFocus={(e) => {
+                                            setActiveField('condominio');
+                                            const val = formatCurrency(imovel.custom_fields.condominio || 0, false, false, 0);
+                                            setDisplayValue(val);
+                                            setTimeout(() => e.target.select(), 0);
+                                        }}
+                                        onBlur={(e) => {
+                                            const completed = completeCurrencyWithZeros(e.target.value);
+                                            setImovel({
+                                                ...imovel,
+                                                custom_fields: { ...imovel.custom_fields, condominio: parseCurrencyToNumber(completed) }
+                                            });
+                                            setActiveField(null);
+                                        }}
+                                        onKeyDown={(e) => handleKeyDown(e, 'iptu', true)}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>IPTUAnual ( R$ )</label>
+                                    <input
+                                        type="text"
+                                        name="iptu"
+                                        className={styles.rightAlignInput}
+                                        value={activeField === 'iptu' ? displayValue : formatCurrency(imovel.custom_fields.iptu || 0, false, false)}
+                                        onChange={(e) => {
+                                            const masked = maskCurrencyInput(e.target.value, false);
+                                            setDisplayValue(masked);
+                                            setImovel({
+                                                ...imovel,
+                                                custom_fields: { ...imovel.custom_fields, iptu: parseCurrencyToNumber(masked) }
+                                            });
+                                        }}
+                                        onFocus={(e) => {
+                                            setActiveField('iptu');
+                                            const val = formatCurrency(imovel.custom_fields.iptu || 0, false, false, 0);
+                                            setDisplayValue(val);
+                                            setTimeout(() => e.target.select(), 0);
+                                        }}
+                                        onBlur={(e) => {
+                                            const completed = completeCurrencyWithZeros(e.target.value);
+                                            setImovel({
+                                                ...imovel,
+                                                custom_fields: { ...imovel.custom_fields, iptu: parseCurrencyToNumber(completed) }
+                                            });
+                                            setActiveField(null);
+                                        }}
+                                        onKeyDown={(e) => handleKeyDown(e, 'status', true)}
+                                    />
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 5. Divulgação no site */}
+                        <section className={styles.section}>
+                            <h2 className={styles.sectionTitle}>
+                                <div className={styles.iconBox}><FileText size={20} /></div>
+                                Divulgação no site
+                            </h2>
+                            <div className={styles.featGrid}>
+                                <div className={styles.formGroup}>
+                                    <label>Status do Anúncio</label>
+                                    <select
+                                        name="status"
+                                        value={imovel.status}
+                                        className={styles.select}
+                                        onChange={(e) => setImovel({ ...imovel, status: e.target.value })}
+                                        style={{ width: '270px' }}
+                                    >
+                                        <option value="ativo">Ativo - Visível no Site</option>
+                                        <option value="pausado">Pausado - Oculto Temporariamente</option>
+                                        <option value="vendido">Vendido / Alugado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className={styles.formGroupFullWidth}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                    <label className={styles.label} style={{ margin: 0 }}>Título do Anúncio</label>
+                                    <button
+                                        className={`${styles.geminiBtn} ${aiLoading ? styles.geminiBtnLoading : ''}`}
+                                        onClick={generateAiTitle}
+                                        title="atualizar para um título sensacional"
+                                        disabled={aiLoading}
+                                        type="button"
+                                        style={{ padding: '6px', borderRadius: '50%', minWidth: '32px', height: '32px', justifyContent: 'center' }}
+                                    >
+                                        {aiLoading ? (
+                                            <Loader2 size={16} className="animate-spin" />
+                                        ) : (
+                                            <Sparkles size={16} />
+                                        )}
+                                    </button>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={imovel.nome || ''}
+                                    onChange={(e) => setImovel({ ...imovel, nome: e.target.value.toUpperCase() })}
+                                />
+                            </div>
+                            <div className={styles.formGroupFullWidth}>
+                                <label>Descrição Completa</label>
+                                <textarea
+                                    value={imovel.descricao || ''}
+                                    onChange={(e) => setImovel({ ...imovel, descricao: e.target.value })}
+                                    rows={6}
+                                />
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            <Footer />
+        </main>
+    );
+}

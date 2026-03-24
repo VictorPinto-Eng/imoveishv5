@@ -1,0 +1,494 @@
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import { query } from '@/lib/db';
+import { queryHv5 } from '@/lib/db-hv5';
+import { sanitizeLocationName } from '@/lib/sanitize-location';
+import { JWT_SECRET } from '@/lib/auth-config';
+import { recordAuditLog } from '@/lib/analytics-service';
+
+// GET: Fetch property details for editing
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const token = req.cookies.get('token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    const userId = decoded.id;
+
+    const res = await query(
+      'SELECT * FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+
+    if (res.rowCount === 0) {
+      return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão' }, { status: 404 });
+    }
+
+    // Fetch photos from new media table
+    const photosRes = await query(
+      'SELECT * FROM produtos_servicos_midia WHERE produto_servico_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
+      [id]
+    );
+
+    return NextResponse.json({ 
+        success: true, 
+        imovel: {
+            ...res.rows[0],
+            // Map singular DB to plural JSON for frontend compatibility
+            dormitorios: res.rows[0].dormitorio,
+            suites: res.rows[0].suite,
+            varandas: res.rows[0].varanda,
+            banheiros: res.rows[0].banheiro,
+            vagas: res.rows[0].vaga,
+            photos: photosRes.rows
+        } 
+    });
+
+  } catch (error) {
+    console.error('Error fetching property:', error);
+    return NextResponse.json({ error: 'Erro ao buscar dados do imóvel' }, { status: 500 });
+  }
+}
+
+// PUT: Update property details
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const token = req.cookies.get('token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    const userId = decoded.id;
+
+    // 0. Fetch OLD data for diffing
+    const oldRes = await query(
+      'SELECT nome, preco_base, status, dormitorio, suite, banheiro, vaga, area_util, logradouro, cep, sala, areaservico FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+    const oldData = oldRes.rows[0];
+    if (!oldData) {
+        return NextResponse.json({ error: 'Imóvel não encontrado' }, { status: 404 });
+    }
+
+    const body = await req.json();
+    const {
+      title, description, price, 
+      custom_fields, status,
+      logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id,
+      estado_id, cidade_id, bairro_id,
+      autoCreateBairro,
+      dormitorio, suite, varanda, banheiro, vaga,
+      areaservico, quartoservico,
+      cozinha, lavabo, sala, dimensoes_terreno,
+      area_util, area_construida, area_terreno,
+      empreendimento,
+      imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel
+    } = body;
+
+    const ufRaw = custom_fields?.uf || '';
+    const cidadeRaw = custom_fields?.cidade || '';
+    const bairroRaw = custom_fields?.bairro || '';
+
+    const ufSigla = sanitizeLocationName(String(ufRaw));
+    const cidadeNome = sanitizeLocationName(String(cidadeRaw));
+    const bairroNome = sanitizeLocationName(String(bairroRaw));
+
+    const resolveLocationIds = async () => {
+      let resolvedPaisId = Number(pais_id) || null;
+      let resolvedEstadoId = Number(estado_id) || null;
+      let resolvedCidadeId = Number(cidade_id) || null;
+      let resolvedBairroId = Number(bairro_id) || null;
+
+      console.log(`[DEBUG Location] Input IDs: EF=${resolvedEstadoId}, CID=${resolvedCidadeId}, BAI=${resolvedBairroId}`);
+      console.log(`[DEBUG Location] Input Names: UF=${ufSigla}, CID=${cidadeNome}, BAI=${bairroNome}`);
+
+      // Helper to standardise matching with accents and trim spaces
+      const fuzzyMatchSql = (col: string, idx: number) => `(TRIM(UPPER(${col})) = $${idx} OR translate(TRIM(UPPER(${col})), 'ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ', 'AAAAAEEEEIIIIOOOOOUUUUC') = $${idx})`;
+
+    // 1. Resolve Estado
+    if (!resolvedEstadoId && ufSigla) {
+      const estadoRes = await queryHv5(
+        `SELECT id, pais_id, sigla FROM hv5.apoestado WHERE ${fuzzyMatchSql('sigla', 1)}`,
+        [ufSigla]
+      );
+      if (estadoRes.rows.length > 0) {
+        resolvedEstadoId = Number(estadoRes.rows[0].id);
+        resolvedPaisId = estadoRes.rows[0].pais_id ? Number(estadoRes.rows[0].pais_id) : resolvedPaisId;
+        
+        // Auto-update master table if name is not standardized
+        if (estadoRes.rows[0].sigla !== ufSigla) {
+          console.log(`[DEBUG Location] Standardizing Estado Sigla: ${estadoRes.rows[0].sigla} -> ${ufSigla}`);
+          await queryHv5('UPDATE hv5.apoestado SET sigla = $1 WHERE id = $2', [ufSigla, resolvedEstadoId]);
+        }
+        console.log(`[DEBUG Location] Resolved Estado ID: ${resolvedEstadoId}`);
+      } else {
+        // Create Estado if not found (fallback)
+        console.log(`[DEBUG Location] Creating Estado: ${ufSigla}`);
+        const insertEstado = await queryHv5(
+          'INSERT INTO hv5.apoestado (nome, sigla, pais_id) VALUES ($1, $2, $3) RETURNING id',
+          [ufSigla, ufSigla, resolvedPaisId || 1]
+        );
+        if (insertEstado.rows.length > 0) {
+          resolvedEstadoId = Number(insertEstado.rows[0].id);
+          console.log(`[DEBUG Location] Created Estado ID: ${resolvedEstadoId}`);
+        }
+      }
+    }
+
+    // 2. Resolve Cidade
+    if (!resolvedCidadeId && cidadeNome && resolvedEstadoId) {
+      const cidadeRes = await queryHv5(
+        `SELECT id, descricao FROM hv5.apocidade WHERE estado_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
+        [resolvedEstadoId, cidadeNome]
+      );
+      if (cidadeRes.rows.length > 0) {
+        resolvedCidadeId = Number(cidadeRes.rows[0].id);
+        
+        // Auto-update master table if name is not standardized
+        if (cidadeRes.rows[0].descricao !== cidadeNome) {
+          console.log(`[DEBUG Location] Standardizing Cidade: ${cidadeRes.rows[0].descricao} -> ${cidadeNome}`);
+          await queryHv5('UPDATE hv5.apocidade SET descricao = $1 WHERE id = $2', [cidadeNome, resolvedCidadeId]);
+        }
+        console.log(`[DEBUG Location] Resolved Cidade ID: ${resolvedCidadeId}`);
+      } else {
+        // Auto-create Cidade
+        console.log(`[DEBUG Location] Creating Cidade: ${cidadeNome}`);
+        const insertCidade = await queryHv5(
+          'INSERT INTO hv5.apocidade (descricao, estado_id) VALUES ($1, $2) RETURNING id',
+          [cidadeNome, resolvedEstadoId]
+        );
+        if (insertCidade.rows.length > 0) {
+          resolvedCidadeId = Number(insertCidade.rows[0].id);
+          console.log(`[DEBUG Location] Created Cidade ID: ${resolvedCidadeId}`);
+        }
+      }
+    }
+
+    // 3. Resolve Bairro
+    if (!resolvedBairroId && bairroNome && resolvedCidadeId) {
+      const bairroRes = await queryHv5(
+        `SELECT id, descricao FROM hv5.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)} AND estado_id = $3 LIMIT 1`,
+        [resolvedCidadeId, bairroNome, resolvedEstadoId]
+      );
+
+      if (bairroRes.rows.length > 0) {
+        resolvedBairroId = Number(bairroRes.rows[0].id);
+        
+        // Auto-update master table if name is not standardized
+        if (bairroRes.rows[0].descricao !== bairroNome) {
+          console.log(`[DEBUG Location] Standardizing Bairro: ${bairroRes.rows[0].descricao} -> ${bairroNome}`);
+          await queryHv5('UPDATE hv5.apobairro SET descricao = $1 WHERE id = $2', [bairroNome, resolvedBairroId]);
+        }
+        console.log(`[DEBUG Location] Resolved Bairro ID: ${resolvedBairroId}`);
+      } else {
+        // Bairro resolution (Pure lookup)
+        const bairroRes = await queryHv5(
+          `SELECT id FROM hv5.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
+          [resolvedCidadeId, bairroNome]
+        );
+        if (bairroRes.rows.length > 0) {
+          resolvedBairroId = Number(bairroRes.rows[0].id);
+        }
+        console.log(`[DEBUG Location] Resolved Bairro ID: ${resolvedBairroId}`);
+      }
+    }
+
+    return {
+      paisId: resolvedPaisId,
+      estadoId: resolvedEstadoId,
+      cidadeId: resolvedCidadeId,
+      bairroId: resolvedBairroId,
+    };
+  };
+
+  // Parse price if it's a string from UI
+  const parsePriceBR = (val: any) => {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    const str = String(val);
+    if (str.includes(',')) {
+      return parseFloat(str.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+    }
+    return parseFloat(str.replace(/[R$\s]/g, '')) || 0;
+  };
+
+  const precoBase = parsePriceBR(price);
+  const resolvedLocation = await resolveLocationIds();
+  
+  // Sanitization of Address fields (Uppercase + Accents removal)
+  const logradouroSanitized = sanitizeLocationName(String(logradouro || ''));
+  const numeroSanitized = sanitizeLocationName(String(numero || ''));
+  const complementoSanitized = sanitizeLocationName(String(complemento || ''));
+  const quadraTorreBlocoSanitized = sanitizeLocationName(String(quadra_torre_bloco || ''));
+  const unidadeSanitized = sanitizeLocationName(String(unidade || ''));
+  const andarSanitized = sanitizeLocationName(String(andar || ''));
+
+    // Build clean custom_fields (only fields that DON'T have a top-level column)
+    const normalizedCustomFields = {
+      ...(custom_fields || {}),
+    };
+
+    // Remove fields that already have columns
+    const columnsWithDedicatedStorage = [
+      'dormitorio', 'suite', 'varanda', 'banheiro', 'vaga',
+      'areaservico', 'quartoservico', 'cozinha', 'lavabo', 'sala', 'dimensoes_terreno',
+      'area_util', 'area_construida', 'area_terreno',
+      'logradouro', 'numero', 'complemento', 'quadra_torre_bloco', 'unidade', 'andar', 'cep',
+      'pais_id', 'estado_id', 'cidade_id', 'bairro_id',
+      'imbtpoperacao_id', 'imbfinalidade_id', 'imbtpimovel_id', 'statusimovel',
+      'status', 'area_total'
+    ];
+
+    columnsWithDedicatedStorage.forEach(key => delete normalizedCustomFields[key]);
+
+    // Add back the names for easy display (as requested by previous code logic)
+    normalizedCustomFields.uf = ufSigla;
+    normalizedCustomFields.cidade = cidadeNome;
+    normalizedCustomFields.bairro = bairroNome;
+    normalizedCustomFields.tipo_imovel = body.type;
+    normalizedCustomFields.finalidade = body.finalidade;
+
+    // Update query
+    const updateRes = await query(`
+      UPDATE produtos_servicos 
+      SET 
+        nome = $1, 
+        descricao = $2, 
+        preco_base = $3, 
+        custom_fields = $4,
+        status = $5,
+        logradouro = $6,
+        numero = $7,
+        complemento = $8,
+        quadra_torre_bloco = $9,
+        unidade = $10,
+        andar = $11,
+        cep = $12,
+        pais_id = $13,
+        estado_id = $14,
+        cidade_id = $15,
+        bairro_id = $16,
+        dormitorio = $17, 
+        suite = $18, 
+        varanda = $19, 
+        banheiro = $20, 
+        vaga = $21,
+        areaservico = $22,
+        quartoservico = $23,
+        cozinha = $24,
+        lavabo = $25,
+        area_util = $26,
+        area_construida = $27,
+        area_terreno = $28,
+        imbtpoperacao_id = $29,
+        imbempreendimento_id = $30,
+        imbfinalidade_id = $33,
+        imbtpimovel_id = $34,
+        statusimovel = $35,
+        sala = $36,
+        dimensoes_terreno = $37,
+        updated_at = NOW(),
+        updated_by = $31
+      WHERE id = $32 AND user_id = $31
+      RETURNING id
+    `, [
+      title, 
+      description, 
+      precoBase, 
+      JSON.stringify(normalizedCustomFields), 
+      status || 'ativo',
+      logradouroSanitized || null,
+      numeroSanitized || null,
+      complementoSanitized || null,
+      quadraTorreBlocoSanitized || null,
+      unidadeSanitized || null,
+      andarSanitized || null,
+      cep || null,
+      resolvedLocation.paisId,
+      resolvedLocation.estadoId,
+      resolvedLocation.cidadeId,
+      resolvedLocation.bairroId,
+      dormitorio || 0,
+      suite || 0,
+      varanda || 0,
+      banheiro || 0,
+      vaga || 0,
+      areaservico || 0,
+      quartoservico || 0,
+      cozinha || 0,
+      lavabo || 0,
+      area_util || 0,
+      area_construida || 0,
+      area_terreno || 0,
+      imbtpoperacao_id || null,
+      empreendimento || null,
+      userId,
+      id,
+      imbfinalidade_id || null,
+      imbtpimovel_id || null,
+      statusimovel || null,
+      sala || 0,
+      dimensoes_terreno || null
+    ]);
+
+  if (updateRes.rowCount === 0) {
+    return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão para editar' }, { status: 404 });
+  }
+
+  // 2. Generate Diff
+  const changes: Record<string, { old: any, new: any }> = {};
+  const fieldsToCompare = {
+      nome: title,
+      preco_base: precoBase,
+      status: status || 'ativo',
+      dormitorio: dormitorio || 0,
+      suite: suite || 0,
+      banheiro: banheiro || 0,
+      vaga: vaga || 0,
+      varanda: varanda || 0,
+      area_util: area_util || 0,
+      area_construida: area_construida || 0,
+      area_terreno: area_terreno || 0,
+      logradouro: logradouroSanitized || null,
+      cep: cep || null,
+      sala: sala || 0,
+      areaservico: areaservico || 0
+  };
+
+  const fieldLabels: Record<string, string> = {
+      nome: 'Título',
+      preco_base: 'Preço',
+      status: 'Status',
+      dormitorio: 'Dormitório',
+      suite: 'Suíte',
+      banheiro: 'Banheiro',
+      vaga: 'Vaga',
+      varanda: 'Varanda',
+      area_util: 'Área Útil',
+      area_construida: 'Área Const.',
+      area_terreno: 'Área Terreno',
+      logradouro: 'Endereço',
+      cep: 'CEP',
+      sala: 'Sala',
+      areaservico: 'Área de Serviço'
+  };
+
+  for (const [key, newValue] of Object.entries(fieldsToCompare)) {
+      const oldValue = oldData[key];
+      
+      let isDifferent = false;
+      const numericFields = ['preco_base', 'dormitorio', 'suite', 'banheiro', 'vaga', 'varanda', 'area_util', 'area_construida', 'area_terreno', 'sala', 'areaservico'];
+      
+      if (numericFields.includes(key)) {
+          isDifferent = Number(oldValue || 0) !== Number(newValue || 0);
+      } else {
+          isDifferent = String(oldValue || '').trim() !== String(newValue || '').trim();
+      }
+
+      if (isDifferent) {
+          changes[fieldLabels[key] || key] = { 
+            old: (oldValue === null || oldValue === undefined) ? 'vazio' : oldValue, 
+            new: (newValue === null || newValue === undefined) ? 'vazio' : newValue 
+          };
+      }
+  }
+
+  // 3. Log the update activity
+  await recordAuditLog(Number(id), userId, 'ATUALIZACAO', {
+      title,
+      status: status || 'ativo',
+      changes: Object.keys(changes).length > 0 ? changes : undefined
+  });
+
+  return NextResponse.json({ success: true, message: 'Imóvel atualizado com sucesso' });
+
+  } catch (error: any) {
+    console.error('Error updating property:', error);
+    return NextResponse.json({ error: 'Erro ao atualizar imóvel' }, { status: 500 });
+  }
+}
+
+// DELETE: Remove property and its media
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const token = req.cookies.get('token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    const userId = decoded.id;
+
+    // 1. Verify ownership and existence
+    const res = await query(
+      'SELECT id, nome FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+
+    if (res.rowCount === 0) {
+      return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão para excluir' }, { status: 404 });
+    }
+
+    // 2. Clear photos from filesystem
+    try {
+        const photosRes = await query('SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = $1', [id]);
+        const { join } = require('path');
+        const { unlink, rm } = require('fs/promises');
+        
+        // Delete each photo file
+        for (const photo of photosRes.rows) {
+            const filename = photo.url_referencia.split('/').pop();
+            const filePath = join(process.cwd(), 'public', 'uploads', 'imoveis', id, filename);
+            try {
+                await unlink(filePath);
+            } catch (e) {
+                console.error(`Error deleting file ${filePath}:`, e);
+            }
+        }
+        
+        // Delete the entire directory for this property's uploads
+        const propertyUploadDir = join(process.cwd(), 'public', 'uploads', 'imoveis', id);
+        try {
+            await rm(propertyUploadDir, { recursive: true, force: true });
+        } catch (e) {
+            console.error(`Error removing dir ${propertyUploadDir}:`, e);
+        }
+    } catch (fsError) {
+        console.error('Error clearing files during property delete:', fsError);
+        // Continue with DB deletion even if FS cleanup fails
+    }
+
+    // 3. Delete from DB
+    await query('DELETE FROM produtos_servicos_midia WHERE produto_servico_id = $1', [id]);
+    await query('DELETE FROM produtos_servicos WHERE id = $1 AND user_id = $2', [id, userId]);
+
+    // 4. Log the deletion
+    await recordAuditLog(Number(id), userId, 'EXCLUSAO', {
+        title: res.rows[0].nome
+    });
+
+    return NextResponse.json({ success: true, message: 'Imóvel excluído com sucesso' });
+
+  } catch (error: any) {
+    console.error('Error deleting property:', error);
+    return NextResponse.json({ error: 'Erro ao excluir imóvel' }, { status: 500 });
+  }
+}

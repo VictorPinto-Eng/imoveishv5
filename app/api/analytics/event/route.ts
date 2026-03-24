@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { recordAnalyticsEvent, AnalyticsEventName } from '@/lib/analytics-service';
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { 
+      produto_servico_id, event_name, session_id, visitor_id, 
+      event_category, page_url, referrer,
+      utm_source, utm_medium, utm_campaign,
+      device_type, browser, os, payload 
+    } = body;
+
+    if (!produto_servico_id || !event_name) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Extract additional info from headers
+    const userAgent = req.headers.get('user-agent') || '';
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || '';
+    
+    // Simple heuristic for device/browser if not provided by front-end
+    const detectedDevice = device_type || (userAgent.includes('Mobi') ? 'mobile' : 'desktop');
+    
+    const result = await recordAnalyticsEvent({
+      produto_servico_id: Number(produto_servico_id),
+      event_name: event_name as AnalyticsEventName,
+      session_id,
+      visitor_id,
+      event_category,
+      page_url,
+      referrer,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      device_type: detectedDevice,
+      browser,
+      os,
+      ip_address: ip,
+      payload
+    });
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+
+  } catch (error: any) {
+    console.error('API Error in /api/analytics/event:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

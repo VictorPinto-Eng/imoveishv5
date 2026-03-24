@@ -1,0 +1,175 @@
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.header {
+    height: 4.5rem;
+    padding: 0 1.5rem;
+    background: #2d455d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.closeBtn {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.35rem;
+    font-weight: 500;
+}
+
+.saveBtn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    background: white;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.previewContainer {
+    width: 100%;
+    max-width: 600px;
+    height: 350px;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.image {
+    object-fit: cover;
+}
+
+.form {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.inputRow {
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.inputField {
+    border: none;
+    outline: none;
+    font-size: 1.125rem;
+    color: #1e293b;
+    width: 100%;
+    background: transparent;
+    padding: 0.25rem 0;
+}
+
+.inputField::placeholder {
+    color: #94a3b8;
+}
+
+.selectGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.selectLabel {
+    font-size: 1.125rem;
+    color: #1e293b;
+}
+
+.selectField {
+    border: none;
+    outline: none;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+}
+
+.toggleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 1.5rem;
+}
+
+.toggleLabel {
+    font-size: 1.125rem;
+    color: #1e293b;
+}
+
+.toggle {
+    width: 3.2rem;
+    height: 1.6rem;
+    background: #cbd5e1;
+    border-radius: 1rem;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggleActive {
+    background: #118B8A;
+}
+
+.toggleThumb {
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggleActive .toggleThumb {
+    left: calc(100% - 1.45rem);
+}

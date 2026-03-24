@@ -1,0 +1,228 @@
+
+.manager {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.emptyContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 40vh;
+    width: 100%;
+}
+
+.dropzoneEmpty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 3rem 4rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s;
+    min-width: 320px;
+}
+
+.dropzoneEmpty:hover {
+    border-color: #118B8A;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 25px 30px -5px rgba(0, 0, 0, 0.03);
+}
+
+.dropzoneTextEmpty {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #118B8A;
+    text-align: center;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.dropzone {
+    aspect-ratio: 1;
+    border: 2px dashed #118B8A;
+    border-radius: 1rem;
+    background-color: #F4FBFB;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 1rem;
+    text-align: center;
+}
+
+.dropzone:hover {
+    background-color: #EAF7F7;
+    border-style: solid;
+}
+
+.iconCircle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #118B8A;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropzoneText {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #118B8A;
+    line-height: 1.2;
+}
+
+.photoCard {
+    aspect-ratio: 1;
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    background-color: #f8fafc;
+}
+
+.photoCard:hover .overlay {
+    opacity: 1;
+}
+
+.principal {
+    border: 2px solid #fbbf24;
+}
+
+.image {
+    object-fit: cover;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.overlayAlways {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    opacity: 1;
+}
+
+.photoCard:hover .overlayAlways {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.moveIconContainer {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.bottomButtons {
+    display: flex;
+    width: 100%;
+    height: 48px;
+}
+
+.bottomBtn {
+    flex: 1;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.btnCapaActive {
+    background: #118B8A;
+    color: white;
+}
+
+.btnCapaInactive {
+    background: rgba(0, 0, 0, 0.5);
+    color: #94a3b8;
+}
+
+.btnCapaInactive:hover {
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.deleteContainer {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.deleteBtn {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0.4rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.deleteBtn:hover {
+    background: #e11d48;
+}
+
+.badgePrincipal {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: #fbbf24;
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 800;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+}
+
+.photoLegenda {
+    color: white;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 480px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

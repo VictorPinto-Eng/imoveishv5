@@ -1,0 +1,411 @@
+.header {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 10000; /* Increased from 9999 to guarantee front-most position */
+    border-bottom: 2px solid rgba(226, 232, 240, 0.5);
+    font-family: var(--font-menu);
+    /* overflow: hidden removed to allow dropdowns to be visible */
+}
+
+.inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 5.7rem; /* Reduced by another 10% from original max */
+    position: relative;
+    z-index: 51;
+    /* Keep header content above backdrop */
+    background-color: white;
+    /* Ensure header background covers backdrop */
+}
+
+.logoContainer {
+    display: flex;
+    align-items: center;
+}
+
+.logoLink {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    height: 100%; /* Constrain to .inner height */
+}
+
+.logoTextContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1;
+}
+
+.logoText {
+    font-size: 1.5rem;
+    /* Increased from 1.125rem to be closer to original 1.75rem while fitting 2 lines */
+    font-weight: 700;
+    color: #334155;
+    letter-spacing: -0.025em;
+}
+
+.logoImage {
+    object-fit: contain;
+    max-height: 100%;
+}
+
+.desktopNav {
+    display: none;
+    align-items: center;
+    gap: 2rem;
+}
+
+.navLink {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #334155;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.navLink:hover {
+    color: var(--primary);
+}
+
+.actions {
+    display: none;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.loginLink {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #334155;
+    transition: color 0.2s;
+}
+
+.loginLink:hover {
+    color: var(--primary);
+}
+
+
+.loginButtonPill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    background-color: #f1f5f9;
+    color: var(--primary);
+    /* Green text */
+    border: 1px solid transparent;
+    border-radius: 9999px;
+    /* Pill shape */
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.loginButtonPill:hover {
+    background-color: #e2e8f0;
+    border-color: #cbd5e1;
+}
+
+.registerButtonPill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    background-color: #7F34E6;
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(127, 52, 230, 0.2);
+    text-decoration: none;
+}
+
+.registerButtonPill:hover {
+    background-color: #6d28d9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px -1px rgba(127, 52, 230, 0.3);
+}
+
+.headerNavButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #334155;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.headerNavButton:hover {
+    background-color: #f1f5f9;
+    color: #7F34E6;
+}
+
+.menuButton {
+    display: flex;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #334155;
+    padding: 0.5rem;
+}
+
+/* Mobile Menu Dropdown */
+.mobileMenu {
+    position: fixed;
+    top: 5.7rem;
+    /* Height of the header */
+    left: 0;
+    width: 100%;
+    background-color: white;
+    z-index: 10001; /* Must be higher than header */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+.mobileMenu.open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobileMenuHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    height: 5rem;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #334155;
+}
+
+.mobileNav {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1rem;
+}
+
+.mobileNavLink {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #334155;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mobileNavLink:last-of-type {
+    border-bottom: none;
+}
+
+.mobileLoginContainer {
+    margin-top: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 1.5rem;
+}
+
+.mobileLoginText {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+    text-align: left;
+    line-height: 1.5;
+}
+
+.mobileCta {
+    width: 100%;
+    text-align: center;
+    border-radius: 9999px;
+    /* Pill shape for mobile too */
+}
+
+.backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (min-width: 1024px) {
+    .desktopNav {
+        display: flex;
+    }
+
+    .desktopActions {
+        display: flex;
+    }
+
+    .menuButton {
+        display: none;
+    }
+
+    .mobileMenu {
+        display: none;
+    }
+}
+
+/* User Profile & Menu Styles */
+.userMenuContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profilePill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.profilePill:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #7F34E6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    overflow: hidden;
+}
+
+.avatarImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.userName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    width: 240px;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdownItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #475569;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdownItem:hover {
+    background-color: #f8fafc;
+    color: #7F34E6;
+}
+
+.dropdownDivider {
+    height: 1px;
+    background-color: #f1f5f9;
+    margin: 0.5rem 0;
+}
+
+.logoutItem {
+    color: #ef4444;
+}
+
+.logoutItem:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+}

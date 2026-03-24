@@ -1,0 +1,609 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stickyHeader {
+    position: sticky;
+    top: 5.7rem;
+    z-index: 9000;
+    background-color: #f8fafc;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.backBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: #64748b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.backBtn:hover {
+    color: #1e293b;
+}
+
+.saveBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #7F34E6;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(127, 52, 230, 0.2);
+}
+
+.saveBtn:hover {
+    background-color: #6d28d9;
+    transform: translateY(-2px);
+}
+
+.saveBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+}
+
+.section {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+    margin-bottom: 2rem;
+}
+
+.sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+}
+
+.iconBox {
+    width: 36px;
+    height: 36px;
+    background-color: #f5f3ff;
+    color: #7F34E6;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.question {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0 !important; /* Reset margin for equalization */
+}
+
+.subQuestion {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 160px; /* Reduzido de 200px */
+}
+
+.formGroupLarge {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 120px; /* Ajustado para 120px a pedido do usuário */
+}
+
+.formGroupFull {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 100%; /* Força quebra de linha */
+}
+
+.formGroupWide {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 344px; /* Reduzido de 424px (160 + 160 + 24 gap) */
+}
+
+.formGroupTitle {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 100%;
+}
+
+.formGroupTitle input {
+    width: 350px !important;
+}
+
+.formGroupFullWidth {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 100%;
+}
+
+.formGroupFullWidth input,
+.formGroupFullWidth textarea {
+    width: 100% !important;
+}
+
+/* Garante que o select dentro do Full não seja 100% */
+.formGroupFull select,
+.formGroupFull input {
+    width: 200px !important; /* Reduzido de 240px */
+}
+
+.formGroupSmall {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+    width: 140px;
+}
+
+.formGroup label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.formGroupSmall label {
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+/* === Inputs (sem seta) === */
+.formGroup input,
+.formGroup textarea,
+.formGroupLarge input,
+.formGroupFull input,
+.formGroupWide input,
+.formGroupFullWidth input,
+.formGroupFullWidth textarea,
+.formGroupSmall input,
+.formGroupTitle input {
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9rem !important;
+    color: #1e293b;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: #f8fafc;
+    width: 100%;
+    appearance: none;
+    background-image: none;
+}
+
+/* === Selects (com seta) === */
+.formGroup select,
+.formGroupLarge select,
+.formGroupFull select,
+.formGroupWide select,
+.formGroupFullWidth select,
+.formGroupSmall select {
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9rem !important;
+    color: #1e293b;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: #f8fafc;
+    width: 100%;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    cursor: pointer;
+}
+
+.cepInput {
+    width: 130px !important;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus,
+.formGroup select:focus,
+.formGroupLarge select:focus,
+.formGroupFull select:focus,
+.formGroupTitle input:focus {
+    border-color: #7F34E6;
+    background-color: white;
+}
+
+.featGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.formGroupSmall {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+    width: 140px; /* Tamanho reduzido como solicitado */
+}
+
+.formGroupSmall label {
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.formGroupSmall input {
+    width: 100%;
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.85rem !important;
+}
+
+.checkboxGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.inputWithSideAction {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.checkboxGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.checkboxLabel:hover {
+    color: #7F34E6;
+}
+
+.checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #7F34E6;
+    cursor: pointer;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.checkboxLabel:hover {
+    background-color: #f1f5f9;
+    border-color: #7F34E6;
+}
+
+.checkboxLabel input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #7F34E6;
+    cursor: pointer;
+}
+
+.priceInput {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: #7F34E6 !important;
+    text-align: right;
+}
+
+.rightAlignInput {
+    text-align: right;
+}
+
+.photoGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.photoThumb {
+    aspect-ratio: 1;
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #f1f5f9;
+}
+
+.infoText {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+.footerContent p {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.geminiBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white !important;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.geminiBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+}
+
+.geminiBtn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.geminiBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.geminiBtnLoading {
+    position: relative;
+    overflow: hidden;
+}
+
+.geminiBtnLoading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+    100% {
+        left: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .section {
+        padding: 1.5rem;
+    }
+
+    .featGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .headerActions {
+        width: 100%;
+    }
+
+    .saveBtn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .photoGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sectionTitle {
+        font-size: 1.125rem;
+    }
+}
+
+/* CEP field – fixed 130px */
+.cepInput {
+    width: 130px !important;
+    max-width: 130px !important;
+}
+
+/* CEP Confirmation Banner */
+.cepConfirmBanner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    padding: 0.8rem 1rem;
+    background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+    border: 1px solid #c4b5fd;
+    border-radius: 0.75rem;
+    animation: cepFadeIn 0.2s ease;
+    min-width: 280px;
+}
+
+@keyframes cepFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.cepConfirmText {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: #5b21b6;
+}
+
+.cepConfirmDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cepConfirmStreet {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.2;
+}
+
+.cepConfirmSub {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.cepConfirmCep {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 1px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.cepConfirmText strong {
+    font-weight: 700;
+}
+
+.cepConfirmActions {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.cepConfirmYes {
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.5rem;
+    border: none;
+    background: #7F34E6;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.cepConfirmYes:hover { background: #6d28d9; }
+
+.cepConfirmNo {
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.5rem;
+    border: 1px solid #c4b5fd;
+    background: #fff;
+    color: #7c3aed;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.cepConfirmNo:hover { background: #f5f3ff; }
+
+/* Estado group – fixed 270px */
+.estadoSelect {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 270px !important;
+    min-width: 270px;
+}
+
+/* Quadra / Torre / Bloco group – fixed 250px */
+.quadraSelect {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    width: 250px !important;
+    min-width: 250px;
+}
