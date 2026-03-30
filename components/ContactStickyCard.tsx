@@ -13,6 +13,7 @@ interface ContactStickyCardProps {
     propertyName: string;
     propertyLocation: string;
     propertyId: string;
+    pub_price?: boolean;
 }
 
 export default function ContactStickyCard({ 
@@ -21,7 +22,9 @@ export default function ContactStickyCard({
     iptu, 
     propertyName,
     propertyLocation,
-    propertyId
+    propertyId,
+    pub_price = true,
+    isRental = false
 }: ContactStickyCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -29,7 +32,21 @@ export default function ContactStickyCard({
         <div className={styles.stickyContainer}>
             <div className={styles.card}>
                 <div className={styles.priceSection}>
-                    <span className={styles.priceValue}>{price}</span>
+                    <span 
+                        className={`${styles.priceValue} ${pub_price === false ? styles.priceValueMasked : ''}`}
+                        style={pub_price === false ? {
+                            textAlign: 'center',
+                            width: '100%',
+                            display: 'block',
+                            color: '#c52222',
+                            fontSize: '1.5rem',
+                            fontWeight: 800,
+                            textTransform: 'uppercase',
+                            marginBottom: '1rem'
+                        } : {}}
+                    >
+                        {pub_price === false ? 'CONSULTAR PREÇO' : price}
+                    </span>
                     
                     {(condominium || iptu) && (
                         <div className={styles.extraCosts}>
@@ -78,6 +95,7 @@ export default function ContactStickyCard({
                 onClose={() => setIsModalOpen(false)}
                 propertyTitle={propertyName}
                 propertyLocation={propertyLocation}
+                isRental={isRental}
             />
         </div>
     );

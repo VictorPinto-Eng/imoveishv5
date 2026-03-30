@@ -47,6 +47,11 @@ export async function GET(
             varandas: res.rows[0].varanda,
             banheiros: res.rows[0].banheiro,
             vagas: res.rows[0].vaga,
+            latitude: res.rows[0].latitude || null,
+            longitude: res.rows[0].longitude || null,
+            plus_code: res.rows[0].plus_code || '',
+            pub_site: res.rows[0].pub_site,
+            pub_price: res.rows[0].pub_price,
             photos: photosRes.rows
         } 
     });
@@ -73,9 +78,9 @@ export async function PUT(
     const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
     const userId = decoded.id;
 
-    // 0. Fetch OLD data for diffing
+    // 0. Fetch OLD data for diffing and partial update fallback
     const oldRes = await query(
-      'SELECT nome, preco_base, status, dormitorio, suite, banheiro, vaga, area_util, logradouro, cep, sala, areaservico FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+      'SELECT * FROM produtos_servicos WHERE id = $1 AND user_id = $2',
       [id, userId]
     );
     const oldData = oldRes.rows[0];
@@ -84,23 +89,61 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const {
-      title, description, price, 
-      custom_fields, status,
-      logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id,
-      estado_id, cidade_id, bairro_id,
-      autoCreateBairro,
-      dormitorio, suite, varanda, banheiro, vaga,
-      areaservico, quartoservico,
-      cozinha, lavabo, sala, dimensoes_terreno,
-      area_util, area_construida, area_terreno,
-      empreendimento,
-      imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel
-    } = body;
+    
+    // Partial update support: merge body with oldData
+    const title = body.title !== undefined ? body.title : (body.nome !== undefined ? body.nome : oldData.nome);
+    const description = body.description !== undefined ? body.description : (body.descricao !== undefined ? body.descricao : oldData.descricao);
+    const price = body.price !== undefined ? body.price : (body.preco_base !== undefined ? body.preco_base : oldData.preco_base);
+    const status = body.status !== undefined ? body.status : oldData.status;
+    const custom_fields_req = body.custom_fields !== undefined ? body.custom_fields : oldData.custom_fields;
+    
+    // Geographical fields
+    const logradouro = body.logradouro !== undefined ? body.logradouro : oldData.logradouro;
+    const numero = body.numero !== undefined ? body.numero : oldData.numero;
+    const complemento = body.complemento !== undefined ? body.complemento : oldData.complemento;
+    const quadra_torre_bloco = body.quadra_torre_bloco !== undefined ? body.quadra_torre_bloco : oldData.quadra_torre_bloco;
+    const unidade = body.unidade !== undefined ? body.unidade : oldData.unidade;
+    const andar = body.andar !== undefined ? body.andar : oldData.andar;
+    const cep = body.cep !== undefined ? body.cep : oldData.cep;
+    
+    const pais_id = body.pais_id !== undefined ? body.pais_id : oldData.pais_id;
+    const estado_id = body.estado_id !== undefined ? body.estado_id : oldData.estado_id;
+    const cidade_id = body.cidade_id !== undefined ? body.cidade_id : oldData.cidade_id;
+    const bairro_id = body.bairro_id !== undefined ? body.bairro_id : oldData.bairro_id;
 
-    const ufRaw = custom_fields?.uf || '';
-    const cidadeRaw = custom_fields?.cidade || '';
-    const bairroRaw = custom_fields?.bairro || '';
+    // Characteristics
+    const dormitorio = body.dormitorio !== undefined ? body.dormitorio : oldData.dormitorio;
+    const suite = body.suite !== undefined ? body.suite : oldData.suite;
+    const varanda = body.varanda !== undefined ? body.varanda : oldData.varanda;
+    const banheiro = body.banheiro !== undefined ? body.banheiro : oldData.banheiro;
+    const vaga = body.vaga !== undefined ? body.vaga : oldData.vaga;
+    const areaservico = body.areaservico !== undefined ? body.areaservico : oldData.areaservico;
+    const quartoservico = body.quartoservico !== undefined ? body.quartoservico : oldData.quartoservico;
+    const cozinha = body.cozinha !== undefined ? body.cozinha : oldData.cozinha;
+    const lavabo = body.lavabo !== undefined ? body.lavabo : oldData.lavabo;
+    const sala = body.sala !== undefined ? body.sala : oldData.sala;
+    
+    const area_util = body.area_util !== undefined ? body.area_util : oldData.area_util;
+    const area_construida = body.area_construida !== undefined ? body.area_construida : oldData.area_construida;
+    const area_terreno = body.area_terreno !== undefined ? body.area_terreno : oldData.area_terreno;
+    const dimensoes_terreno = body.dimensoes_terreno !== undefined ? body.dimensoes_terreno : oldData.dimensoes_terreno;
+    
+    const empreendimento = body.empreendimento !== undefined ? body.empreendimento : oldData.imbempreendimento_id;
+    const pub_site = body.pub_site !== undefined ? body.pub_site : oldData.pub_site;
+    const pub_price = body.pub_price !== undefined ? body.pub_price : oldData.pub_price;
+    
+    const latitude = body.latitude !== undefined ? body.latitude : oldData.latitude;
+    const longitude = body.longitude !== undefined ? body.longitude : oldData.longitude;
+    const plus_code = body.plus_code !== undefined ? body.plus_code : oldData.plus_code;
+    
+    const imbtpoperacao_id = body.imbtpoperacao_id !== undefined ? body.imbtpoperacao_id : oldData.imbtpoperacao_id;
+    const imbfinalidade_id = body.imbfinalidade_id !== undefined ? body.imbfinalidade_id : oldData.imbfinalidade_id;
+    const imbtpimovel_id = body.imbtpimovel_id !== undefined ? body.imbtpimovel_id : oldData.imbtpimovel_id;
+    const statusimovel = body.statusimovel !== undefined ? body.statusimovel : oldData.statusimovel;
+
+    const ufRaw = custom_fields_req?.uf || '';
+    const cidadeRaw = custom_fields_req?.cidade || '';
+    const bairroRaw = custom_fields_req?.bairro || '';
 
     const ufSigla = sanitizeLocationName(String(ufRaw));
     const cidadeNome = sanitizeLocationName(String(cidadeRaw));
@@ -238,7 +281,7 @@ export async function PUT(
 
     // Build clean custom_fields (only fields that DON'T have a top-level column)
     const normalizedCustomFields = {
-      ...(custom_fields || {}),
+      ...(custom_fields_req || {}),
     };
 
     // Remove fields that already have columns
@@ -249,7 +292,8 @@ export async function PUT(
       'logradouro', 'numero', 'complemento', 'quadra_torre_bloco', 'unidade', 'andar', 'cep',
       'pais_id', 'estado_id', 'cidade_id', 'bairro_id',
       'imbtpoperacao_id', 'imbfinalidade_id', 'imbtpimovel_id', 'statusimovel',
-      'status', 'area_total'
+      'status', 'area_total', 'latitude', 'longitude', 'plus_code',
+      'pub_site', 'pub_price'
     ];
 
     columnsWithDedicatedStorage.forEach(key => delete normalizedCustomFields[key]);
@@ -295,18 +339,24 @@ export async function PUT(
         area_terreno = $28,
         imbtpoperacao_id = $29,
         imbempreendimento_id = $30,
-        imbfinalidade_id = $33,
-        imbtpimovel_id = $34,
-        statusimovel = $35,
-        sala = $36,
-        dimensoes_terreno = $37,
+        imbfinalidade_id = $31,
+        imbtpimovel_id = $32,
+        statusimovel = $33,
+        sala = $34,
+        dimensoes_terreno = $35,
+        latitude = $36,
+        longitude = $37,
+        plus_code = $38,
+        pub_site = $39,
+        pub_price = $40,
         updated_at = NOW(),
-        updated_by = $31
-      WHERE id = $32 AND user_id = $31
+        updated_by = $41,
+        organization_id = COALESCE(organization_id, '1')
+      WHERE id = $42 AND user_id = $43
       RETURNING id
     `, [
-      title, 
-      description, 
+      title || oldData.nome || 'Imóvel sem título', 
+      description || '', 
       precoBase, 
       JSON.stringify(normalizedCustomFields), 
       status || 'ativo',
@@ -335,13 +385,19 @@ export async function PUT(
       area_terreno || 0,
       imbtpoperacao_id || null,
       empreendimento || null,
-      userId,
-      id,
       imbfinalidade_id || null,
       imbtpimovel_id || null,
       statusimovel || null,
       sala || 0,
-      dimensoes_terreno || null
+      dimensoes_terreno || null,
+      latitude || null,
+      longitude || null,
+      plus_code || '',
+      pub_site ?? true,
+      pub_price ?? true,
+      userId,
+      id,
+      userId
     ]);
 
   if (updateRes.rowCount === 0) {

@@ -48,6 +48,34 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         loadPhotos();
     }, [imovelId]);
 
+    const convertToWebP = (file: File): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    reject(new Error('Failed to get canvas context'));
+                    return;
+                }
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob((blob) => {
+                    URL.revokeObjectURL(url);
+                    if (blob) resolve(blob);
+                    else reject(new Error('Failed to convert to WebP'));
+                }, 'image/webp', 0.85); // 0.85 quality is a good balance
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Failed to load image'));
+            };
+            img.src = url;
+        });
+    };
+
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (isUploadingRef.current) return;
         
@@ -62,8 +90,23 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         setUploading(true);
         try {
             for (let i = 0; i < fileArray.length; i++) {
+                const originalFile = fileArray[i];
+                let fileToUpload: File | Blob = originalFile;
+                let fileName = originalFile.name;
+
+                // Only convert if it's an image and not already WebP (optional check)
+                if (originalFile.type.startsWith('image/')) {
+                    try {
+                        fileToUpload = await convertToWebP(originalFile);
+                        // Change extension to .webp
+                        fileName = originalFile.name.replace(/\.[^/.]+$/, "") + ".webp";
+                    } catch (err) {
+                        console.warn('Failed to convert to WebP, uploading original:', err);
+                    }
+                }
+
                 const formData = new FormData();
-                formData.append('file', fileArray[i]);
+                formData.append('file', fileToUpload, fileName);
 
                 const res = await fetch(`/api/property/${imovelId}/photos`, {
                     method: 'POST',
@@ -76,7 +119,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 }
 
                 if (!res.ok) {
-                    alert(`Erro ao subir arquivo ${fileArray[i].name}`);
+                    alert(`Erro ao subir arquivo ${fileName}`);
                 }
             }
             await loadPhotos();

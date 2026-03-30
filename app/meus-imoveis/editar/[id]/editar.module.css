@@ -518,8 +518,8 @@
 
 .cepConfirmText {
     display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.25rem;
     font-size: 0.85rem;
     color: #5b21b6;
 }
@@ -606,4 +606,219 @@
     margin-bottom: 1.25rem;
     width: 250px !important;
     min-width: 250px;
+}
+
+/* Map Preview (hv5soft style) */
+.mapLabel {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.mapPreviewContainer {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    background: white;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.mapPreviewBody {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    display: block;
+    text-align: left;
+}
+
+.googleMapEmbed {
+    height: 240px;
+    width: 100%;
+    border: none;
+    display: block;
+    pointer-events: none; /* Let clicks pass through if needed, but we use overlay */
+}
+
+.mapPreviewOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    cursor: pointer;
+}
+
+.mapEmptyState {
+    height: 240px;
+    width: 100%;
+    background-color: #f8fafc;
+    border: 2px dashed #e2e8f0;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    gap: 1rem;
+    transition: background-color 0.2s;
+}
+
+.mapEmptyState:hover {
+    background-color: #f1f5f9;
+}
+
+.mapIconCircle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+    color: #cbd5e1;
+}
+
+.mapEmptyTitle {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.mapEmptySub {
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+    margin: 4px 0 0 0;
+}
+
+.btnDefinirMapa {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #0f172a;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 100px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.btnDefinirMapa:active {
+    transform: scale(0.95);
+}
+
+.mapFooter {
+    padding: 1rem;
+    border-top: 1px solid #f8fafc;
+    background-color: #fcfcfc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mapFooterLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.btnTracarRota {
+    font-size: 10px;
+    font-weight: 900;
+    color: #059669; 
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 6px 12px;
+    background: #ecfdf5; 
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btnTracarRota:hover {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.plusCodeInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.plusCodeLabel {
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.plusCodeValue {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.premiumSwitch {
+    width: 40px;
+    height: 22px;
+    background: #cbd5e1;
+    border-radius: 99px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.premiumSwitchActive {
+    background: #118B8A;
+}
+
+.premiumSwitchIndicator {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premiumSwitchActive .premiumSwitchIndicator {
+    transform: translateX(18px);
+}
+
+.divulgacaoRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.divulgacaoLabel {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 0.95rem;
 }

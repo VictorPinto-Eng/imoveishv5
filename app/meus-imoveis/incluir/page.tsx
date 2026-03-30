@@ -1,11 +1,14 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Square, ArrowLeft, Loader2, Camera, Home as HomeIcon, CheckCircle, Building2, X, Milestone, Info, ChevronRight, MessageCircle, Phone, Sparkles, DollarSign, Ruler, Map, MapPin, Navigation } from 'lucide-react';
+import { Square, ArrowLeft, Loader2, Camera, Home as HomeIcon, CheckCircle, Building2, X, Milestone, Info, ChevronRight, MessageCircle, Phone, Sparkles, DollarSign, Ruler, Map, MapPin, Navigation, Map as MapIcon, Maximize2, Plus } from 'lucide-react';
 import styles from './incluir.module.css';
 import Link from 'next/link';
 import { maskCurrencyInput, formatCurrency, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
+import dynamic from 'next/dynamic';
+
+const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
 
 type SearchMode = 'CEP' | 'Endereço';
 
@@ -46,10 +49,15 @@ interface PropertyData {
     uf: string;
     cidade: string;
     bairro: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    plus_code?: string;
     imbtpoperacao_id?: number;
     imbfinalidade_id?: number;
     imbtpimovel_id?: number;
     statusimovel?: number;
+    pub_site: boolean;
+    pub_price: boolean;
 }
 
 export default function IncluirImovelPage() {
@@ -58,6 +66,7 @@ export default function IncluirImovelPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [isAddressFound, setIsAddressFound] = useState(false);
+    const [isMapOpen, setIsMapOpen] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -120,10 +129,15 @@ export default function IncluirImovelPage() {
         uf: '',
         cidade: '',
         bairro: '',
+        latitude: null,
+        longitude: null,
+        plus_code: '',
         imbtpoperacao_id: undefined,
         imbfinalidade_id: undefined,
         imbtpimovel_id: undefined,
-        statusimovel: 2 // Default to Pendente (ID 2)
+        statusimovel: 2, // Default to Pendente (ID 2)
+        pub_site: true,
+        pub_price: true
     });
 
     // Fetch UFs from IBGE
@@ -617,10 +631,15 @@ export default function IncluirImovelPage() {
         estado_id: resolvedIds.estadoId,
         cidade_id: resolvedIds.cidadeId,
         bairro_id: resolvedIds.bairroId,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        plus_code: formData.plus_code,
         imbtpoperacao_id: formData.imbtpoperacao_id,
         imbfinalidade_id: formData.imbfinalidade_id,
         imbtpimovel_id: formData.imbtpimovel_id,
-        statusimovel: formData.statusimovel
+        statusimovel: formData.statusimovel,
+        pub_site: formData.pub_site,
+        pub_price: formData.pub_price
     });
 
     const submitProperty = async (payload: any) => {
@@ -982,12 +1001,13 @@ export default function IncluirImovelPage() {
                                         className={styles.changeButton}
                                         onClick={() => {
                                             setIsAddressFound(false);
-                                            setFormData(prev => ({ ...prev, cep: '', address: '' }));
+                                            setFormData(prev => ({ ...prev, cep: '', address: '', latitude: null, longitude: null, plus_code: '' }));
                                         }}
                                     >
                                         Mudar
                                     </button>
                                 </div>
+
 
                                 <div className={styles.formGroup}>
                                     <h3 className={styles.question}>Número</h3>
@@ -1151,6 +1171,90 @@ export default function IncluirImovelPage() {
                                 </div>
                             </div>
                         )}
+
+                        {/* Map Section - Parity with hv5soft */}
+                        {/* Map Section - Parity with hv5soft */}
+                        {(formData.cep.length >= 5 || formData.address.length >= 3) && (
+                            <>
+                                <div style={{ marginTop: '32px' }}>
+                                    <label className={styles.mapLabel}>Ponto de Localização</label>
+                                    <div className={styles.mapPreviewContainer}>
+                                        <button 
+                                            type="button"
+                                            className={styles.mapPreviewBody}
+                                            onClick={() => setIsMapOpen(true)}
+                                        >
+                                            {formData.latitude && formData.longitude ? (
+                                                <div style={{ position: 'relative' }}>
+                                                    <div className={styles.mapPreviewOverlay}></div>
+                                                    <iframe 
+                                                        title="Google Maps" 
+                                                        src={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}&z=17&output=embed`} 
+                                                        className={styles.googleMapEmbed} 
+                                                        loading="lazy" 
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className={styles.mapEmptyState}>
+                                                    <div className={styles.mapIconCircle}>
+                                                        <MapIcon size={32} />
+                                                    </div>
+                                                    <div className={styles.mapEmptyTitle}>Localização não definida</div>
+                                                    <p className={styles.mapEmptySub}>Clique abaixo para definir o ponto exato no mapa</p>
+                                                    <div className={styles.btnDefinirMapa}>
+                                                        <Plus size={14} strokeWidth={3} />
+                                                        Definir no Mapa
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </button>
+
+                                        <div className={styles.mapFooter}>
+                                            <div className={styles.mapFooterLeft}>
+                                                {formData.latitude && formData.longitude && (
+                                                    <a 
+                                                        href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={styles.btnTracarRota}
+                                                    >
+                                                        TRAÇAR ROTA
+                                                    </a>
+                                                )}
+                                                <div className={styles.plusCodeInfo}>
+                                                    <span className={styles.plusCodeLabel}>Plus Code</span>
+                                                    <span className={styles.plusCodeValue}>{formData.plus_code || "Não gerado"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <MapPicker 
+                                    isOpen={isMapOpen}
+                                    onClose={() => setIsMapOpen(false)}
+                                    onSelect={(lat, lng, pc) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            latitude: lat,
+                                            longitude: lng,
+                                            plus_code: pc
+                                        }));
+                                    }}
+                                    initialLat={formData.latitude}
+                                    initialLng={formData.longitude}
+                                    addressContext={`${formData.address}${formData.number ? `, ${formData.number}` : ''}, ${formData.bairro}, ${formData.cidade} - ${formData.uf}${formData.cep ? `, ${formData.cep}` : ''}`}
+                                    addressData={{
+                                        street: formData.address,
+                                        number: formData.number,
+                                        neighborhood: formData.bairro,
+                                        city: formData.cidade,
+                                        state: formData.uf,
+                                        postalCode: formData.cep
+                                    }}
+                                />
+                            </>
+                        )}
                     </div>
                 )}
 
@@ -1187,6 +1291,36 @@ export default function IncluirImovelPage() {
                                     </button>
                                 ))}
                             </div>
+                        </div>
+
+                        <div className={styles.toggleRow} style={{ marginTop: '16px' }}>
+                            <div className={styles.toggleLabelGroup}>
+                                <h3 className={styles.question} style={{ marginBottom: 0 }}>Publicar no Site (Página Inicial)</h3>
+                                <p className={styles.toggleDescription}>Aparece na home e nos resultados de busca</p>
+                            </div>
+                            <label className={styles.switch}>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.pub_site}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, pub_site: e.target.checked }))}
+                                />
+                                <span className={styles.slider}></span>
+                            </label>
+                        </div>
+
+                        <div className={styles.toggleRow} style={{ marginTop: '0' }}>
+                            <div className={styles.toggleLabelGroup}>
+                                <h3 className={styles.question} style={{ marginBottom: 0 }}>Exibir preço no site</h3>
+                                <p className={styles.toggleDescription}>Mostrar valor ou manter "sob consulta"</p>
+                            </div>
+                            <label className={styles.switch}>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.pub_price}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, pub_price: e.target.checked }))}
+                                />
+                                <span className={styles.slider}></span>
+                            </label>
                         </div>
 
                         <div className={styles.navigation}>

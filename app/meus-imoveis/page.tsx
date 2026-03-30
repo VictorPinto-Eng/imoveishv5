@@ -17,7 +17,12 @@ import NextImage from 'next/image';
 import styles from './meus-imoveis.module.css';
 import PhotoManager from '@/components/PhotoManager';
 import PropertyPerformance from '@/components/PropertyPerformance';
+import FilterModal from '@/components/FilterModal';
 import { generateWhatsAppShareMessage } from '@/lib/share-templates';
+import dynamic from 'next/dynamic';
+import type { PropertyMapProps } from '@/components/PropertyMap';
+
+const PropertyMap = dynamic<PropertyMapProps>(() => import('@/components/PropertyMap'), { ssr: false });
 
 interface CustomFields {
     area_total?: number;
@@ -82,6 +87,11 @@ interface Imovel {
     imbempreendimento_id?: number;
     operacao_nome?: string;
     tipo_nome?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    plus_code?: string;
+    pub_site?: boolean;
+    pub_price?: boolean;
 }
 
 function MeusImoveisContent() {
@@ -95,13 +105,66 @@ function MeusImoveisContent() {
     const [showActions, setShowActions] = useState(false);
     const [isGalleryActionsOpen, setIsGalleryActionsOpen] = useState(false);
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+
+    const updatePropertyField = async (propertyId: number, field: string, value: any) => {
+        if (!selectedImovel) return;
+
+        // Optimistic update
+        const updatedImovel = { ...selectedImovel, [field]: value };
+        setSelectedImovel(updatedImovel);
+        setImoveis(prev => prev.map(img => img.id === propertyId ? updatedImovel : img));
+
+        try {
+            const res = await fetch(`/api/property/${propertyId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [field]: value })
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to update property');
+            }
+        } catch (error) {
+            console.error('Error updating property field:', error);
+            // Revert on error (optional, but good practice)
+            alert('Erro ao atualizar campo do imóvel. Tente novamente.');
+            fetchMyImoveis(); // Refresh list to sync with DB
+        }
+    };
+
+    const togglePubSite = () => {
+        if (!selectedImovel) return;
+        const newValue = !selectedImovel.pub_site;
+        updatePropertyField(selectedImovel.id, 'pub_site', newValue);
+    };
+
+    const togglePubPrice = () => {
+        if (!selectedImovel) return;
+        const newValue = !selectedImovel.pub_price;
+        updatePropertyField(selectedImovel.id, 'pub_price', newValue);
+    };
     const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
     const [activities, setActivities] = useState<any[]>([]);
     const [loadingActivities, setLoadingActivities] = useState(false);
     
-    // Quick Search State
+    // Quick Search & Filters State
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [activeFilters, setActiveFilters] = useState<any>({
+        operacao: '',
+        finalidade: '',
+        tipo: '',
+        minPrice: '',
+        maxPrice: '',
+        dormitorios: undefined,
+        suites: undefined,
+        vagas: undefined,
+        banheiros: undefined,
+        minArea: '',
+        maxArea: '',
+        status: 'ativo'
+    });
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -251,8 +314,8 @@ function MeusImoveisContent() {
                                 </div>
                                 <div className={`${styles.sidebarHeaderRight} ${styles.sidebarIcons}`}>
                                     <Search size={20} onClick={() => setIsSearchOpen(true)} className="cursor-pointer" />
-                                    <MapPin size={20} />
-                                    <SlidersHorizontal size={20} />
+                                    <MapPin size={20} className="cursor-pointer" onClick={() => alert('Mapa em breve!')} />
+                                    <SlidersHorizontal size={20} className="cursor-pointer" onClick={() => setIsFilterOpen(true)} />
                                     <Link href="/meus-imoveis/incluir" title="Adicionar Imóvel" onClick={(e) => e.stopPropagation()}>
                                         <Plus size={20} />
                                     </Link>
@@ -268,16 +331,35 @@ function MeusImoveisContent() {
                     <div className={styles.propertyList}>
                         {imoveis
                             .filter(imovel => {
-                                if (!searchTerm) return true;
-                                const search = searchTerm.toLowerCase();
-                                return (
-                                    imovel.id.toString().includes(search) ||
-                                    imovel.nome.toLowerCase().includes(search) ||
-                                    imovel.logradouro?.toLowerCase().includes(search) ||
-                                    imovel.custom_fields?.bairro?.toLowerCase().includes(search) ||
-                                    imovel.tipo_nome?.toLowerCase().includes(search) ||
-                                    imovel.operacao_nome?.toLowerCase().includes(search)
-                                );
+                                // 1. Search Term Filter
+                                if (searchTerm) {
+                                    const search = searchTerm.toLowerCase();
+                                    const matchesSearch = 
+                                        imovel.id.toString().includes(search) ||
+                                        imovel.nome.toLowerCase().includes(search) ||
+                                        imovel.logradouro?.toLowerCase().includes(search) ||
+                                        imovel.custom_fields?.bairro?.toLowerCase().includes(search) ||
+                                        imovel.tipo_nome?.toLowerCase().includes(search) ||
+                                        imovel.operacao_nome?.toLowerCase().includes(search);
+                                    if (!matchesSearch) return false;
+                                }
+
+                                // 2. Advanced Filters
+                                if (activeFilters.operacao && imovel.imbtpoperacao_id?.toString() !== activeFilters.operacao) return false;
+                                if (activeFilters.finalidade && imovel.categoria !== activeFilters.finalidade) return false;
+                                
+                                if (activeFilters.minPrice && imovel.preco_base < Number(activeFilters.minPrice)) return false;
+                                if (activeFilters.maxPrice && imovel.preco_base > Number(activeFilters.maxPrice)) return false;
+                                
+                                if (activeFilters.dormitorios && (imovel.dormitorios || 0) < activeFilters.dormitorios) return false;
+                                if (activeFilters.vagas && (imovel.vagas || 0) < activeFilters.vagas) return false;
+                                if (activeFilters.banheiros && (imovel.banheiros || 0) < activeFilters.banheiros) return false;
+                                if (activeFilters.suites && (imovel.suites || 0) < activeFilters.suites) return false;
+                                
+                                if (activeFilters.minArea && (imovel.area_util || 0) < Number(activeFilters.minArea)) return false;
+                                if (activeFilters.maxArea && (imovel.area_util || 0) > Number(activeFilters.maxArea)) return false;
+
+                                return true;
                             })
                             .map((imovel) => {
                                 const cf = imovel.custom_fields || {};
@@ -685,6 +767,15 @@ function MeusImoveisContent() {
                                             </div>
                                         </div>
 
+                                        <div className={styles.infoSection}>
+                                            <h3 className={styles.infoSectionTitle}>Localização no Mapa</h3>
+                                            <PropertyMap 
+                                                latitude={selectedImovel.latitude} 
+                                                longitude={selectedImovel.longitude} 
+                                                address={selectedImovel.logradouro ? `${selectedImovel.logradouro}, ${selectedImovel.numero} - ${selectedImovel.custom_fields?.bairro}, ${selectedImovel.custom_fields?.cidade}` : undefined}
+                                            />
+                                        </div>
+
                                         {/* VINCULOS SECTION */}
                                         <div className={styles.infoSection}>
                                             <h3 className={styles.infoSectionTitle}>Vínculos</h3>
@@ -701,14 +792,20 @@ function MeusImoveisContent() {
                                         <div className={styles.infoSection}>
                                             <h3 className={styles.infoSectionTitle}>Divulgação no site</h3>
                                             <div className={styles.divulgacaoRow}>
-                                                <span className={styles.divulgacaoLabel}>Publicar no meu site</span>
-                                                <div className={styles.premiumSwitch}>
+                                                <span className={styles.divulgacaoLabel}>Publicar no Site (Página Inicial)</span>
+                                                <div 
+                                                    className={`${styles.premiumSwitch} ${selectedImovel.pub_site ? styles.premiumSwitchActive : ''}`}
+                                                    onClick={togglePubSite}
+                                                >
                                                     <div className={styles.premiumSwitchIndicator}></div>
                                                 </div>
                                             </div>
                                             <div className={styles.divulgacaoRow}>
                                                 <span className={styles.divulgacaoLabel}>Exibir preço no site</span>
-                                                <div className={styles.premiumSwitch}>
+                                                <div 
+                                                    className={`${styles.premiumSwitch} ${selectedImovel.pub_price ? styles.premiumSwitchActive : ''}`}
+                                                    onClick={togglePubPrice}
+                                                >
                                                     <div className={styles.premiumSwitchIndicator}></div>
                                                 </div>
                                             </div>
@@ -864,6 +961,13 @@ function MeusImoveisContent() {
                     </div>
                 </div>
             )}
+
+            <FilterModal 
+                isOpen={isFilterOpen}
+                onClose={() => setIsFilterOpen(false)}
+                onApply={(filters) => setActiveFilters(filters)}
+                initialFilters={activeFilters}
+            />
 
             <Footer />
         </main>

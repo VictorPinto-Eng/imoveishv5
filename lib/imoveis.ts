@@ -63,6 +63,11 @@ export interface Imovel {
   imoveis_detalhes?: ImovelDetalhes | null
   imbtpoperacao_id?: number
   operacao_nome?: string
+  pub_site?: boolean
+  pub_price?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  plus_code?: string
   created_at?: string | Date
 }
 
@@ -121,10 +126,15 @@ function parseImovel(item: any): Imovel {
     dimensoes_terreno: item.dimensoes_terreno || custom_fields.dimensoes_terreno,
     cidade: custom_fields.cidade,
     bairro: custom_fields.bairro,
-    is_venda: item.is_venda || true,
-    is_locacao: item.is_locacao || false,
+    is_venda: item.is_venda ?? (item.operacao_nome ? item.operacao_nome.toUpperCase().includes('VENDA') : true),
+    is_locacao: item.is_locacao ?? (item.operacao_nome ? (item.operacao_nome.toUpperCase().includes('LOCAÇÃO') || item.operacao_nome.toUpperCase().includes('ALUGUEL')) : false),
     tipo_imovel_nome: item.tipo_nome || item.tipo_imovel_nome || custom_fields.tipo_imovel || 'Imóvel',
-    tipo_nome: item.tipo_nome
+    tipo_nome: item.tipo_nome,
+    pub_site: item.pub_site === true || item.pub_site === 'true',
+    pub_price: item.pub_price === true || item.pub_price === 'true',
+    latitude: item.latitude ?? (typeof custom_fields.latitude === 'number' ? custom_fields.latitude : null),
+    longitude: item.longitude ?? (typeof custom_fields.longitude === 'number' ? custom_fields.longitude : null),
+    plus_code: item.plus_code || custom_fields.plus_code
   }
 }
 
@@ -147,7 +157,7 @@ const BASE_SELECT = `
 export async function getFeaturedImoveis(limit = 6, excludeId?: string) {
   try {
     const params: any[] = [limit]
-    let whereClause = `WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.status = 'ativo' AND I.ativo = true`
+    let whereClause = `WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true`
     
     if (excludeId) {
       params.push(excludeId)
@@ -170,12 +180,12 @@ export async function getFeaturedImoveis(limit = 6, excludeId?: string) {
 
 export async function getImoveis(filters: ImovelFilters = {}) {
   try {
-    let sql = `${BASE_SELECT} WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true`
+    let sql = `${BASE_SELECT} WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true`
     const params: any[] = []
 
-    if (!filters.status) {
-      sql += ` AND I.status = 'ativo'`
-    }
+    // Default status filter is 'ativo' UNLESS we are strictly filtering by pub_site or something else
+    // But here the BASE_SELECT already has I.pub_site = true, so we just want to ensure it's not 'excluido'
+    sql += ` AND I.status != 'excluido'`
 
     if (filters.minPrice) {
       params.push(filters.minPrice)

@@ -2,10 +2,23 @@
 
 Este é o registro central do desenvolvimento do projeto. **Obrigatório atualizar antes de iniciar qualquer nova tarefa.**
 
-## 🟡 Em Desenvolvimento
-- [ ] Release: Publicar aplicação no GitHub (🟡 Em Desenvolvimento) (Início: 24/03/2026)
-- [ ] Bugfix: Corrigir intermitência e "stale state" no campo de CEP (🟡 Em Desenvolvimento)
-- [ ] Bugfix: Corrigir pesquisa de imóvel na base de dados (🟡 Em Desenvolvimento)
+## 🟡 Em Desenvolvimento / Backlog Imediato
+- [x] **Feature**: Identificação automática de Código do Imóvel em leads (WhatsApp/E-mail) (Fim: 29/03/2026)
+- [x] **Feature**: Integração com Webhook Externo (webhook.hv5.srv.br) para notificações de leads (Fim: 29/03/2026)
+- [x] **UX/UI**: Feedback visual de sucesso ("Mensagem enviada!") após envio de contato (Fim: 29/03/2026)
+- [x] **Feature**: Modal de Expansão do Mapa (MapViewerModal) para visualização detalhada e satélite (Fim: 29/03/2026)
+- [x] **Feature**: Persistência de Leads em Banco de Dados Local (Tabela `leads`) (Fim: 29/03/2026)
+- [x] **UI/UX**: Redesign do Footer Premium (Design, Colunas e Ícones Sociais) (Fim: 30/03/2026)
+- [x] **Legal**: Criação da Página de Política de Privacidade com conteúdo LGPD (Fim: 30/03/2026)
+- [x] **Legal**: Criação de Skeletons para Termos de Uso e Manual do Usuário (Fim: 30/03/2026)
+- [ ] **🚀 Go-Live**: Realizar deploy inicial em Produção em Servidor Próprio via GitHub (Prioridade: Altíssima)
+- [ ] Refactor: Limpeza e Organização do Repositório (src/ layout) (Início: 24/03/2026)
+- [x] Bugfix: Corrigir TypeScript 'pub_site' does not exist on type 'Imovel' (Fim: 28/03/2026)
+- [ ] Bugfix: Corrigir intermitência e "stale state" no campo de CEP (Débito Técnico - Adiado pós-deploy)
+- [ ] Bugfix: Corrigir pesquisa de imóvel na base de dados (Débito Técnico - Adiado pós-deploy)
+- [ ] **Architecture Refactor**: Isolar lógica de busca de CEP em um Custom Hook (`useCepLookup`) para resolver bugs de "stale state" de forma definitiva. (Débito Técnico)
+- [ ] **Architecture Refactor**: Modularizar a página `meus-imoveis/editar` quebrando o "God Component" em sub-componentes especializados (ex: `LocationSection`, `CharacteristicsSection`). (Débito Técnico)
+- [ ] **Architecture Refactor**: Avaliar e implementar biblioteca de formulários (React Hook Form + Zod) para simplificar o gerenciamento de estado e validações na página de edição. (Débito Técnico)
 - [ ] Novos módulos e refinamentos sob demanda.
 
 ## 🔴 Roadmap (Futuro)
@@ -13,6 +26,7 @@ Este é o registro central do desenvolvimento do projeto. **Obrigatório atualiz
 - [ ] Implementação de Simulação de Financiamento (🟡 Futuro)
 
 ## 🟢 Concluído
+- [x] Release: Publicar aplicação no GitHub - *24/03/2026*
 - [x] Feature: Mostrar CEP no banner de confirmação de endereço (Layout Responsivo) - *23/03/2026*
 - [x] Feature: Normalização de endereço (Sem acentos/Caixa Alta) nos formulários e APIs - *23/03/2026*
 - [x] Bugfix: Foco no e-mail ao abrir o modal de login e navegação via Enter - *23/03/2026*

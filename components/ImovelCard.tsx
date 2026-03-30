@@ -162,8 +162,20 @@ export default function ImovelCard({ imovel }: ImovelCardProps) {
         )}
 
         <div className={styles.priceContainer}>
-          <div className={styles.priceValue}>
-            {priceFormatted}{isRental ? '/mês' : ''}
+          <div 
+            className={`${styles.priceValue} ${imovel.pub_price === false ? styles.priceValueMasked : ''}`}
+            style={imovel.pub_price === false ? { 
+              textAlign: 'center', 
+              width: '100%', 
+              display: 'block', 
+              color: '#c52222', 
+              fontSize: '1.25rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              margin: '0.5rem 0'
+            } : {}}
+          >
+            {imovel.pub_price === false ? 'CONSULTAR PREÇO' : `${priceFormatted}${isRental ? '/mês' : ''}`}
           </div>
         </div>
 
@@ -172,7 +184,11 @@ export default function ImovelCard({ imovel }: ImovelCardProps) {
                         <Phone size={14} />
                     </button>
                     
-                    <WhatsAppLink messageOrImovel={nome} className={styles.whatsappBtnPremium}>
+                    <WhatsAppLink 
+                        messageOrImovel={nome} 
+                        className={styles.whatsappBtnPremium}
+                        produto_servico_id={imovel.id}
+                    >
                         WhatsApp <MessageCircle size={14} />
                     </WhatsAppLink>
 
@@ -193,6 +209,7 @@ export default function ImovelCard({ imovel }: ImovelCardProps) {
                     onClose={() => setIsContactModalOpen(false)}
                     propertyTitle={nome}
                     propertyLocation={locationTitle}
+                    isRental={isRental}
                 />
       </div>
     </article>

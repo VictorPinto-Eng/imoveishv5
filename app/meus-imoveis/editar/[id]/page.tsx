@@ -9,11 +9,15 @@ import Footer from '@/components/Footer';
 import {
     ArrowLeft, Loader2, Save, Home,
     Maximize2, Bed, Bath, Car, MapPin,
-    FileText, Building2, DollarSign, Sparkles, Ruler
+    FileText, Building2, DollarSign, Sparkles, Ruler,
+    Map as MapIcon, Navigation, Plus
 } from 'lucide-react';
 import styles from './editar.module.css';
 import { formatCurrency, maskCurrencyInput, parseCurrencyToNumber, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
+import dynamic from 'next/dynamic';
+
+const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
 
 interface CustomFields {
     endereco?: string;
@@ -30,6 +34,9 @@ interface CustomFields {
     condominio?: number;
     tipo_imovel?: string;
     statimovel_id?: string | number;
+    latitude?: number | null;
+    longitude?: number | null;
+    plus_code?: string;
 }
 
 interface Imovel {
@@ -72,6 +79,11 @@ interface Imovel {
     estado_id?: number;
     cidade_id?: number;
     bairro_id?: number;
+    latitude?: number | null;
+    longitude?: number | null;
+    plus_code?: string;
+    pub_site?: boolean;
+    pub_price?: boolean;
 }
 
 export default function EditarImovelPage() {
@@ -97,6 +109,7 @@ export default function EditarImovelPage() {
     const [resolvedIds, setResolvedIds] = useState({ estadoId: 0, cidadeId: 0, bairroId: 0 });
     const [locationRefreshTrigger, setLocationRefreshTrigger] = useState(0);
     const [pendingSavePayload, setPendingSavePayload] = useState<any | null>(null);
+    const [isMapOpen, setIsMapOpen] = useState(false);
 
     const handleBack = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -528,6 +541,9 @@ export default function EditarImovelPage() {
                     cidade_id: resolvedIds.cidadeId || imovel.cidade_id,
                     bairro_id: resolvedIds.bairroId || imovel.bairro_id,
                     cep: imovel.cep ? imovel.cep.replace(/\D/g, '') : '',
+                    latitude: imovel.latitude,
+                    longitude: imovel.longitude,
+                    plus_code: imovel.plus_code,
                 },
                 estado_id: resolvedIds.estadoId || imovel.estado_id,
                 cidade_id: resolvedIds.cidadeId || imovel.cidade_id,
@@ -539,6 +555,9 @@ export default function EditarImovelPage() {
                 unidade: imovel.unidade,
                 andar: imovel.andar,
                 cep: imovel.cep ? imovel.cep.replace(/\D/g, '') : '',
+                latitude: imovel.latitude,
+                longitude: imovel.longitude,
+                plus_code: imovel.plus_code,
                 dormitorio: imovel.dormitorios,
                 suite: imovel.suites,
                 varanda: imovel.varandas,
@@ -556,7 +575,9 @@ export default function EditarImovelPage() {
                 imbtpoperacao_id: imovel.imbtpoperacao_id,
                 imbfinalidade_id: imovel.imbfinalidade_id,
                 imbtpimovel_id: imovel.imbtpimovel_id,
-                statusimovel: imovel.statusimovel
+                statusimovel: imovel.statusimovel,
+                pub_site: imovel.pub_site,
+                pub_price: imovel.pub_price
             };
 
             const res = await fetch(`/api/property/${id}`, {
@@ -1000,13 +1021,11 @@ export default function EditarImovelPage() {
                                         className={styles.select}
                                     >
                                         <option value="">Selecione...</option>
-                                        {bairros.map(b => (
-                                            <option key={b.id} value={b.nome}>{b.nome}</option>
+                                        {bairros.map(bai => (
+                                            <option key={bai.id} value={bai.nome}>{bai.nome}</option>
                                         ))}
                                     </select>
                                 </div>
-
-                                {/* -- CEP -- */}
                                 <div className={styles.formGroup}>
                                     <h3 className={styles.question}>CEP</h3>
                                     <div style={{ position: 'relative' }}>
@@ -1044,6 +1063,83 @@ export default function EditarImovelPage() {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Map Section - Parity with hv5soft */}
+                            <label className={styles.mapLabel}>Ponto de Localização</label>
+                            <div className={styles.mapPreviewContainer}>
+                                <button 
+                                    type="button"
+                                    className={styles.mapPreviewBody}
+                                    onClick={() => setIsMapOpen(true)}
+                                >
+                                    {imovel.latitude && imovel.longitude ? (
+                                        <div style={{ position: 'relative' }}>
+                                            <div className={styles.mapPreviewOverlay}></div>
+                                            <iframe 
+                                                title="Google Maps" 
+                                                src={`https://www.google.com/maps?q=${imovel.latitude},${imovel.longitude}&z=17&output=embed`} 
+                                                className={styles.googleMapEmbed} 
+                                                loading="lazy" 
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className={styles.mapEmptyState}>
+                                            <div className={styles.mapIconCircle}>
+                                                <MapIcon size={32} />
+                                            </div>
+                                            <div className={styles.mapEmptyTitle}>Localização não definida</div>
+                                            <p className={styles.mapEmptySub}>Clique abaixo para definir o ponto exato no mapa</p>
+                                            <div className={styles.btnDefinirMapa}>
+                                                <Plus size={14} strokeWidth={3} />
+                                                Definir no Mapa
+                                            </div>
+                                        </div>
+                                    )}
+                                </button>
+
+                                <div className={styles.mapFooter}>
+                                    <div className={styles.mapFooterLeft}>
+                                        {imovel.latitude && imovel.longitude && (
+                                            <a 
+                                                href={`https://www.google.com/maps?q=${imovel.latitude},${imovel.longitude}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={styles.btnTracarRota}
+                                            >
+                                                TRAÇAR ROTA
+                                            </a>
+                                        )}
+                                        <div className={styles.plusCodeInfo}>
+                                            <span className={styles.plusCodeLabel}>Plus Code</span>
+                                            <span className={styles.plusCodeValue}>{imovel.plus_code || "Não gerado"}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <MapPicker 
+                                isOpen={isMapOpen}
+                                onClose={() => setIsMapOpen(false)}
+                                onSelect={(lat, lng, pc) => {
+                                    setImovel(prev => prev ? ({
+                                        ...prev,
+                                        latitude: lat,
+                                        longitude: lng,
+                                        plus_code: pc
+                                    }) : null);
+                                }}
+                                initialLat={imovel.latitude}
+                                initialLng={imovel.longitude}
+                                addressContext={`${imovel.logradouro}${imovel.numero ? `, ${imovel.numero}` : ''}, ${imovel.custom_fields.bairro}, ${imovel.custom_fields.cidade} - ${imovel.custom_fields.uf}${imovel.cep ? `, ${imovel.cep}` : ''}`}
+                                addressData={{
+                                    street: imovel.logradouro,
+                                    number: imovel.numero,
+                                    neighborhood: imovel.custom_fields.bairro,
+                                    city: imovel.custom_fields.cidade,
+                                    state: imovel.custom_fields.uf,
+                                    postalCode: imovel.cep
+                                }}
+                            />
                         </section>
 
                         {/* 2. Imóvel */}
@@ -1462,6 +1558,25 @@ export default function EditarImovelPage() {
                                         <option value="pausado">Pausado - Oculto Temporariamente</option>
                                         <option value="vendido">Vendido / Alugado</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div className={styles.divulgacaoRow}>
+                                <span className={styles.divulgacaoLabel}>Publicar no Site (Página Inicial)</span>
+                                <div 
+                                    className={`${styles.premiumSwitch} ${imovel.pub_site ? styles.premiumSwitchActive : ''}`}
+                                    onClick={() => setImovel({ ...imovel, pub_site: !imovel.pub_site })}
+                                >
+                                    <div className={styles.premiumSwitchIndicator}></div>
+                                </div>
+                            </div>
+                            <div className={styles.divulgacaoRow}>
+                                <span className={styles.divulgacaoLabel}>Exibir preço no site</span>
+                                <div 
+                                    className={`${styles.premiumSwitch} ${imovel.pub_price ? styles.premiumSwitchActive : ''}`}
+                                    onClick={() => setImovel({ ...imovel, pub_price: !imovel.pub_price })}
+                                >
+                                    <div className={styles.premiumSwitchIndicator}></div>
                                 </div>
                             </div>
                             <div className={styles.formGroupFullWidth}>

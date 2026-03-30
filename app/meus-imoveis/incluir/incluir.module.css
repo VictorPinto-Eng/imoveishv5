@@ -825,9 +825,176 @@
 }
 
 .geminiBtnLoading {
-    opacity: 0.8;
+    opacity: 0.7;
     cursor: wait;
-    filter: grayscale(0.5);
+}
+
+/* Map Preview (hv5soft style) */
+.mapLabel {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 32px;
+    margin-bottom: 12px;
+}
+
+.mapPreviewContainer {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: white;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.mapPreviewBody {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    display: block;
+    text-align: left;
+}
+
+.googleMapEmbed {
+    height: 220px;
+    width: 100%;
+    border: none;
+    display: block;
+    pointer-events: none;
+}
+
+.mapPreviewOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    cursor: pointer;
+}
+
+.mapEmptyState {
+    height: 220px;
+    width: 100%;
+    background-color: #f8fafc;
+    border: 2px dashed #e2e8f0;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+    gap: 12px;
+    transition: background-color 0.2s;
+}
+
+.mapEmptyState:hover {
+    background-color: #f1f5f9;
+}
+
+.mapIconCircle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+    color: #cbd5e1;
+}
+
+.mapEmptyTitle {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.mapEmptySub {
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+    margin: 4px 0 0 0;
+}
+
+.btnDefinirMapa {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #0f172a;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 100px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.btnDefinirMapa:active {
+    transform: scale(0.95);
+}
+
+.mapFooter {
+    padding: 16px;
+    border-top: 1px solid #f8fafc;
+    background-color: #fcfcfc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mapFooterLeft {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.btnTracarRota {
+    font-size: 10px;
+    font-weight: 900;
+    color: #059669; 
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 6px 12px;
+    background: #ecfdf5; 
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btnTracarRota:hover {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.plusCodeInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.plusCodeLabel {
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.plusCodeValue {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0f172a;
 }
 
 .geminiBtn:disabled {

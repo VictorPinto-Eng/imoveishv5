@@ -100,7 +100,7 @@ export default function Header() {
 
                     {/* Desktop Navigation */}
                     <nav className={`${styles.nav} ${styles.desktopNav}`}>
-                        <Link href="/imoveis" className={styles.navLink}>
+                        <Link href="/imoveis" className={`${styles.navLink} ${styles.navLinkImoveis}`}>
                             <Home size={18} />
                             <span>Imóveis</span>
                         </Link>
@@ -200,7 +200,7 @@ export default function Header() {
                         </div>
                     )}
 
-                    <Link href="/imoveis" className={styles.mobileNavLink} onClick={toggleMenu}>
+                    <Link href="/imoveis" className={`${styles.mobileNavLink} ${styles.mobileNavLinkImoveis}`} onClick={toggleMenu}>
                         <Home size={20} />
                         <span>Imóveis</span>
                     </Link>

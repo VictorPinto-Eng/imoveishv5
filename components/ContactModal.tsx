@@ -14,6 +14,7 @@ interface ContactModalProps {
   propertyTitle: string
   propertyLocation: string
   brokerName?: string
+  isRental?: boolean
 }
 
 export default function ContactModal({
@@ -22,10 +23,12 @@ export default function ContactModal({
   onClose,
   propertyTitle,
   propertyLocation,
-  brokerName = "REMAX MAIS - 2"
+  brokerName = "REMAX MAIS - 2",
+  isRental = false
 }: ContactModalProps) {
   const [mounted, setMounted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   
   const emailRef = useRef<HTMLInputElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
@@ -37,7 +40,7 @@ export default function ContactModal({
     name: '',
     email: '',
     phone: '',
-    message: `Olá! Quero ser contatado sobre este imóvel em venda que vi no HV5.com.`
+    message: `Olá! Tenho interesse neste imóvel em ${isRental ? 'Locação' : 'Venda'} (Cód: ${propertyId}) que vi no site HV5.com.`
   })
 
   useEffect(() => {
@@ -51,8 +54,9 @@ export default function ContactModal({
         name: '',
         email: '',
         phone: '',
-        message: `Olá! Quero ser contatado sobre este imóvel em venda que vi no HV5.com.`
+        message: `Olá! Tenho interesse neste imóvel em ${isRental ? 'Locação' : 'Venda'} (Cód: ${propertyId}) que vi no site HV5.com.`
       })
+      setIsSuccess(false)
 
       // Small timeout to ensure DOM is ready
       setTimeout(() => emailRef.current?.focus(), 50)
@@ -70,7 +74,7 @@ export default function ContactModal({
       }
       fetchUser()
     }
-  }, [isOpen])
+  }, [isOpen, isRental])
 
   if (!isOpen || !mounted) return null
 
@@ -84,19 +88,31 @@ export default function ContactModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    if (!formData.name || !formData.email) {
+        alert('Por favor, preencha seu nome e e-mail.');
+        setIsSubmitting(false);
+        return;
+    }
     
     try {
-        const res = await fetch('/api/contact', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        // Now calling our internal proxy to avoid CORS issues
+        const res = await fetch("/api/leads", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                propertyId,
-                ...formData
+                name: formData.name,
+                whatsapp: formData.phone,
+                email: formData.email,
+                mensagem: formData.message,
+                codigo: propertyId,
+                operacao: isRental ? 'Locação' : 'Venda'
             })
-        })
+        });
 
         if (res.ok) {
-            // Track lead submission
+            setIsSuccess(true);
+            
+            // Track lead submission for internal analytics (independent of CRM)
             fetch('/api/analytics/event', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -108,14 +124,24 @@ export default function ContactModal({
                 })
             }).catch(err => console.error('[Analytics] Failed to track lead submission:', err));
 
-            alert('Mensagem enviada com sucesso! O responsável entrará em contato em breve.')
-            onClose()
+            setTimeout(() => {
+                onClose();
+            }, 3500);
         } else {
-            const data = await res.json()
-            alert(data.error || 'Ocorreu um erro ao enviar a mensagem.')
+            const statusEl = document.getElementById('modal-contatar-status');
+            if (statusEl) {
+              statusEl.innerText = 'Erro ao processar lead (Webhook).';
+              statusEl.style.color = '#ef4444';
+            }
+            alert('Não foi possível processar o seu contato no momento. Tente novamente.')
         }
     } catch (error) {
         console.error('Error submitting contact form:', error)
+        const statusEl = document.getElementById('modal-contatar-status');
+        if (statusEl) {
+          statusEl.innerText = 'Erro de conexão.';
+          statusEl.style.color = '#ef4444';
+        }
         alert('Erro de conexão. Tente novamente mais tarde.')
     } finally {
         setIsSubmitting(false)
@@ -129,80 +155,105 @@ export default function ContactModal({
           <X size={24} />
         </button>
 
-        <header className={styles.header}>
-          <h2>Entre em contato com o responsável para o imóvel</h2>
-        </header>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="email">E-mail</label>
-            <input
-              id="email"
-              type="email"
-              ref={emailRef}
-              placeholder="Digite seu melhor e-mail"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              onKeyDown={(e) => handleKeyDown(e, nameRef)}
-              required
-            />
+        {isSuccess ? (
+          <div className={styles.successContainer}>
+             <div className={styles.successIcon}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+             </div>
+             <h2>Mensagem Enviada!</h2>
+             <p>Suas informações foram entregues com sucesso ao responsável. Em breve entraremos em contato.</p>
           </div>
+        ) : (
+          <>
+            <header className={styles.header}>
+              <h2>Entre em contato com o responsável para o imóvel</h2>
+            </header>
 
-          <div className={styles.row}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="name">Nome</label>
-              <input
-                id="name"
-                type="text"
-                ref={nameRef}
-                placeholder="Digite seu nome"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                onKeyDown={(e) => handleKeyDown(e, phoneRef)}
-                required
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <label htmlFor="phone">Telefone</label>
-              <input
-                id="phone"
-                type="tel"
-                ref={phoneRef}
-                placeholder="(00) 00000-0000"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
-                onKeyDown={(e) => handleKeyDown(e, messageRef)}
-              />
-            </div>
-          </div>
+            <form 
+              id="modal-contatar-form"
+              onSubmit={handleSubmit} 
+              className={styles.form}
+            >
+              <div id="modal-contatar-status" style={{ marginBottom: '10px', fontSize: '14px', fontWeight: 600, textAlign: 'center' }}></div>
+              <div className={styles.inputGroup}>
+                <label htmlFor="email">E-mail *</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  ref={emailRef}
+                  placeholder="Digite seu melhor e-mail"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onKeyDown={(e) => handleKeyDown(e, nameRef)}
+                  required
+                />
+              </div>
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="message">Mensagem</label>
-            <textarea
-              id="message"
-              ref={messageRef}
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              onKeyDown={(e) => handleKeyDown(e, submitRef)}
-              rows={4}
-            />
-          </div>
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="name">Nome *</label>
+                  <input
+                    id="name"
+                    name="nome"
+                    type="text"
+                    ref={nameRef}
+                    placeholder="Digite seu nome"
+                    value={formData.name}
+                    className={styles.uppercaseInput}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
+                    onKeyDown={(e) => handleKeyDown(e, phoneRef)}
+                    required
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="phone">Telefone</label>
+                  <input
+                    id="phone"
+                    name="telefone"
+                    type="tel"
+                    ref={phoneRef}
+                    placeholder="(00) 00000-0000"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
+                    onKeyDown={(e) => handleKeyDown(e, messageRef)}
+                  />
+                </div>
+              </div>
 
-          <button 
-            type="submit" 
-            ref={submitRef}
-            className={styles.submitBtn} 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Enviando...' : 'Contatar'} <Mail size={18} />
-          </button>
-        </form>
+              <div className={styles.inputGroup}>
+                <label htmlFor="message">Mensagem</label>
+                <textarea
+                  id="message"
+                  name="mensagem"
+                  ref={messageRef}
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  onKeyDown={(e) => handleKeyDown(e, submitRef)}
+                  rows={4}
+                />
+              </div>
 
-        <footer className={styles.footer}>
-          <p>
-            Ao enviar, você está aceitando os <a href="#">Termos e condições de uso</a> e as <a href="#">Políticas de privacidade</a>
-          </p>
-        </footer>
+              <button 
+                type="submit" 
+                ref={submitRef}
+                className={styles.submitBtn} 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Enviando...' : 'Contatar'} <Mail size={18} />
+              </button>
+            </form>
+
+            <footer className={styles.footer}>
+              <p>
+                Ao enviar, você está aceitando os <a href="#">Termos e condições de uso</a> e as <a href="#">Políticas de privacidade</a>
+              </p>
+            </footer>
+          </>
+        )}
       </div>
     </div>
   )

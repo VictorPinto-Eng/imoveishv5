@@ -27,7 +27,9 @@ export async function POST(req: NextRequest) {
       area_construida, area_terreno,
       title, description, price,
       condoFee, iptuValue, hasIptu, status,
-      imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel
+      latitude, longitude, plus_code,
+      imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel,
+      pub_site, pub_price
     } = data;
 
   const ufSigla = sanitizeLocationName(String(uf || ''));
@@ -184,25 +186,15 @@ export async function POST(req: NextRequest) {
       cidade: cidadeNome || null,
       bairro: bairroNome || null,
       tipo_imovel: type,
-      finalidade: finalidade
+      finalidade: finalidade,
     };
 
     // Insert into produtos_servicos
     const insertResult = await query(`
       INSERT INTO produtos_servicos 
-        (nome, tipo, categoria, preco_base, descricao, ativo, status, tags, custom_fields, imagens_urls,
-         logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id,
-         dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, sala, dimensoes_terreno,
-         area_util, area_construida, area_terreno,
-         user_id, publicar_sitehv5, created_by, updated_by, 
-         imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel)
+        (nome, preco_base, descricao, status, custom_fields, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, tipo, categoria, ativo, tags, organization_id)
       VALUES 
-        ($1, 'produto', 'Imovel', $2, $3, true, $4, '[]', $5, '{}',
-         $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-         $18, $19, $20, $21, $22, $23, $24, $25, $26, $34, $35,
-         $27, $28, $29,
-         $17, false, $17, $17, 
-         $30, $31, $32, $33)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, 'produto', 'Imovel', true, '[]', '1')
       RETURNING id
     `, [
       title || `${type} - ${rooms} quartos`,
@@ -239,7 +231,12 @@ export async function POST(req: NextRequest) {
       imbtpimovel_id || null,
       statusimovel || 2,
       parseInt(sala) || 0,
-      dimensoes_terreno || null
+      dimensoes_terreno || null,
+      latitude || null,
+      longitude || null,
+      plus_code || '',
+      pub_site ?? true,
+      pub_price ?? true
     ]);
 
     const produtoId = insertResult.rows[0].id;

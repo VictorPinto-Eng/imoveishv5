@@ -12,6 +12,7 @@ import BackButton from '@/components/BackButton'
 import { MapPin, ChevronRight } from 'lucide-react'
 import AnalyticsTracker from '@/components/AnalyticsTracker'
 import { Metadata } from 'next'
+import SafePropertyMap from '@/components/SafePropertyMap'
 
 export const revalidate = 60
 
@@ -154,16 +155,11 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                         </section>
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Localização</h2>
-                            <div className={styles.mapContainer}>
-                                <iframe 
-                                    width="100%" 
-                                    height="400" 
-                                    style={{ border: 0, borderRadius: '12px' }} 
-                                    loading="lazy" 
-                                    allowFullScreen 
-                                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyA_NOT_A_REAL_KEY&q=${encodeURIComponent(address)}`}
-                                ></iframe>
-                            </div>
+                            <SafePropertyMap 
+                                latitude={imovel.latitude} 
+                                longitude={imovel.longitude} 
+                                address={address}
+                            />
                         </section>
                     </div>
 
@@ -176,6 +172,8 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             propertyName={imovel.nome}
                             propertyLocation={locationTitle}
                             propertyId={id}
+                            pub_price={imovel.pub_price}
+                            isRental={!!imovel.is_locacao}
                         />
                     </div>
                 </div>

@@ -1,0 +1,188 @@
+.footer {
+  background-color: #ffffff;
+  border-top: 1px solid var(--border);
+  padding: 4rem 0 2rem;
+  margin-top: auto;
+  color: var(--foreground);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.brandColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.logoImage {
+  object-fit: contain;
+  margin-left: -10px; /* Alinhar visualmente com o texto */
+}
+
+.tagline {
+  color: var(--secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.column h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.link {
+  color: var(--secondary);
+  font-size: 0.9rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+  display: inline-block;
+}
+
+.link:hover {
+  color: var(--primary);
+  transform: translateX(3px);
+}
+
+.socialApps {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.socialIcons {
+  display: flex;
+  gap: 1rem;
+}
+
+.socialIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: var(--secondary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.socialIcon:hover {
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.appBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #0f172a;
+  color: white;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  width: fit-content;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.badge:hover {
+  opacity: 0.9;
+}
+
+.badgeContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.badgeSmall {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.badgeLarge {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border);
+  margin-bottom: 2rem;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--secondary);
+  font-size: 0.85rem;
+}
+
+.copyright {
+  font-weight: 500;
+}
+
+.version {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 2rem;
+  }
+  .socialApps {
+    grid-column: span 3;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 3rem 0 1.5rem;
+  }
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+  .brandColumn {
+    grid-column: span 2;
+  }
+  .socialApps {
+    grid-column: span 2;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}

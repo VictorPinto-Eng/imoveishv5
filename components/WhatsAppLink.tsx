@@ -35,7 +35,7 @@ export default function WhatsAppLink({
 
     const text = isFullMessage
         ? messageOrImovel
-        : `Vim pelo site, quero o imóvel ${messageOrImovel}`
+        : `Vim pelo site, tenho interesse no imóvel ${messageOrImovel}${produto_servico_id ? ` (Cód: ${produto_servico_id})` : ''}`
 
     const encoded = encodeURIComponent(text)
 

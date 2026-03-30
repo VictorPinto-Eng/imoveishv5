@@ -188,3 +188,11 @@
         margin-top: 2rem;
     }
 }
+
+.priceValueMasked {
+    text-align: center;
+    font-size: 1.25rem;
+    color: #ff6e00;
+    width: 100%;
+    margin-bottom: 1rem;
+}
