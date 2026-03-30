@@ -187,7 +187,7 @@ export default function ImovelCard({ imovel }: ImovelCardProps) {
                     <WhatsAppLink 
                         messageOrImovel={nome} 
                         className={styles.whatsappBtnPremium}
-                        produto_servico_id={imovel.id}
+                        produto_servico_id={Number(imovel.id)}
                     >
                         WhatsApp <MessageCircle size={14} />
                     </WhatsAppLink>
