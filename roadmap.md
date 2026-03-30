@@ -13,6 +13,7 @@ Este é o registro central do desenvolvimento do projeto. **Obrigatório atualiz
 - [x] **Legal**: Criação de Skeletons para Termos de Uso e Manual do Usuário (Fim: 30/03/2026)
 - [ ] **🚀 Go-Live**: Realizar deploy inicial em Produção em Servidor Próprio via GitHub (Prioridade: Altíssima)
 - [ ] Refactor: Limpeza e Organização do Repositório (src/ layout) (Início: 24/03/2026)
+- [x] Bugfix: Corrigir TypeScript 'isRental' em `ContactStickyCardProps` (Requisito Deploy) (Fim: 30/03/2026)
 - [x] Bugfix: Corrigir TypeScript 'pub_site' does not exist on type 'Imovel' (Fim: 28/03/2026)
 - [ ] Bugfix: Corrigir intermitência e "stale state" no campo de CEP (Débito Técnico - Adiado pós-deploy)
 - [ ] Bugfix: Corrigir pesquisa de imóvel na base de dados (Débito Técnico - Adiado pós-deploy)

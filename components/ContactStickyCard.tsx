@@ -14,6 +14,7 @@ interface ContactStickyCardProps {
     propertyLocation: string;
     propertyId: string;
     pub_price?: boolean;
+    isRental?: boolean;
 }
 
 export default function ContactStickyCard({ 
