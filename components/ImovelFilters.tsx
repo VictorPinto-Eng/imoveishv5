@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
+import styles from './ImovelFilters.module.css'
+import { SlidersHorizontal, Search } from 'lucide-react'
 import LocationSearch from './LocationSearch'
 import FilterModal from './FilterModal'
 
@@ -78,20 +79,9 @@ export default function ImovelFilters() {
 
     return (
         <>
-            <form onSubmit={handleSubmit} style={{
-                display: 'grid',
-                gridTemplateColumns: '2fr 1.2fr 1.2fr 1fr 1.2fr auto',
-                gap: '1rem',
-                backgroundColor: 'white',
-                padding: '1.5rem',
-                borderRadius: '1rem',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
-                marginBottom: '2rem',
-                alignItems: 'end',
-                width: '100%'
-            }}>
-                <div style={{ minWidth: 0 }}>
-                    <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Cidade ou Bairro</label>
+            <form onSubmit={handleSubmit} className={styles.filterContainer}>
+                <div className={styles.filterGroup}>
+                    <label className={styles.label}>Cidade ou Bairro</label>
                     <LocationSearch 
                         value={filters.cidade || filters.bairro} 
                         defaultValue={filters.bairro || filters.cidade}
@@ -100,13 +90,13 @@ export default function ImovelFilters() {
                     />
                 </div>
                 
-                <div style={{ minWidth: 0 }}>
-                    <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Finalidade</label>
+                <div className={styles.filterGroup}>
+                    <label className={styles.label}>Finalidade</label>
                     <select
                         name="finalidade"
                         value={filters.finalidade}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', appearance: 'none', background: 'white' }}
+                        className={styles.select}
                     >
                         <option value="">Todas</option>
                         {categories.map(cat => (
@@ -115,13 +105,13 @@ export default function ImovelFilters() {
                     </select>
                 </div>
 
-                <div style={{ minWidth: 0 }}>
-                    <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Tipo</label>
+                <div className={styles.filterGroup}>
+                    <label className={styles.label}>Tipo</label>
                     <select
                         name="tipo"
                         value={filters.tipo}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0', appearance: 'none', background: 'white' }}
+                        className={styles.select}
                     >
                         <option value="">Todos</option>
                         {propertyTypes.map(tp => (
@@ -130,41 +120,32 @@ export default function ImovelFilters() {
                     </select>
                 </div>
 
-                <div style={{ minWidth: 0 }}>
-                    <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Preço Máx.</label>
+                <div className={styles.filterGroup}>
+                    <label className={styles.label}>Preço Máx.</label>
                     <input
                         type="number"
                         name="maxPrice"
                         placeholder="R$ 0,00"
                         value={filters.maxPrice}
                         onChange={handleChange}
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
+                        className={styles.input}
                     />
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 700, fontSize: '1rem' }}>
+                <div className={styles.actions}>
+                    <button type="submit" className={`btn btn-primary ${styles.searchBtn}`}>
+                        <Search size={20} />
                         Buscar
                     </button>
+                    <button 
+                        type="button" 
+                        onClick={() => setIsModalOpen(true)}
+                        className={styles.modalBtn}
+                        title="Mais filtros"
+                    >
+                        <SlidersHorizontal size={20} />
+                    </button>
                 </div>
-
-                <button 
-                    type="button" 
-                    onClick={() => setIsModalOpen(true)}
-                    style={{
-                        padding: '0.75rem',
-                        borderRadius: '0.5rem',
-                        border: '1px solid #e2e8f0',
-                        background: 'white',
-                        color: '#64748b',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
-                    <SlidersHorizontal size={20} />
-                </button>
             </form>
 
             <FilterModal 
