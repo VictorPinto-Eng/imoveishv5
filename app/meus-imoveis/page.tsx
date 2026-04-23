@@ -252,7 +252,8 @@ function MeusImoveisContent() {
                 console.log('>>> INIT: PARÂMETRO DA URL CAPTURADO ?id=', returnId);
 
                 const meRes = await fetch('/api/auth/me');
-                if (!meRes.ok) {
+                const authData = await meRes.json();
+                if (!authData.authenticated) {
                     router.push('/');
                     return;
                 }

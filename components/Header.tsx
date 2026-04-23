@@ -35,6 +35,8 @@ export default function Header() {
                 const data = await res.json();
                 if (data.authenticated) {
                     setUser(data.user);
+                } else {
+                    setUser(null);
                 }
             }
         } catch (error) {

@@ -22,8 +22,9 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
 
     useEffect(() => {
         fetch('/api/property/categories')
-            .then(res => res.json())
-            .then(data => setCategories(data))
+            .then(res => res.ok ? res.json() : [])
+            .then(data => setCategories(Array.isArray(data) ? data : []))
+            .catch(() => setCategories([]))
     }, [])
 
     useEffect(() => {
@@ -32,8 +33,9 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
             : '/api/property/types'
             
         fetch(url)
-            .then(res => res.json())
-            .then(data => setPropertyTypes(data))
+            .then(res => res.ok ? res.json() : [])
+            .then(data => setPropertyTypes(Array.isArray(data) ? data : []))
+            .catch(() => setPropertyTypes([]))
     }, [filters.finalidade])
 
     if (!isOpen) return null
