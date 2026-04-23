@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
         const token = req.cookies.get('token')?.value;
 
         if (!token) {
-            return NextResponse.json({ authenticated: false, debug: 'v3' }, { status: 200 });
+            return NextResponse.json({ authenticated: false }, { status: 200 });
         }
 
         // The login route uses { id, email, name } in the payload
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         );
 
         if (res.rowCount === 0) {
-            return NextResponse.json({ authenticated: false, debug: 'v3' }, { status: 200 });
+            return NextResponse.json({ authenticated: false }, { status: 200 });
         }
 
         const user = res.rows[0];
@@ -46,6 +46,6 @@ export async function GET(req: NextRequest) {
 
     } catch (error) {
         console.error('Error in /api/auth/me:', error);
-        return NextResponse.json({ authenticated: false, debug: 'v3' }, { status: 200 });
+        return NextResponse.json({ authenticated: false }, { status: 200 });
     }
 }
