@@ -89,7 +89,7 @@ export default function Header() {
             <header className={styles.header}>
                 <div className={`container ${styles.inner}`}>
                     <div className={styles.logoContainer}>
-                        <Link href="/" className={styles.logoLink} onClick={() => setIsMenuOpen(false)}>
+                        <a href="/" className={styles.logoLink} onClick={() => setIsMenuOpen(false)}>
                             <Image
                                 src="/logo_hv5_v3.png"
                                 alt="HV5 Logo"
@@ -97,7 +97,7 @@ export default function Header() {
                                 height={130}
                                 className={styles.logoImage}
                             />
-                        </Link>
+                        </a>
                     </div>
 
                     {/* Desktop Navigation */}
