@@ -53,22 +53,46 @@ export default function Footer() {
                         <div className={styles.column}>
                             <h3>Redes Sociais</h3>
                             <div className={styles.socialIcons}>
-                                <Link href="#" className={styles.socialIcon} aria-label="Facebook">
+                                <Link 
+                                    href="https://www.facebook.com/profile.php?id=61576652982785" 
+                                    className={styles.socialIcon} 
+                                    aria-label="Facebook"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
                                     <Facebook size={20} />
                                 </Link>
-                                <Link href="#" className={styles.socialIcon} aria-label="Instagram">
+                                <Link 
+                                    href="https://www.instagram.com/hv5imoveis" 
+                                    className={styles.socialIcon} 
+                                    aria-label="Instagram"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
                                     <Instagram size={20} />
                                 </Link>
-                                <Link href="#" className={styles.socialIcon} aria-label="LinkedIn">
+                                {/* <Link 
+                                    href="#" 
+                                    className={styles.socialIcon} 
+                                    aria-label="LinkedIn"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
                                     <Linkedin size={20} />
                                 </Link>
-                                <Link href="#" className={styles.socialIcon} aria-label="Twitter">
+                                <Link 
+                                    href="#" 
+                                    className={styles.socialIcon} 
+                                    aria-label="Twitter"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
                                     <Twitter size={20} />
-                                </Link>
+                                </Link> */}
                             </div>
                         </div>
 
-                        <div className={styles.appBadges}>
+                        {/* <div className={styles.appBadges}>
                             <div className={styles.badge}>
                                 <Smartphone size={24} />
                                 <div className={styles.badgeContent}>
@@ -83,7 +107,7 @@ export default function Footer() {
                                     <span className={styles.badgeLarge}>App Store</span>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 

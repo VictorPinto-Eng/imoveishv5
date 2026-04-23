@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-const DEFAULT_WHATSAPP_PHONE = '5511999999999'
+const DEFAULT_WHATSAPP_PHONE = '5581935001220'
 
 function sanitizePhone(phone: string) {
     return (phone || '').replace(/\D/g, '')

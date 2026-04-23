@@ -40,7 +40,8 @@ export default async function Home() {
                             </Link>
 
                             <WhatsAppLink
-                                messageOrImovel="Atendimento Geral"
+                                messageOrImovel="Vim pelo site, e gostaria de falar com um especialista"
+                                isFullMessage={true}
                                 className={`btn ${styles.whatsappButton}`}
                             >
                                 💬 Falar com especialista
