@@ -7,6 +7,8 @@ import { SlidersHorizontal, Search } from 'lucide-react'
 import LocationSearch from './LocationSearch'
 import FilterModal from './FilterModal'
 
+import CustomSelect from './CustomSelect'
+
 export default function ImovelFilters() {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -61,6 +63,10 @@ export default function ImovelFilters() {
         setFilters(prev => ({ ...prev, [name]: value }))
     }
 
+    const handleCustomChange = (name: string, value: string) => {
+        setFilters(prev => ({ ...prev, [name]: value }))
+    }
+
     const applyFilters = (newFilters: any) => {
         setFilters(newFilters)
         const params = new URLSearchParams()
@@ -92,32 +98,24 @@ export default function ImovelFilters() {
                 
                 <div className={styles.filterGroup}>
                     <label className={styles.label}>Finalidade</label>
-                    <select
-                        name="finalidade"
+                    <CustomSelect
+                        options={categories}
                         value={filters.finalidade}
-                        onChange={handleChange}
-                        className={styles.select}
-                    >
-                        <option value="">Todas</option>
-                        {categories.map(cat => (
-                            <option key={cat.id} value={cat.id}>{cat.descricao}</option>
-                        ))}
-                    </select>
+                        onChange={(val) => handleCustomChange('finalidade', val)}
+                        placeholder="Todas"
+                        name="finalidade"
+                    />
                 </div>
 
                 <div className={styles.filterGroup}>
                     <label className={styles.label}>Tipo</label>
-                    <select
-                        name="tipo"
+                    <CustomSelect
+                        options={propertyTypes}
                         value={filters.tipo}
-                        onChange={handleChange}
-                        className={styles.select}
-                    >
-                        <option value="">Todos</option>
-                        {propertyTypes.map(tp => (
-                            <option key={tp.id} value={tp.id}>{tp.descricao}</option>
-                        ))}
-                    </select>
+                        onChange={(val) => handleCustomChange('tipo', val)}
+                        placeholder="Todos"
+                        name="tipo"
+                    />
                 </div>
 
                 <div className={styles.filterGroup}>
