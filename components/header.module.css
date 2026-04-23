@@ -36,7 +36,6 @@
     align-items: center;
     gap: 0.5rem;
     text-decoration: none;
-    height: 100%; /* Constrain to .inner height */
 }
 
 .logoTextContainer {
