@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryHv5 } from '@/lib/db-hv5';
+import { query } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!estadoId && uf) {
-      const stateRes = await queryHv5(
+      const stateRes = await query(
         'SELECT id FROM public.apoestado WHERE sigla = $1',
         [uf.toUpperCase()]
       );
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([]);
     }
 
-    const citiesRes = await queryHv5(
+    const citiesRes = await query(
       'SELECT id, descricao as nome FROM public.apocidade WHERE estado_id = $1 ORDER BY descricao',
       [estadoId]
     );
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if exists (fuzzy) in that state
-    const checkRes = await queryHv5(
+    const checkRes = await query(
       `SELECT id FROM public.apocidade WHERE estado_id = $1 AND (TRIM(UPPER(descricao)) = $2 OR translate(TRIM(UPPER(descricao)), 'ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ', 'AAAAAEEEEIIIIOOOOOUUUUC') = $2)`,
       [estado_id, cleanDesc]
     );
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const insertRes = await queryHv5(
+    const insertRes = await query(
       'INSERT INTO public.apocidade (descricao, estado_id) VALUES ($1, $2) RETURNING id',
       [cleanDesc, estado_id]
     );

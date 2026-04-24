@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryHv5 } from '@/lib/db-hv5';
+import { query } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
-    const res = await queryHv5(
+    const res = await query(
       'SELECT id, descricao FROM hv5.imbempreendimento ORDER BY descricao'
     );
     return NextResponse.json(res.rows);

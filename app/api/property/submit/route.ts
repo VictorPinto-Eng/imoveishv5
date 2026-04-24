@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
-import { queryHv5 } from '@/lib/db-hv5';
+import { query } from '@/lib/db';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import { JWT_SECRET } from '@/lib/auth-config';
 import { recordAuditLog } from '@/lib/analytics-service';
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Resolve Estado
     if (!resolvedEstadoId && ufSigla) {
-      const estadoRes = await queryHv5(
+      const estadoRes = await query(
         `SELECT id, pais_id, sigla FROM public.apoestado WHERE ${fuzzyMatchSql('sigla', 1)}`,
         [ufSigla]
       );
@@ -61,13 +61,13 @@ export async function POST(req: NextRequest) {
         // Auto-update master table if name is not standardized
         if (estadoRes.rows[0].sigla !== ufSigla) {
           console.log(`[DEBUG Location Submit] Standardizing Estado Sigla: ${estadoRes.rows[0].sigla} -> ${ufSigla}`);
-          await queryHv5('UPDATE public.apoestado SET sigla = $1 WHERE id = $2', [ufSigla, resolvedEstadoId]);
+          await query('UPDATE public.apoestado SET sigla = $1 WHERE id = $2', [ufSigla, resolvedEstadoId]);
         }
         console.log(`[DEBUG Location Submit] Resolved Estado ID: ${resolvedEstadoId}`);
       } else {
         // Auto-create Estado
         console.log(`[DEBUG Location Submit] Creating Estado: ${ufSigla}`);
-        const insertEstado = await queryHv5(
+        const insertEstado = await query(
           'INSERT INTO public.apoestado (nome, sigla, pais_id) VALUES ($1, $2, $3) RETURNING id',
           [ufSigla, ufSigla, 1] // Default to pais_id 1
         );
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Resolve Cidade
     if (!resolvedCidadeId && cidadeNome && resolvedEstadoId) {
-      const cidadeRes = await queryHv5(
+      const cidadeRes = await query(
         `SELECT id, descricao FROM public.apocidade WHERE estado_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
         [resolvedEstadoId, cidadeNome]
       );
@@ -91,13 +91,13 @@ export async function POST(req: NextRequest) {
         // Auto-update master table if name is not standardized
         if (cidadeRes.rows[0].descricao !== cidadeNome) {
           console.log(`[DEBUG Location Submit] Standardizing Cidade: ${cidadeRes.rows[0].descricao} -> ${cidadeNome}`);
-          await queryHv5('UPDATE public.apocidade SET descricao = $1 WHERE id = $2', [cidadeNome, resolvedCidadeId]);
+          await query('UPDATE public.apocidade SET descricao = $1 WHERE id = $2', [cidadeNome, resolvedCidadeId]);
         }
         console.log(`[DEBUG Location Submit] Resolved Cidade ID: ${resolvedCidadeId}`);
       } else {
         // Auto-create Cidade
         console.log(`[DEBUG Location Submit] Creating Cidade: ${cidadeNome}`);
-        const insertCidade = await queryHv5(
+        const insertCidade = await query(
           'INSERT INTO public.apocidade (descricao, estado_id) VALUES ($1, $2) RETURNING id',
           [cidadeNome, resolvedEstadoId]
         );
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Resolve Bairro
     if (!resolvedBairroId && bairroNome && resolvedCidadeId) {
-      const bairroRes = await queryHv5(
+      const bairroRes = await query(
         `SELECT id, descricao FROM public.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)} AND estado_id = $3 LIMIT 1`,
         [resolvedCidadeId, bairroNome, resolvedEstadoId]
       );
@@ -121,12 +121,12 @@ export async function POST(req: NextRequest) {
         // Auto-update master table if name is not standardized
         if (bairroRes.rows[0].descricao !== bairroNome) {
           console.log(`[DEBUG Location Submit] Standardizing Bairro: ${bairroRes.rows[0].descricao} -> ${bairroNome}`);
-          await queryHv5('UPDATE public.apobairro SET descricao = $1 WHERE id = $2', [bairroNome, resolvedBairroId]);
+          await query('UPDATE public.apobairro SET descricao = $1 WHERE id = $2', [bairroNome, resolvedBairroId]);
         }
         console.log(`[DEBUG Location Submit] Resolved Bairro ID: ${resolvedBairroId}`);
       } else {
         // Bairro resolution (Pure lookup)
-        const bairroRes = await queryHv5(
+        const bairroRes = await query(
           `SELECT id FROM public.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
           [resolvedCidadeId, bairroNome]
         );

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryHv5 } from '@/lib/db-hv5';
+import { query } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   try {
-    const res = await queryHv5(
+    const res = await query(
       'SELECT id, nome, sigla FROM public.apoestado ORDER BY nome'
     );
     return NextResponse.json(res.rows);
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if exists (fuzzy)
-    const checkRes = await queryHv5(
+    const checkRes = await query(
       `SELECT id FROM public.apoestado WHERE TRIM(UPPER(sigla)) = $1 OR translate(TRIM(UPPER(sigla)), 'ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ', 'AAAAAEEEEIIIIOOOOOUUUUC') = $1`,
       [cleanSigla]
     );
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const insertRes = await queryHv5(
+    const insertRes = await query(
       'INSERT INTO public.apoestado (nome, sigla, pais_id) VALUES ($1, $2, $3) RETURNING id',
       [cleanNome || cleanSigla, cleanSigla, pais_id || 1]
     );

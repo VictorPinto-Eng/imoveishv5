@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryHv5 } from '@/lib/db-hv5';
+import { query } from '@/lib/db';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!cityId && uf && cidade) {
-      const stateRes = await queryHv5(
+      const stateRes = await query(
         'SELECT id FROM public.apoestado WHERE sigla = $1',
         [uf.toUpperCase()]
       );
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
       const estadoId = stateRes.rows[0].id;
 
-      const cityRes = await queryHv5(
+      const cityRes = await query(
         'SELECT id FROM public.apocidade WHERE UPPER(descricao) = $1 AND estado_id = $2',
         [cidade.toUpperCase(), estadoId]
       );
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([]);
     }
 
-    const bairrosRes = await queryHv5(
+    const bairrosRes = await query(
       'SELECT id, descricao as nome FROM public.apobairro WHERE cidade_id = $1 ORDER BY descricao',
       [cityId]
     );
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if exists (fuzzy) in that city
-    const checkRes = await queryHv5(
+    const checkRes = await query(
       `SELECT id FROM public.apobairro WHERE cidade_id = $1 AND (TRIM(UPPER(descricao)) = $2 OR translate(TRIM(UPPER(descricao)), 'ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ', 'AAAAAEEEEIIIIOOOOOUUUUC') = $2)`,
       [cidade_id, cleanDesc]
     );
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const insertRes = await queryHv5(
+    const insertRes = await query(
       'INSERT INTO public.apobairro (descricao, cidade_id, estado_id) VALUES ($1, $2, $3) RETURNING id',
       [cleanDesc, cidade_id, estado_id || null]
     );
