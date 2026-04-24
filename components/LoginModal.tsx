@@ -432,10 +432,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             }
         }
 
-        if (viewMode === 'signup' && formData.password.trim() !== formData.confirmPassword.trim()) {
-            setError('As senhas não coincidem.')
-            setLoading(false)
-            return
+        if (viewMode === 'signup') {
+            const pass = passwordRef.current?.value || '';
+            const confirmPass = confirmPasswordRef.current?.value || '';
+            
+            if (pass.trim() !== confirmPass.trim()) {
+                setError('As senhas não coincidem.')
+                setLoading(false)
+                return
+            }
+
+            // Garante que o formData enviado tenha os valores exatos dos refs
+            formData.password = pass;
+            formData.confirmPassword = confirmPass;
         }
 
         const endpoint = viewMode === 'login' ? '/api/auth/login' : '/api/auth/register'
