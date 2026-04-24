@@ -1160,16 +1160,6 @@ export default function IncluirImovelPage() {
 
                                     {/* Status removed as requested - forced to Pendente by default */}
                                 </div>
-
-                                <div className={styles.navigation}>
-                                    <button
-                                        className={styles.btnPrimary}
-                                        onClick={handleNext}
-                                        disabled={!formData.number || !formData.imbfinalidade_id || !formData.imbtpimovel_id}
-                                    >
-                                        Continuar
-                                    </button>
-                                </div>
                             </div>
                         )}
 
@@ -1255,6 +1245,18 @@ export default function IncluirImovelPage() {
                                     }}
                                 />
                             </>
+                        )}
+
+                        {isAddressFound && (
+                            <div className={styles.navigation}>
+                                <button
+                                    className={styles.btnPrimary}
+                                    onClick={handleNext}
+                                    disabled={!formData.number || !formData.imbfinalidade_id || !formData.imbtpimovel_id}
+                                >
+                                    Continuar
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}
