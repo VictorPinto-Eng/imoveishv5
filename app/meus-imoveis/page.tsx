@@ -411,6 +411,11 @@ function MeusImoveisContent() {
                                 );
                             })}
                     </div>
+
+                    {/* BOTÃO ADICIONAR FLUTUANTE (FAB) - AGORA DENTRO DA SIDEBAR */}
+                    <Link href="/meus-imoveis/incluir" className={styles.fab} title="Adicionar Novo Imóvel">
+                        <Plus />
+                    </Link>
                 </aside>
 
                 {/* MAIN CONTENT AREA */}
@@ -969,11 +974,6 @@ function MeusImoveisContent() {
                 onApply={(filters) => setActiveFilters(filters)}
                 initialFilters={activeFilters}
             />
-
-            {/* BOTÃO ADICIONAR FLUTUANTE (FAB) */}
-            <Link href="/meus-imoveis/incluir" className={styles.fab} title="Adicionar Novo Imóvel">
-                <Plus />
-            </Link>
 
             <Footer />
         </main>
