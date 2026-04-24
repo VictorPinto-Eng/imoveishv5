@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { maskCurrencyInput, formatCurrency, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import dynamic from 'next/dynamic';
+import WhatsAppLink from '@/components/WhatsAppLink';
 
 const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
 
@@ -1755,16 +1756,15 @@ export default function IncluirImovelPage() {
                                     Temos especialistas à disposição para cadastrar o imóvel junto com você.
                                 </p>
 
-                                <a 
-                                    href="https://wa.me/5581999529391?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20cadastro%20do%20meu%20im%C3%B3vel%20na%20HV5"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <WhatsAppLink 
+                                    messageOrImovel="Olá, preciso de ajuda com o cadastro do meu imóvel na HV5"
+                                    isFullMessage={true}
                                     className={`${styles.contactBtn} ${styles.contactBtnWhatsApp}`}
                                     style={{ textDecoration: 'none' }}
                                 >
                                     <MessageCircle size={20} />
                                     Conversar por WhatsApp
-                                </a>
+                                </WhatsAppLink>
 
                                 <a 
                                     href="tel:+5581999529391"
