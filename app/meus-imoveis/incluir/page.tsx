@@ -737,7 +737,7 @@ export default function IncluirImovelPage() {
                     <div className={styles.logoIcon}>
                         <Square size={60} strokeWidth={2.5} color="#ffffff" />
                     </div>
-                    <h1 className={styles.sidebarTitle}>Cadastro de<br />imóvel</h1>
+                    <h1 className={styles.sidebarTitle}>Cadastro de <br />Imóvel</h1>
                 </aside>
                 <main className={`${styles.mainContent} items-center justify-center text-center`}>
                     <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
@@ -770,7 +770,7 @@ export default function IncluirImovelPage() {
                     <Square size={60} strokeWidth={2.5} color="#ffffff" />
                 </div>
                 <h1 className={styles.sidebarTitle}>
-                    Cadastro de<br />imóvel
+                    Cadastro de <br />Imóvel
                 </h1>
             </aside>
 
@@ -1755,15 +1755,25 @@ export default function IncluirImovelPage() {
                                     Temos especialistas à disposição para cadastrar o imóvel junto com você.
                                 </p>
 
-                                <button className={`${styles.contactBtn} ${styles.contactBtnWhatsApp}`}>
+                                <a 
+                                    href="https://wa.me/5581999529391?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20cadastro%20do%20meu%20im%C3%B3vel%20na%20HV5"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`${styles.contactBtn} ${styles.contactBtnWhatsApp}`}
+                                    style={{ textDecoration: 'none' }}
+                                >
                                     <MessageCircle size={20} />
                                     Conversar por WhatsApp
-                                </button>
+                                </a>
 
-                                <button className={`${styles.contactBtn} ${styles.contactBtnPhone}`}>
+                                <a 
+                                    href="tel:+5581999529391"
+                                    className={`${styles.contactBtn} ${styles.contactBtnPhone}`}
+                                    style={{ textDecoration: 'none' }}
+                                >
                                     <Phone size={20} />
                                     Conversar por telefone
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>

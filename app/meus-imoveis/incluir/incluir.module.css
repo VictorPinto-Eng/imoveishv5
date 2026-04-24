@@ -48,6 +48,11 @@
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 2rem;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .sidebarNav {
@@ -1016,5 +1021,104 @@
     
     .changeButton {
         align-self: flex-end;
+    }
+}
+
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        padding: 24px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+        gap: 16px;
+    }
+
+    .sidebarNav {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    .logoIcon {
+        margin-bottom: 0;
+    }
+    
+    .logoIcon svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .sidebarTitle {
+        display: block;
+        font-size: clamp(1rem, 4vw, 1.25rem);
+        font-weight: 800;
+        margin-bottom: 0;
+        text-align: right;
+        line-height: 1.2;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    .sidebarTitle br {
+        display: none;
+    }
+
+
+    .mainContent {
+        padding: 32px 24px;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .stepTitle {
+        font-size: 28px;
+    }
+
+    .gridDetails {
+        grid-template-columns: 1fr;
+    }
+
+    .locationGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .toggleContainer {
+        flex-direction: column;
+        width: 100%;
+        gap: 4px;
+    }
+
+    .toggleButton {
+        width: 100%;
+        text-align: center;
+    }
+
+    .navigation {
+        flex-direction: column-reverse;
+        gap: 16px;
+    }
+
+    .btnPrimary, .btnSecondary {
+        width: 100%;
+    }
+    
+    .priceInput {
+        font-size: 24px;
+    }
+    
+    .toggleRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
     }
 }
