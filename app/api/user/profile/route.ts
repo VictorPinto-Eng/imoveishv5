@@ -23,7 +23,11 @@ export async function POST(req: NextRequest) {
         let emailChanged = false;
         let verificationMessage = '';
 
-            if (email && email !== user.email) {
+        if (!email) {
+            return NextResponse.json({ error: 'O e-mail é obrigatório' }, { status: 400 });
+        }
+
+        if (email !== user.email) {
             emailChanged = true;
             const newToken = crypto.randomBytes(32).toString('hex');
             

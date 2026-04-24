@@ -30,7 +30,7 @@ export default async function Home() {
                         </h1>
 
                         <div className={styles.subtitleWrapper}>
-                            <p className={styles.subtitle}>• Compra e aluguel de imóveis nas melhores localizações</p>
+                            <p className={styles.subtitle}>• Venda, Compra e Aluguel de imóveis nas melhores localizações</p>
                             <p className={styles.subtitle}>• Atendimento rápido e personalizado via WhatsApp</p>
                         </div>
 

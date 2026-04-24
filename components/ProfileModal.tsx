@@ -77,7 +77,11 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
 
     const handleSave = async () => {
         // Validation
-        if (!email || !email.includes('@')) {
+        if (!email) {
+            setMessage({ type: 'error', text: 'O e-mail é obrigatório.' });
+            return;
+        }
+        if (!email.includes('@')) {
             setMessage({ type: 'error', text: 'E-mail inválido.' });
             return;
         }
