@@ -31,7 +31,14 @@ export default function IncluirEmpreendimentoPage() {
     useEffect(() => {
         fetch('/api/property/estados')
             .then(res => res.json())
-            .then(data => setEstados(data))
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setEstados(data);
+                } else {
+                    console.error("API did not return an array for estados:", data);
+                    setEstados([]);
+                }
+            })
             .catch(err => console.error("Erro ao carregar estados:", err));
     }, []);
 
@@ -40,7 +47,12 @@ export default function IncluirEmpreendimentoPage() {
             fetch(`/api/property/cidades?estado_id=${estadoId}`)
                 .then(res => res.json())
                 .then(data => {
-                    setCidades(data);
+                    if (Array.isArray(data)) {
+                        setCidades(data);
+                    } else {
+                        console.error("API did not return an array for cidades:", data);
+                        setCidades([]);
+                    }
                     setCidadeId('');
                     setBairroId('');
                 })
@@ -56,7 +68,12 @@ export default function IncluirEmpreendimentoPage() {
             fetch(`/api/property/bairros?cidade_id=${cidadeId}`)
                 .then(res => res.json())
                 .then(data => {
-                    setBairros(data);
+                    if (Array.isArray(data)) {
+                        setBairros(data);
+                    } else {
+                        console.error("API did not return an array for bairros:", data);
+                        setBairros([]);
+                    }
                     setBairroId('');
                 })
                 .catch(err => console.error("Erro ao carregar bairros:", err));
