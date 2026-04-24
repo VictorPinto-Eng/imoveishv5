@@ -105,7 +105,14 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                 })
             });
 
-            const data = await res.json();
+            const contentType = res.headers.get("content-type");
+            let data;
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                data = await res.json();
+            } else {
+                // Se não for JSON, provavelmente é um erro do Gateway (HTML)
+                throw new Error('O servidor demorou muito para responder ou ocorreu um erro interno. Por favor, tente novamente.');
+            }
 
             if (res.ok) {
                 setMessage({ 
