@@ -4,7 +4,8 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendActivationEmail(email: string, name: string, token: string) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  // Prioriza a variável de ambiente, senão usa o domínio de produção
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
   const activationLink = `${appUrl}/api/auth/verify?token=${token}`;
 
   try {
