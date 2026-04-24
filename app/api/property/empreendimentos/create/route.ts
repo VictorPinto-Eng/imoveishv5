@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         }
 
         const insertQuery = `
-            INSERT INTO imob_hv5.imbempreendimento (
+            INSERT INTO public.imbempreendimento (
                 descricao, 
                 bairro_id, 
                 cidade_id, 
