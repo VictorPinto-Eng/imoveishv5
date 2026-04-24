@@ -46,6 +46,7 @@ interface Imovel {
     id: number;
     nome: string;
     preco_base: number;
+    pending_questions?: number | string;
     status: string;
     imagens_urls: string[];
     foto_capa?: string;
