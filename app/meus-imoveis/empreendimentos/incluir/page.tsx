@@ -29,7 +29,7 @@ export default function IncluirEmpreendimentoPage() {
     const [bairros, setBairros] = useState<LocationItem[]>([]);
 
     useEffect(() => {
-        fetch('/api/locations/estados')
+        fetch('/api/property/estados')
             .then(res => res.json())
             .then(data => setEstados(data))
             .catch(err => console.error("Erro ao carregar estados:", err));
@@ -37,7 +37,7 @@ export default function IncluirEmpreendimentoPage() {
 
     useEffect(() => {
         if (estadoId) {
-            fetch(`/api/locations/cidades?estadoId=${estadoId}`)
+            fetch(`/api/property/cidades?estado_id=${estadoId}`)
                 .then(res => res.json())
                 .then(data => {
                     setCidades(data);
@@ -53,7 +53,7 @@ export default function IncluirEmpreendimentoPage() {
 
     useEffect(() => {
         if (cidadeId) {
-            fetch(`/api/locations/bairros?cidadeId=${cidadeId}`)
+            fetch(`/api/property/bairros?cidade_id=${cidadeId}`)
                 .then(res => res.json())
                 .then(data => {
                     setBairros(data);
