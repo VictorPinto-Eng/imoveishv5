@@ -55,14 +55,75 @@
     transform: translateY(-1px);
 }
 
-/* Floating Action Button (FAB) */
-.fab {
+/* Floating Action Button (FAB) Speed Dial */
+.fabContainer {
     position: absolute;
     bottom: 1.5rem;
     right: 1.5rem;
-    width: 56px;
-    height: 56px;
-    background-color: #118B8A;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    z-index: 1000;
+}
+
+.fabMenu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fabMenuOpen {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.fabMenuItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+
+.fabMenuItem:hover {
+    transform: scale(1.05);
+}
+
+.fabMenuLabel {
+    background: #f1f5f9;
+    color: #1e6491;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.fabMenuIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e6491;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+}
+
+.fab {
+    width: 60px;
+    height: 60px;
+    background-color: #737373;
     color: white;
     border-radius: 50%;
     display: flex;
@@ -70,34 +131,32 @@
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    z-index: 1000;
+    border: none;
+    outline: none;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-decoration: none;
 }
 
 .fab:hover {
-    transform: scale(1.1) rotate(90deg);
-    background-color: #0e7372;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    background-color: #525252;
+    transform: scale(1.05);
+}
+
+.fabActive {
+    transform: rotate(45deg);
+    background-color: #525252;
 }
 
 .fab svg {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     stroke-width: 2.5px;
+    transition: all 0.3s;
 }
 
 @media (max-width: 768px) {
-    .fab {
+    .fabContainer {
         bottom: 1.5rem;
         right: 1.5rem;
-        width: 56px;
-        height: 56px;
-    }
-    
-    .fab svg {
-        width: 28px;
-        height: 28px;
     }
 }
 

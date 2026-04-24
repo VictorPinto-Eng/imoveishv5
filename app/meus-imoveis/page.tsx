@@ -10,7 +10,7 @@ import {
     Menu, HelpCircle, Search, MapPin, SlidersHorizontal,
     Image as ImageIcon, PlusCircle, Frown, ChevronDown,
     ArrowLeft, ArrowRight, MoreVertical, Copy, MessageCircle, Mail, Send, Share2,
-    FolderPlus, CheckSquare, Grip, X, Check, Users, MessageSquare
+    FolderPlus, CheckSquare, Grip, X, Check, Users, MessageSquare, Building2
 } from 'lucide-react';
 import Link from 'next/link';
 import NextImage from 'next/image';
@@ -107,6 +107,7 @@ function MeusImoveisContent() {
     const [showActions, setShowActions] = useState(false);
     const [isGalleryActionsOpen, setIsGalleryActionsOpen] = useState(false);
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+    const [isFabOpen, setIsFabOpen] = useState(false);
 
     const updatePropertyField = async (propertyId: number, field: string, value: any) => {
         if (!selectedImovel) return;
@@ -420,10 +421,26 @@ function MeusImoveisContent() {
                             })}
                     </div>
 
-                    {/* BOTÃO ADICIONAR FLUTUANTE (FAB) - AGORA DENTRO DA SIDEBAR */}
-                    <Link href="/meus-imoveis/incluir" className={styles.fab} title="Adicionar Novo Imóvel">
-                        <Plus />
-                    </Link>
+                    {/* SPEED DIAL FAB */}
+                    <div className={styles.fabContainer}>
+                        <div className={`${styles.fabMenu} ${isFabOpen ? styles.fabMenuOpen : ''}`}>
+                            <Link href="/meus-imoveis/incluir" className={styles.fabMenuItem} title="Adicionar Imóvel">
+                                <span className={styles.fabMenuLabel}>Imóvel</span>
+                                <div className={styles.fabMenuIcon}><Home size={18} /></div>
+                            </Link>
+                            <Link href="/meus-imoveis/empreendimentos/incluir" className={styles.fabMenuItem} title="Adicionar Empreendimento">
+                                <span className={styles.fabMenuLabel}>Empreendimento</span>
+                                <div className={styles.fabMenuIcon}><Building2 size={18} /></div>
+                            </Link>
+                        </div>
+                        <button 
+                            className={`${styles.fab} ${isFabOpen ? styles.fabActive : ''}`}
+                            onClick={() => setIsFabOpen(!isFabOpen)}
+                            title="Adicionar"
+                        >
+                            <Plus className={styles.fabIcon} />
+                        </button>
+                    </div>
                 </aside>
 
                 {/* MAIN CONTENT AREA */}
