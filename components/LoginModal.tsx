@@ -292,6 +292,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setError(null)
         setSuccess(null)
         setNeedsActivation(false)
+        setEmailExistsError(null)
+        setFormData(prev => ({
+            ...prev,
+            password: '',
+            confirmPassword: ''
+        }))
+        setPasswordRequirements({
+            length: false,
+            upper: false,
+            lower: false,
+            number: false,
+            special: false
+        })
         // Focus email after switching mode
         setTimeout(() => emailRef.current?.focus(), 50)
     }
@@ -419,7 +432,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             }
         }
 
-        if (viewMode === 'signup' && formData.password !== formData.confirmPassword) {
+        if (viewMode === 'signup' && formData.password.trim() !== formData.confirmPassword.trim()) {
             setError('As senhas não coincidem.')
             setLoading(false)
             return
