@@ -7,7 +7,7 @@ import { sendActivationEmail } from '@/lib/resend';
 
 export async function POST(request: Request) {
     try {
-        const { name, email, phone, password, confirmPassword, idTipoUsuario } = await request.json();
+        const { name, social_name, email, phone, password, confirmPassword, idTipoUsuario } = await request.json();
 
         if (!email || !password || !name) {
             return NextResponse.json(
@@ -52,8 +52,8 @@ export async function POST(request: Request) {
 
         // Insert user (email_verified defaults to FALSE)
         await query(
-            'INSERT INTO users (name, email, phone, password_hash, verification_token, id_tipo_usuario) VALUES ($1, $2, $3, $4, $5, $6)',
-            [name, email, phone, passwordHash, verificationToken, idTipoUsuario || 2]
+            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, id_tipo_usuario) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 2]
         );
 
         // Try to send activation email but don't block the response indefinitely
