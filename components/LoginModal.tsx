@@ -456,7 +456,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 body: JSON.stringify(formData),
             })
 
-            const data = await res.json()
+            const contentType = res.headers.get("content-type");
+            let data;
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                data = await res.json();
+            } else {
+                // Se não for JSON, provavelmente é um erro do Gateway (HTML)
+                throw new Error('O servidor demorou muito para responder ou ocorreu um erro interno. Por favor, tente novamente em instantes.');
+            }
 
             if (!res.ok) {
                 if (data.needsActivation) {
