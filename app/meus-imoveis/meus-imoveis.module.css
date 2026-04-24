@@ -47,6 +47,52 @@
     color: #118B8A;
 }
 
+/* Floating Action Button (FAB) */
+.fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 64px;
+    height: 64px;
+    background-color: #118B8A;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+}
+
+.fab:hover {
+    transform: scale(1.1) rotate(90deg);
+    background-color: #0e7372;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.fab svg {
+    width: 32px;
+    height: 32px;
+    stroke-width: 2.5px;
+}
+
+@media (max-width: 768px) {
+    .fab {
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 56px;
+        height: 56px;
+    }
+    
+    .fab svg {
+        width: 28px;
+        height: 28px;
+    }
+}
+
 .quickSearchBox {
     display: flex;
     align-items: center;

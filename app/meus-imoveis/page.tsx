@@ -970,6 +970,11 @@ function MeusImoveisContent() {
                 initialFilters={activeFilters}
             />
 
+            {/* BOTÃO ADICIONAR FLUTUANTE (FAB) */}
+            <Link href="/meus-imoveis/incluir" className={styles.fab} title="Adicionar Novo Imóvel">
+                <Plus />
+            </Link>
+
             <Footer />
         </main>
     );
