@@ -164,7 +164,7 @@ export async function PUT(
     // 1. Resolve Estado
     if (!resolvedEstadoId && ufSigla) {
       const estadoRes = await queryHv5(
-        `SELECT id, pais_id, sigla FROM hv5.apoestado WHERE ${fuzzyMatchSql('sigla', 1)}`,
+        `SELECT id, pais_id, sigla FROM public.apoestado WHERE ${fuzzyMatchSql('sigla', 1)}`,
         [ufSigla]
       );
       if (estadoRes.rows.length > 0) {
@@ -174,14 +174,14 @@ export async function PUT(
         // Auto-update master table if name is not standardized
         if (estadoRes.rows[0].sigla !== ufSigla) {
           console.log(`[DEBUG Location] Standardizing Estado Sigla: ${estadoRes.rows[0].sigla} -> ${ufSigla}`);
-          await queryHv5('UPDATE hv5.apoestado SET sigla = $1 WHERE id = $2', [ufSigla, resolvedEstadoId]);
+          await queryHv5('UPDATE public.apoestado SET sigla = $1 WHERE id = $2', [ufSigla, resolvedEstadoId]);
         }
         console.log(`[DEBUG Location] Resolved Estado ID: ${resolvedEstadoId}`);
       } else {
         // Create Estado if not found (fallback)
         console.log(`[DEBUG Location] Creating Estado: ${ufSigla}`);
         const insertEstado = await queryHv5(
-          'INSERT INTO hv5.apoestado (nome, sigla, pais_id) VALUES ($1, $2, $3) RETURNING id',
+          'INSERT INTO public.apoestado (nome, sigla, pais_id) VALUES ($1, $2, $3) RETURNING id',
           [ufSigla, ufSigla, resolvedPaisId || 1]
         );
         if (insertEstado.rows.length > 0) {
@@ -194,7 +194,7 @@ export async function PUT(
     // 2. Resolve Cidade
     if (!resolvedCidadeId && cidadeNome && resolvedEstadoId) {
       const cidadeRes = await queryHv5(
-        `SELECT id, descricao FROM hv5.apocidade WHERE estado_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
+        `SELECT id, descricao FROM public.apocidade WHERE estado_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
         [resolvedEstadoId, cidadeNome]
       );
       if (cidadeRes.rows.length > 0) {
@@ -203,14 +203,14 @@ export async function PUT(
         // Auto-update master table if name is not standardized
         if (cidadeRes.rows[0].descricao !== cidadeNome) {
           console.log(`[DEBUG Location] Standardizing Cidade: ${cidadeRes.rows[0].descricao} -> ${cidadeNome}`);
-          await queryHv5('UPDATE hv5.apocidade SET descricao = $1 WHERE id = $2', [cidadeNome, resolvedCidadeId]);
+          await queryHv5('UPDATE public.apocidade SET descricao = $1 WHERE id = $2', [cidadeNome, resolvedCidadeId]);
         }
         console.log(`[DEBUG Location] Resolved Cidade ID: ${resolvedCidadeId}`);
       } else {
         // Auto-create Cidade
         console.log(`[DEBUG Location] Creating Cidade: ${cidadeNome}`);
         const insertCidade = await queryHv5(
-          'INSERT INTO hv5.apocidade (descricao, estado_id) VALUES ($1, $2) RETURNING id',
+          'INSERT INTO public.apocidade (descricao, estado_id) VALUES ($1, $2) RETURNING id',
           [cidadeNome, resolvedEstadoId]
         );
         if (insertCidade.rows.length > 0) {
@@ -223,7 +223,7 @@ export async function PUT(
     // 3. Resolve Bairro
     if (!resolvedBairroId && bairroNome && resolvedCidadeId) {
       const bairroRes = await queryHv5(
-        `SELECT id, descricao FROM hv5.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)} AND estado_id = $3 LIMIT 1`,
+        `SELECT id, descricao FROM public.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)} AND estado_id = $3 LIMIT 1`,
         [resolvedCidadeId, bairroNome, resolvedEstadoId]
       );
 
@@ -233,13 +233,13 @@ export async function PUT(
         // Auto-update master table if name is not standardized
         if (bairroRes.rows[0].descricao !== bairroNome) {
           console.log(`[DEBUG Location] Standardizing Bairro: ${bairroRes.rows[0].descricao} -> ${bairroNome}`);
-          await queryHv5('UPDATE hv5.apobairro SET descricao = $1 WHERE id = $2', [bairroNome, resolvedBairroId]);
+          await queryHv5('UPDATE public.apobairro SET descricao = $1 WHERE id = $2', [bairroNome, resolvedBairroId]);
         }
         console.log(`[DEBUG Location] Resolved Bairro ID: ${resolvedBairroId}`);
       } else {
         // Bairro resolution (Pure lookup)
         const bairroRes = await queryHv5(
-          `SELECT id FROM hv5.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
+          `SELECT id FROM public.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
           [resolvedCidadeId, bairroNome]
         );
         if (bairroRes.rows.length > 0) {
