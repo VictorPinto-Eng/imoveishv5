@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     );
 
     // Redirect to home with success message or a dedicated success page
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
     return NextResponse.redirect(`${appUrl}/?activated=true`);
 
   } catch (error) {
