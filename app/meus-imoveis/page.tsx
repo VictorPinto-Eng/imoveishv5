@@ -317,9 +317,6 @@ function MeusImoveisContent() {
                                     <Search size={20} onClick={() => setIsSearchOpen(true)} className="cursor-pointer" />
                                     <MapPin size={20} className="cursor-pointer" onClick={() => alert('Mapa em breve!')} />
                                     <SlidersHorizontal size={20} className="cursor-pointer" onClick={() => setIsFilterOpen(true)} />
-                                    <Link href="/meus-imoveis/incluir" title="Adicionar Imóvel" onClick={(e) => e.stopPropagation()}>
-                                        <Plus size={20} />
-                                    </Link>
                                 </div>
                             </div>
                         )}

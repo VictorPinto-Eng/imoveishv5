@@ -51,9 +51,8 @@ export default function ContactPage() {
                                 Avenida Campina Grande, 2227, Sala 01 - Nova Caruaru - Caruaru - PE
                             </p>
 
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Venda</p>
-                                <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>(81) 98743-5463</p>
+                            <div style={{ marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <p style={{ opacity: 0.7, fontSize: '0.875rem', marginBottom: '-0.25rem' }}>Venda</p>
                                 <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>(81) 98666-1683</p>
                                 <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>(81) 99952-9391</p>
                             </div>
