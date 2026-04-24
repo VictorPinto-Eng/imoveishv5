@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { X, Loader2, Eye, EyeOff, User, Phone, Mail, Lock } from 'lucide-react'
+import { X, Loader2, Eye, EyeOff, User, Phone, Mail, Lock, Check, AlertCircle } from 'lucide-react'
 import styles from './loginModal.module.css'
 
 interface LoginModalProps {
@@ -224,6 +224,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [needsActivation, setNeedsActivation] = useState(false)
+    const [passwordRequirements, setPasswordRequirements] = useState({
+        length: false,
+        upper: false,
+        lower: false,
+        number: false,
+        special: false
+    })
+
+    const checkPasswordStrength = (pass: string) => {
+        setPasswordRequirements({
+            length: pass.length >= 8,
+            upper: /[A-Z]/.test(pass),
+            lower: /[a-z]/.test(pass),
+            number: /[0-9]/.test(pass),
+            special: /[^A-Za-z0-9]/.test(pass)
+        })
+    }
     const [showCountryPicker, setShowCountryPicker] = useState(false)
     const [countrySearch, setCountrySearch] = useState('')
 
@@ -238,6 +255,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         confirmPassword: '',
         idTipoUsuario: 2, // 1: Corretor, 2: Proprietário (Padrão)
     })
+
+    useEffect(() => {
+        if (viewMode === 'signup') {
+            checkPasswordStrength(formData.password);
+        }
+    }, [formData.password, viewMode]);
 
     // Refs for focus management
     const nameRef = useRef<HTMLInputElement>(null)
@@ -386,6 +409,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setLoading(true)
         setError(null)
         setSuccess(null)
+
+        if (viewMode === 'signup') {
+            const allMet = Object.values(passwordRequirements).every(v => v);
+            if (!allMet) {
+                setError('A senha deve atender a todos os requisitos de segurança.');
+                setLoading(false);
+                return;
+            }
+        }
 
         if (viewMode === 'signup' && formData.password !== formData.confirmPassword) {
             setError('As senhas não coincidem.')
@@ -694,6 +726,47 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
+
+                            {viewMode === 'signup' && (
+                                <div className={styles.passwordStrengthContainer}>
+                                    <div className={styles.strengthBarWrapper}>
+                                        {[1, 2, 3, 4, 5].map((s) => {
+                                            const metCount = Object.values(passwordRequirements).filter(v => v).length;
+                                            const colors = ['#e2e8f0', '#ef4444', '#f59e0b', '#facc15', '#10b981', '#059669'];
+                                            const activeColor = metCount >= s ? colors[metCount] : '#e2e8f0';
+                                            return (
+                                                <div 
+                                                    key={s} 
+                                                    className={styles.strengthSegment}
+                                                    style={{ backgroundColor: activeColor }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                    <div className={styles.requirementsList}>
+                                        <div className={`${styles.requirementItem} ${passwordRequirements.length ? styles.requirementMet : ''}`}>
+                                            {passwordRequirements.length ? <Check size={12} /> : <AlertCircle size={12} />}
+                                            <span>Mín. 8 caracteres</span>
+                                        </div>
+                                        <div className={`${styles.requirementItem} ${passwordRequirements.upper ? styles.requirementMet : ''}`}>
+                                            {passwordRequirements.upper ? <Check size={12} /> : <AlertCircle size={12} />}
+                                            <span>Letra maiúscula</span>
+                                        </div>
+                                        <div className={`${styles.requirementItem} ${passwordRequirements.lower ? styles.requirementMet : ''}`}>
+                                            {passwordRequirements.lower ? <Check size={12} /> : <AlertCircle size={12} />}
+                                            <span>Letra minúscula</span>
+                                        </div>
+                                        <div className={`${styles.requirementItem} ${passwordRequirements.number ? styles.requirementMet : ''}`}>
+                                            {passwordRequirements.number ? <Check size={12} /> : <AlertCircle size={12} />}
+                                            <span>Número</span>
+                                        </div>
+                                        <div className={`${styles.requirementItem} ${passwordRequirements.special ? styles.requirementMet : ''}`}>
+                                            {passwordRequirements.special ? <Check size={12} /> : <AlertCircle size={12} />}
+                                            <span>Caractere especial</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {viewMode === 'signup' && (
                                 <div className={styles.inputWrapper}>
                                     <input 

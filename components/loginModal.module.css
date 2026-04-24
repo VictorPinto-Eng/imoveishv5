@@ -422,3 +422,47 @@
     color: #7F34E6;
     box-shadow: 0 0 0 1px #7F34E6;
 }
+.passwordStrengthContainer {
+    width: 100%;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.strengthBarWrapper {
+    display: flex;
+    gap: 4px;
+    height: 4px;
+    width: 100%;
+    margin-bottom: 0.75rem;
+}
+
+.strengthSegment {
+    flex: 1;
+    background-color: #e2e8f0;
+    border-radius: 2px;
+    transition: background-color 0.3s ease;
+}
+
+.requirementsList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    padding-left: 0.25rem;
+}
+
+.requirementItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #64748b;
+    transition: color 0.2s;
+}
+
+.requirementMet {
+    color: #10b981;
+}
+
+.requirementIcon {
+    flex-shrink: 0;
+}
