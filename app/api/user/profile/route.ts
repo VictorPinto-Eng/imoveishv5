@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
 import crypto from 'crypto';
@@ -37,14 +37,16 @@ export async function POST(req: NextRequest) {
                 [social_name || '', email, newToken, id_tipo_usuario || 2, phone || null, decoded.id]
             );
 
-            // Try to send email but don't fail the whole request if it's slow
-            try {
-                await sendActivationEmail(email, user.name, newToken);
-                verificationMessage = ' Por favor, verifique seu novo e-mail para ativá-lo.';
-            } catch (emailErr) {
-                console.error('Failed to send profile update activation email:', emailErr);
-                verificationMessage = ' O seu e-mail foi alterado, mas houve um erro ao enviar o link de ativação. Você poderá solicitar o reenvio em breve.';
-            }
+            // OPTIMIZATION: Send email in background AFTER response
+            after(async () => {
+                try {
+                    await sendActivationEmail(email, user.name, newToken);
+                } catch (emailErr) {
+                    console.error('Background profile email failed:', emailErr);
+                }
+            });
+            
+            verificationMessage = ' Por favor, verifique seu novo e-mail para ativá-lo.';
         } else {
             await query(
                 'UPDATE users SET social_name = $1, id_tipo_usuario = $2, phone = $3 WHERE id = $4',

@@ -1,5 +1,5 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import crypto from 'crypto';
@@ -56,23 +56,21 @@ export async function POST(request: Request) {
             [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 2]
         );
 
-        // Try to send activation email but don't block the response indefinitely
-        // This prevents Gateway Timeouts (504) if the email service is slow
-        try {
-            // We use a shorter timeout or just wrap it to handle failures
-            await sendActivationEmail(email, name, verificationToken);
-            
-            return NextResponse.json({ 
-                message: 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.' 
-            }, { status: 201 });
-        } catch (emailError) {
-            console.error('Email sending failed during registration:', emailError);
-            // Even if email fails, user was created. We tell them to try resending later.
-            return NextResponse.json({ 
-                message: 'Conta criada com sucesso! No entanto, houve um atraso no envio do e-mail de ativação. Você poderá solicitar o reenvio na tela de login.',
-                partialSuccess: true 
-            }, { status: 201 });
-        }
+        // OPTIMIZATION: Send email asynchronously AFTER responding to the user
+        // This makes the registration feel instant
+        after(async () => {
+            try {
+                await sendActivationEmail(email, name, verificationToken);
+                console.log(`Activation email sent successfully to ${email}`);
+            } catch (emailError) {
+                console.error('Background email sending failed:', emailError);
+            }
+        });
+
+        return NextResponse.json({ 
+            message: 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.' 
+        }, { status: 201 });
+
     } catch (error: any) {
         console.error('Registration error:', error);
         return NextResponse.json(
