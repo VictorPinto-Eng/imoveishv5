@@ -52,23 +52,72 @@
 
 .section {
   background: white;
-  padding: 2rem;
-  border-radius: 16px;
+  padding: 2.5rem;
+  border-radius: 20px;
   border: 1px solid #f1f5f9;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .sectionTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sectionTitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f1f5f9;
+  margin-left: 0.5rem;
 }
 
 .sectionSubtitle {
   font-size: 0.95rem;
   color: #64748b;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.similarSection {
+  margin-top: 5rem;
+  padding: 5rem 0;
+  background-color: #f1f5f9;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+}
+
+.similarContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.similarHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.similarHeader h2 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.similarHeader::after {
+  content: '';
+  width: 60px;
+  height: 4px;
+  background: #e30613;
+  border-radius: 2px;
 }
 
 .questionButtons {
@@ -80,8 +129,8 @@
 
 .questionBtn {
   background: white;
-  border: 1px solid #ff6e00;
-  color: #ff6e00;
+  border: 1px solid #e30613;
+  color: #e30613;
   padding: 0.6rem 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -114,11 +163,11 @@
 }
 
 .inquiryTextarea:focus {
-  border-color: #ff6e00;
+  border-color: #e30613;
 }
 
 .sendBtn {
-  background-color: #ff6e00;
+  background-color: #e30613;
   color: white;
   border: none;
   border-radius: 10px;
@@ -130,7 +179,7 @@
 }
 
 .sendBtn:hover {
-  background-color: #e66300;
+  background-color: #c50510;
 }
 
 .mapContainer {

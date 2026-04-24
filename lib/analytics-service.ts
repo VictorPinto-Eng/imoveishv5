@@ -269,14 +269,24 @@ export async function recordAuditLog(
   userId: number | null,
   action: string,
   details: any = {},
-  ipAddress?: string
+  ipAddress?: string,
+  codigoEvento?: string,
+  origem?: string
 ) {
   try {
     await query(`
       INSERT INTO produtos_servicos_log (
-        produto_servico_id, user_id, acao, detalhes, ip_address
-      ) VALUES ($1, $2, $3, $4, $5)
-    `, [propertyId, userId, action, JSON.stringify(details), ipAddress || null]);
+        produto_servico_id, user_id, acao, detalhes, ip_address, codigo_evento, origem
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [
+      propertyId, 
+      userId, 
+      action, 
+      JSON.stringify(details), 
+      ipAddress || null,
+      codigoEvento || null,
+      origem || null
+    ]);
     
     return { success: true };
   } catch (error) {

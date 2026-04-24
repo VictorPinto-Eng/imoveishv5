@@ -198,12 +198,36 @@
   min-width: 0;
 }
 
+.cardCompactIdRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
 .cardCompactId {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
   font-size: 9px;
   color: #94a3b8;
+}
+
+.pendingBadge {
+  background: #e30613;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(227, 6, 19, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 .cardCompactTitle {

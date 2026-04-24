@@ -1,6 +1,7 @@
 import styles from './page.module.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import PropertyQuestions from '@/components/PropertyQuestions'
 import { getImovelById, getFeaturedImoveis } from '@/lib/imoveis'
 import { notFound } from 'next/navigation'
 import PropertyGallery from '@/components/PropertyGallery'
@@ -127,20 +128,10 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             parking={imovel.vagas}
                         />
 
-                        <section className={styles.section}>
-                            <h3 className={styles.sectionTitle}>Perguntas para a Imobiliária</h3>
-                            <p className={styles.sectionSubtitle}>Selecione uma ou mais perguntas, ou escreva a sua consulta.</p>
-                            <div className={styles.questionButtons}>
-                                <button className={styles.questionBtn}>Está disponível?</button>
-                                <button className={styles.questionBtn}>Eu posso visitar?</button>
-                                <button className={styles.questionBtn}>Qual o valor do condomínio?</button>
-                                <button className={styles.questionBtn}>Qual andar?</button>
-                            </div>
-                            <div className={styles.inquiryBox}>
-                                <textarea placeholder="Escreva sua pergunta..." className={styles.inquiryTextarea}></textarea>
-                                <button className={styles.sendBtn}>Enviar</button>
-                            </div>
-                        </section>
+                        <PropertyQuestions 
+                            propertyId={id} 
+                            propertyTitle={imovel.nome} 
+                        />
 
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Descrição</h2>
@@ -179,12 +170,17 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                 </div>
 
                 {/* Similar Properties */}
-                <section style={{ marginTop: '4rem' }}>
-                    <h2 className={styles.sectionTitle}>Imóveis semelhantes</h2>
-                    <div className={styles.similarGrid}>
-                        {similarImoveis.map((item: any) => (
-                            <ImovelCard key={item.id} imovel={item} />
-                        ))}
+                <section className={styles.similarSection}>
+                    <div className={styles.similarContainer}>
+                        <div className={styles.similarHeader}>
+                            <h2>Imóveis semelhantes</h2>
+                            <p style={{ color: '#64748b' }}>Outras opções que podem te interessar nesta região</p>
+                        </div>
+                        <div className={styles.similarGrid}>
+                            {similarImoveis.map((item: any) => (
+                                <ImovelCard key={item.id} imovel={item} />
+                            ))}
+                        </div>
                     </div>
                 </section>
             </main>

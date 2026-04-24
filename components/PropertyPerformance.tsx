@@ -76,7 +76,7 @@ export default function PropertyPerformance({ propertyId }: PropertyPerformanceP
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <Loader2 className="animate-spin text-purple-600" size={32} />
+        <Loader2 className="animate-spin text-red-600" size={32} />
         <p>Carregando desempenho profissional...</p>
       </div>
     );

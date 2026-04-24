@@ -10,7 +10,7 @@ import {
     Menu, HelpCircle, Search, MapPin, SlidersHorizontal,
     Image as ImageIcon, PlusCircle, Frown, ChevronDown,
     ArrowLeft, ArrowRight, MoreVertical, Copy, MessageCircle, Mail, Send, Share2,
-    FolderPlus, CheckSquare, Grip, X, Check, Users
+    FolderPlus, CheckSquare, Grip, X, Check, Users, MessageSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import NextImage from 'next/image';
@@ -18,6 +18,7 @@ import styles from './meus-imoveis.module.css';
 import PhotoManager from '@/components/PhotoManager';
 import PropertyPerformance from '@/components/PropertyPerformance';
 import FilterModal from '@/components/FilterModal';
+import DashboardQuestions from '@/components/DashboardQuestions';
 import { generateWhatsAppShareMessage } from '@/lib/share-templates';
 import dynamic from 'next/dynamic';
 import type { PropertyMapProps } from '@/components/PropertyMap';
@@ -170,10 +171,11 @@ function MeusImoveisContent() {
 
     const fetchMyImoveis = async (returnId?: string | null) => {
         try {
-            const res = await fetch('/api/user/imoveis');
+            const res = await fetch(`/api/user/imoveis?t=${Date.now()}`);
             if (res.ok) {
                 const data = await res.json();
                 const list = data.imoveis || [];
+                console.log('>>> MY IMOVEIS LIST UPDATED:', list.map((i: any) => ({ id: i.id, pending: i.pending_questions })));
                 setImoveis(list);
                 setImageErrors({}); // <- Reset image error state whenever data updates
                 
@@ -386,7 +388,15 @@ function MeusImoveisContent() {
                                         </div>
                                         
                                         <div className={styles.cardCompactContent}>
-                                            <div className={styles.cardCompactId}>Cód {imovel.id}</div>
+                                            <div className={styles.cardCompactIdRow}>
+                                                <div className={styles.cardCompactId}>Cód {imovel.id}</div>
+                                                {Number(imovel.pending_questions) > 0 && (
+                                                    <div className={styles.pendingBadge} title={`${imovel.pending_questions} pergunta(s) pendente(s)`}>
+                                                        <MessageSquare size={12} fill="white" />
+                                                        <span>{imovel.pending_questions}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <h3 className={styles.cardCompactTitle}>
                                                 {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
                                                 {imovel.tipo_nome || (imovel.categoria === 'Imovel' ? 'Apartamento' : imovel.categoria)}
@@ -523,7 +533,15 @@ function MeusImoveisContent() {
                                                          <MessageCircle size={16} />
                                                          <span>Compartilhar por WhatsApp</span>
                                                      </button>
-                                                    <button className={styles.dropdownItem} onClick={(e) => { e.stopPropagation(); alert('Abrindo Email...'); }}>
+                                                    <button className={styles.dropdownItem} onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        if (selectedImovel) {
+                                                            const subject = encodeURIComponent(`Interesse no imóvel: ${selectedImovel.nome}`);
+                                                            const body = encodeURIComponent(`Olá, veja este imóvel no portal HV5:\n\n${window.location.origin}/imovel/${selectedImovel.id}`);
+                                                            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                                                            setShowActions(false);
+                                                        }
+                                                    }}>
                                                         <Mail size={16} />
                                                         <span>Compartilhar por Email</span>
                                                     </button>
@@ -541,7 +559,19 @@ function MeusImoveisContent() {
                                                     
                                                     <div className={styles.dropdownDivider} />
                                                     
-                                                    <button className={styles.dropdownItem} onClick={(e) => { e.stopPropagation(); alert('Copiando link...'); }}>
+                                                    <button className={styles.dropdownItem} onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        if (selectedImovel) {
+                                                            const shareUrl = `${window.location.origin}/imovel/${selectedImovel.id}`;
+                                                            navigator.clipboard.writeText(shareUrl).then(() => {
+                                                                alert('Link copiado para a área de transferência!');
+                                                            }).catch(err => {
+                                                                console.error('Failed to copy:', err);
+                                                                alert('Erro ao copiar link.');
+                                                            });
+                                                            setShowActions(false);
+                                                        }
+                                                    }}>
                                                         <Share2 size={16} />
                                                         <span>Compartilhar Link</span>
                                                     </button>
@@ -618,6 +648,12 @@ function MeusImoveisContent() {
                                         onClick={() => setActiveTab('desempenho')}
                                     >
                                         Desempenho
+                                    </div>
+                                    <div 
+                                        className={`${styles.tabItem} ${activeTab === 'perguntas' ? styles.tabItemActive : ''}`}
+                                        onClick={() => setActiveTab('perguntas')}
+                                    >
+                                        Perguntas
                                     </div>
                                 </nav>
                             </div>
@@ -819,7 +855,7 @@ function MeusImoveisContent() {
                                 {activeTab === 'atividades' && (
                                     <div className={styles.atividadesContainer}>
                                         {loadingActivities ? (
-                                            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-orange-500" /></div>
+                                            <div className="flex justify-center p-10"><Loader2 className="animate-spin text-red-600" /></div>
                                         ) : activities.length === 0 ? (
                                             <div className="p-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                                                 <p>Nenhuma atividade registrada para este imóvel ainda.</p>
@@ -880,6 +916,15 @@ function MeusImoveisContent() {
                                                  ))}
                                             </div>
                                         )}
+                                    </div>
+                                )}
+
+                                {activeTab === 'perguntas' && selectedImovel && (
+                                    <div className={styles.perguntasDashboard}>
+                                        <DashboardQuestions 
+                                            propertyId={selectedImovel.id} 
+                                            onAnswer={() => fetchMyImoveis()}
+                                        />
                                     </div>
                                 )}
 

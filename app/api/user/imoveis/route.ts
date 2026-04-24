@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
                 p.*,
                 (SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = p.id AND foto_principal = TRUE LIMIT 1) as foto_capa,
                 (SELECT COUNT(*) FROM produtos_servicos_midia WHERE produto_servico_id = p.id) as total_fotos,
+                CAST((SELECT COUNT(*) FROM imovel_perguntas WHERE imovel_id = p.id AND status = 'pendente') AS INTEGER) as pending_questions,
                 op.descricao as operacao_nome,
                 tp.descricao as tipo_nome
             FROM produtos_servicos p

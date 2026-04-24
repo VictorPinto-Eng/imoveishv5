@@ -49,32 +49,52 @@ export default function ContactModal({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset state to avoid cache from previous entry
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        message: `Olá! Tenho interesse neste imóvel em ${isRental ? 'Locação' : 'Venda'} (Cód: ${propertyId}) que vi no site HV5.com.`
-      })
-      setIsSuccess(false)
-
-      // Small timeout to ensure DOM is ready
-      setTimeout(() => emailRef.current?.focus(), 50)
-
       const fetchUser = async () => {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          setFormData(prev => ({
-            ...prev,
-            email: user.email || '',
-            name: user.user_metadata?.full_name || user.user_metadata?.first_name || '',
-            phone: user.user_metadata?.phone || ''
-          }))
+        try {
+          // Use the same auth endpoint as the Header
+          const res = await fetch('/api/auth/me')
+          const data = await res.json()
+          
+          const initialData = {
+            name: '',
+            email: '',
+            phone: '',
+            message: `Olá! Tenho interesse neste imóvel em ${isRental ? 'Locação' : 'Venda'} (Cód: ${propertyId}) que vi no site HV5.com.`
+          }
+
+          if (data.authenticated && data.user) {
+            const user = data.user
+            console.log('[ContactModal] User found via /api/auth/me:', user.email)
+            initialData.email = user.email || ''
+            initialData.name = user.name || user.social_name || ''
+            initialData.phone = user.phone || ''
+          } else {
+            // Fallback to Supabase just in case
+            const { data: authData } = await supabase.auth.getUser()
+            if (authData.user) {
+              const u = authData.user
+              initialData.email = u.email || ''
+              initialData.name = u.user_metadata?.full_name || u.user_metadata?.first_name || ''
+              initialData.phone = u.user_metadata?.phone || ''
+            }
+          }
+
+          setFormData(initialData)
+          setIsSuccess(false)
+
+          setTimeout(() => {
+              if (!initialData.email) emailRef.current?.focus()
+              else if (!initialData.name) nameRef.current?.focus()
+              else messageRef.current?.focus()
+          }, 150)
+        } catch (err) {
+          console.error('[ContactModal] Auth check error:', err)
         }
       }
+      
       fetchUser()
     }
-  }, [isOpen, isRental])
+  }, [isOpen, isRental, propertyId])
 
   if (!isOpen || !mounted) return null
 

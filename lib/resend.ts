@@ -55,7 +55,7 @@ export async function sendPropertyContactEmail(
       subject: `Cod ${propertyId} - ${operacao} - ${tipoImovel}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h1 style="color: #ff6e00; text-align: center;">Novo Lead Recebido!</h1>
+          <h1 style="color: #e30613; text-align: center;">Novo Lead Recebido!</h1>
           <p>Olá, <strong>${ownerName}</strong>!</p>
           <p>Alguém demonstrou interesse no seu imóvel: <strong>${propertyName}</strong></p>
           
@@ -66,7 +66,7 @@ export async function sendPropertyContactEmail(
             <p style="margin: 5px 0;"><strong>Telefone:</strong> ${leadPhone || 'Não informado'}</p>
           </div>
 
-          <div style="background-color: #fff7ed; padding: 15px; border-radius: 8px; border-left: 4px solid #ff6e00;">
+          <div style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border-left: 4px solid #e30613;">
             <h3 style="margin-top: 0; color: #9a3412;">Mensagem:</h3>
             <p style="font-style: italic; color: #431407;">"${message}"</p>
           </div>

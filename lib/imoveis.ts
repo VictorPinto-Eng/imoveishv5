@@ -132,8 +132,16 @@ function parseImovel(item: any): Imovel {
     tipo_nome: item.tipo_nome,
     pub_site: item.pub_site === true || item.pub_site === 'true',
     pub_price: item.pub_price === true || item.pub_price === 'true',
-    latitude: item.latitude ?? (typeof custom_fields.latitude === 'number' ? custom_fields.latitude : null),
-    longitude: item.longitude ?? (typeof custom_fields.longitude === 'number' ? custom_fields.longitude : null),
+    latitude: (() => {
+      const lat = item.latitude ?? custom_fields.latitude;
+      const parsed = parseFloat(lat);
+      return !isNaN(parsed) ? parsed : null;
+    })(),
+    longitude: (() => {
+      const lng = item.longitude ?? custom_fields.longitude;
+      const parsed = parseFloat(lng);
+      return !isNaN(parsed) ? parsed : null;
+    })(),
     plus_code: item.plus_code || custom_fields.plus_code
   }
 }

@@ -4,11 +4,10 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
-  --primary: #10b981;
-  /* Green from screenshot */
-  --primary-hover: #059669;
+  --primary: #e30613; /* HV5 Red as primary action color */
+  --primary-hover: #c50510;
   --secondary: #64748b;
-  --accent: #f59e0b;
+  --accent: #e30613;
   --success: #10b981;
   --card-bg: #ffffff;
   --border: #e2e8f0;

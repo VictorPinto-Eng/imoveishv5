@@ -20,6 +20,7 @@ type Props = {
     title?: string
     children: React.ReactNode
     produto_servico_id?: number
+    origin?: string
 }
 
 export default function WhatsAppLink({
@@ -29,7 +30,8 @@ export default function WhatsAppLink({
     style,
     title,
     children,
-    produto_servico_id
+    produto_servico_id,
+    origin = 'unknown'
 }: Props) {
     const phone = sanitizePhone(process.env.NEXT_PUBLIC_WHATSAPP_PHONE || DEFAULT_WHATSAPP_PHONE)
 
@@ -58,6 +60,18 @@ export default function WhatsAppLink({
                     page_url: window.location.pathname
                 })
             }).catch(err => console.error('[Analytics] Failed to track whatsapp click:', err));
+
+            // Record Audit Log
+            fetch('/api/analytics/audit-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    propertyId: produto_servico_id,
+                    action: 'click_whatsapp',
+                    eventCode: '200',
+                    origin: origin
+                })
+            }).catch(err => console.error('[AuditLog] Failed:', err));
         }
 
         const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
