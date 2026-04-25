@@ -264,7 +264,7 @@ export default function IncluirEmpreendimentoPage() {
                         </div>
 
                         <div className={styles.formGroup}>
-                            <label className={styles.label}>CEP (Opcional)</label>
+                            <label className={styles.label}>CEP</label>
                             <input
                                 type="text"
                                 className={styles.input}
