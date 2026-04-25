@@ -371,6 +371,7 @@ function MeusImoveisContent() {
                         }
                     </div>
 
+                    {listMode === 'imoveis' && (
                     <div className={styles.propertyList}>
                         {imoveis
                             .filter(imovel => {
@@ -461,6 +462,7 @@ function MeusImoveisContent() {
                                 );
                             })}
                     </div>
+                    )}
 
                     {/* EMPREENDIMENTOS LIST */}
                     {listMode === 'empreendimentos' && (
