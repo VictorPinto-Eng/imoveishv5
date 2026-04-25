@@ -5,6 +5,7 @@ import { ArrowLeft, Building2, MapPin, CheckCircle, Loader2, Square } from 'luci
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './empreendimento.module.css';
+import { maskCep } from '@/lib/format';
 
 interface LocationItem {
     id: number;
@@ -18,6 +19,7 @@ export default function IncluirEmpreendimentoPage() {
 
     // Form state
     const [descricao, setDescricao] = useState('');
+    const [cep, setCep] = useState('');
     const [estadoId, setEstadoId] = useState<number | ''>('');
     const [cidadeId, setCidadeId] = useState<number | ''>('');
     const [bairroId, setBairroId] = useState<number | ''>('');
@@ -82,6 +84,69 @@ export default function IncluirEmpreendimentoPage() {
         }
     }, [cidadeId]);
 
+    // CEP Auto-completion logic
+    useEffect(() => {
+        const cleanCep = cep.replace(/\D/g, '');
+        if (cleanCep.length === 8) {
+            setLoading(true);
+            fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+                .then(res => res.json())
+                .then(async data => {
+                    if (data.erro) throw new Error("CEP não encontrado");
+                    
+                    // 1. Auto-select State
+                    const ufViaCep = data.uf.toUpperCase();
+                    const estadoEncontrado = estados.find(e => 
+                        e.nome.toUpperCase() === ufViaCep || 
+                        (e as any).sigla?.toUpperCase() === ufViaCep
+                    );
+                    
+                    const resolvedEstadoId = estadoEncontrado ? estadoEncontrado.id : '';
+                    
+                    if (resolvedEstadoId) {
+                        setEstadoId(resolvedEstadoId);
+                        
+                        // Fetch cities for this state to find the city
+                        try {
+                            const cidRes = await fetch(`/api/property/cidades?estado_id=${resolvedEstadoId}`);
+                            const cidData = await cidRes.json();
+                            if (Array.isArray(cidData)) {
+                                setCidades(cidData);
+                                const cidadeViaCep = data.localidade.toUpperCase();
+                                // Clean up accents for better matching
+                                const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+                                
+                                const cidadeEncontrada = cidData.find(c => normalize(c.nome) === normalize(cidadeViaCep));
+                                const resolvedCidadeId = cidadeEncontrada ? cidadeEncontrada.id : '';
+                                
+                                if (resolvedCidadeId) {
+                                    setCidadeId(resolvedCidadeId);
+                                    
+                                    // Fetch neighborhoods for this city to find the neighborhood
+                                    const baiRes = await fetch(`/api/property/bairros?cidade_id=${resolvedCidadeId}`);
+                                    const baiData = await baiRes.json();
+                                    if (Array.isArray(baiData)) {
+                                        setBairros(baiData);
+                                        const bairroViaCep = data.bairro.toUpperCase();
+                                        const bairroEncontrado = baiData.find(b => normalize(b.nome) === normalize(bairroViaCep));
+                                        if (bairroEncontrado) {
+                                            setBairroId(bairroEncontrado.id);
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            console.error("Erro no auto-preenchimento das cidades/bairros:", err);
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Erro na busca do CEP:", err);
+                })
+                .finally(() => setLoading(false));
+        }
+    }, [cep, estados]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -92,6 +157,7 @@ export default function IncluirEmpreendimentoPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     descricao,
+                    cep: cep.replace(/\D/g, ''),
                     estado_id: estadoId,
                     cidade_id: cidadeId,
                     bairro_id: bairroId,
@@ -143,6 +209,7 @@ export default function IncluirEmpreendimentoPage() {
                                 onClick={() => {
                                     setSuccess(false);
                                     setDescricao('');
+                                    setCep('');
                                     setEstadoId('');
                                     setCidadeId('');
                                     setBairroId('');
@@ -193,6 +260,21 @@ export default function IncluirEmpreendimentoPage() {
                                 onChange={(e) => setDescricao(e.target.value)}
                                 required
                                 maxLength={120}
+                            />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>CEP (Opcional)</label>
+                            <input
+                                type="text"
+                                className={styles.input}
+                                placeholder="Digite para auto-completar"
+                                value={cep}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/\D/g, '').substring(0, 8);
+                                    setCep(maskCep(raw));
+                                }}
+                                maxLength={9}
                             />
                         </div>
 

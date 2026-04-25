@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { descricao, bairro_id, cidade_id, estado_id, pais_id } = body;
+        const { descricao, bairro_id, cidade_id, estado_id, pais_id, cep } = body;
 
         // Basic validation
         if (!descricao || !bairro_id || !cidade_id || !estado_id) {
@@ -21,10 +21,11 @@ export async function POST(request: Request) {
                 cidade_id, 
                 estado_id, 
                 pais_id,
+                cep,
                 created_at,
                 updated_at
             ) VALUES (
-                $1, $2, $3, $4, $5, NOW(), NOW()
+                $1, $2, $3, $4, $5, $6, NOW(), NOW()
             ) RETURNING id;
         `;
 
@@ -33,7 +34,8 @@ export async function POST(request: Request) {
             bairro_id, 
             cidade_id, 
             estado_id, 
-            pais_id || 1 // Defaults to 1 (Brasil) if not provided
+            pais_id || 1, // Defaults to 1 (Brasil) if not provided
+            cep || null
         ];
         
         const result = await query(insertQuery, values);
