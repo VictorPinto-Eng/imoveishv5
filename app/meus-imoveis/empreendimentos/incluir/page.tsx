@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Building2, MapPin, CheckCircle, Loader2, Square } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,7 @@ export default function IncluirEmpreendimentoPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const isCepSearching = useRef(false);
 
     // Form state
     const [descricao, setDescricao] = useState('');
@@ -55,8 +56,10 @@ export default function IncluirEmpreendimentoPage() {
                         console.error("API did not return an array for cidades:", data);
                         setCidades([]);
                     }
-                    setCidadeId('');
-                    setBairroId('');
+                    if (!isCepSearching.current) {
+                        setCidadeId('');
+                        setBairroId('');
+                    }
                 })
                 .catch(err => console.error("Erro ao carregar cidades:", err));
         } else {
@@ -76,7 +79,9 @@ export default function IncluirEmpreendimentoPage() {
                         console.error("API did not return an array for bairros:", data);
                         setBairros([]);
                     }
-                    setBairroId('');
+                    if (!isCepSearching.current) {
+                        setBairroId('');
+                    }
                 })
                 .catch(err => console.error("Erro ao carregar bairros:", err));
         } else {
@@ -89,6 +94,7 @@ export default function IncluirEmpreendimentoPage() {
         const cleanCep = cep.replace(/\D/g, '');
         if (cleanCep.length === 8) {
             setLoading(true);
+            isCepSearching.current = true;
             fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
                 .then(res => res.json())
                 .then(async data => {
@@ -175,7 +181,13 @@ export default function IncluirEmpreendimentoPage() {
                 .catch(err => {
                     console.error("Erro na busca do CEP:", err);
                 })
-                .finally(() => setLoading(false));
+                .finally(() => {
+                    setLoading(false);
+                    // Give a small delay to ensure React state updates finish before removing the lock
+                    setTimeout(() => { isCepSearching.current = false; }, 500);
+                });
+        } else {
+            isCepSearching.current = false;
         }
     }, [cep, estados]);
 
