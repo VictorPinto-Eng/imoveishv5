@@ -117,7 +117,22 @@ export default function IncluirEmpreendimentoPage() {
                                 const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
                                 
                                 const cidadeEncontrada = cidData.find(c => normalize(c.nome) === normalize(cidadeViaCep));
-                                const resolvedCidadeId = cidadeEncontrada ? cidadeEncontrada.id : '';
+                                let resolvedCidadeId = cidadeEncontrada ? cidadeEncontrada.id : '';
+                                
+                                // Auto-register City if not found
+                                if (!resolvedCidadeId && data.localidade) {
+                                    const createCid = await fetch('/api/property/cidades', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ descricao: data.localidade, estado_id: resolvedEstadoId })
+                                    });
+                                    if (createCid.ok) {
+                                        const newCid = await createCid.json();
+                                        resolvedCidadeId = newCid.id;
+                                        const newCidRes = await fetch(`/api/property/cidades?estado_id=${resolvedEstadoId}`);
+                                        setCidades(await newCidRes.json());
+                                    }
+                                }
                                 
                                 if (resolvedCidadeId) {
                                     setCidadeId(resolvedCidadeId);
@@ -129,8 +144,25 @@ export default function IncluirEmpreendimentoPage() {
                                         setBairros(baiData);
                                         const bairroViaCep = data.bairro.toUpperCase();
                                         const bairroEncontrado = baiData.find(b => normalize(b.nome) === normalize(bairroViaCep));
-                                        if (bairroEncontrado) {
-                                            setBairroId(bairroEncontrado.id);
+                                        let resolvedBairroId = bairroEncontrado ? bairroEncontrado.id : '';
+                                        
+                                        // Auto-register Neighborhood if not found
+                                        if (!resolvedBairroId && data.bairro) {
+                                            const createBai = await fetch('/api/property/bairros', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ descricao: data.bairro, cidade_id: resolvedCidadeId, estado_id: resolvedEstadoId })
+                                            });
+                                            if (createBai.ok) {
+                                                const newBai = await createBai.json();
+                                                resolvedBairroId = newBai.id;
+                                                const newBaiRes = await fetch(`/api/property/bairros?cidade_id=${resolvedCidadeId}`);
+                                                setBairros(await newBaiRes.json());
+                                            }
+                                        }
+                                        
+                                        if (resolvedBairroId) {
+                                            setBairroId(resolvedBairroId);
                                         }
                                     }
                                 }
