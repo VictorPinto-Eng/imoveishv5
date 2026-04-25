@@ -565,12 +565,6 @@ function MeusImoveisContent() {
                                 )}
                             </div>
 
-                            <Link
-                                href={`/meus-imoveis/empreendimentos/incluir`}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#6366f1', color: 'white', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none' }}
-                            >
-                                <Plus size={16} /> Novo Empreendimento
-                            </Link>
                         </div>
                     )}
 
