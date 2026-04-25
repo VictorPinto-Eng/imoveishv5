@@ -108,6 +108,9 @@ function MeusImoveisContent() {
     const [isGalleryActionsOpen, setIsGalleryActionsOpen] = useState(false);
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
     const [isFabOpen, setIsFabOpen] = useState(false);
+    const [listMode, setListMode] = useState<'imoveis' | 'empreendimentos'>('imoveis');
+    const [isListModeDropdownOpen, setIsListModeDropdownOpen] = useState(false);
+    const [selectedEmpreendimento, setSelectedEmpreendimento] = useState<any>(null);
 
     const updatePropertyField = async (propertyId: number, field: string, value: any) => {
         if (!selectedImovel) return;
@@ -312,22 +315,60 @@ function MeusImoveisContent() {
                             <div className={styles.sidebarTopRow}>
                                 <div className={styles.sidebarHeaderLeft}>
                                     <Menu size={20} className="cursor-pointer" />
-                                    <div className={styles.sidebarTitleRow}>
-                                        <h2 className={styles.sidebarTitle}>Imóveis</h2>
-                                        <ChevronDown size={18} />
+                                    <div 
+                                        className={styles.sidebarTitleRow} 
+                                        style={{ position: 'relative', cursor: 'pointer' }}
+                                        onClick={() => setIsListModeDropdownOpen(!isListModeDropdownOpen)}
+                                    >
+                                        <h2 className={styles.sidebarTitle}>
+                                            {listMode === 'imoveis' ? 'Imóveis' : 'Empreendimentos'}
+                                        </h2>
+                                        <ChevronDown size={18} style={{ transform: isListModeDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                                        {isListModeDropdownOpen && (
+                                            <div style={{
+                                                position: 'absolute', top: '100%', left: 0, zIndex: 100,
+                                                background: 'white', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                                                minWidth: '180px', padding: '4px 0', marginTop: '4px'
+                                            }}>
+                                                <button
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 16px', background: listMode === 'imoveis' ? '#f0f4ff' : 'transparent', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: listMode === 'imoveis' ? 600 : 400 }}
+                                                    onClick={(e) => { e.stopPropagation(); setListMode('imoveis'); setIsListModeDropdownOpen(false); setSelectedEmpreendimento(null); }}
+                                                >
+                                                    <Home size={16} /> Imóveis
+                                                </button>
+                                                <button
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 16px', background: listMode === 'empreendimentos' ? '#f0f4ff' : 'transparent', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: listMode === 'empreendimentos' ? 600 : 400 }}
+                                                    onClick={(e) => { e.stopPropagation(); setListMode('empreendimentos'); setIsListModeDropdownOpen(false); setSelectedImovel(null); }}
+                                                >
+                                                    <Building2 size={16} /> Empreendimentos
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className={`${styles.sidebarHeaderRight} ${styles.sidebarIcons}`}>
-                                    <Search size={20} onClick={() => setIsSearchOpen(true)} className="cursor-pointer" />
-                                    <MapPin size={20} className="cursor-pointer" onClick={() => alert('Mapa em breve!')} />
-                                    <SlidersHorizontal size={20} className="cursor-pointer" onClick={() => setIsFilterOpen(true)} />
+                                    {listMode === 'imoveis' && (
+                                        <>
+                                            <Search size={20} onClick={() => setIsSearchOpen(true)} className="cursor-pointer" />
+                                            <MapPin size={20} className="cursor-pointer" onClick={() => alert('Mapa em breve!')} />
+                                            <SlidersHorizontal size={20} className="cursor-pointer" onClick={() => setIsFilterOpen(true)} />
+                                        </>
+                                    )}
+                                    {listMode === 'empreendimentos' && (
+                                        <Link href="/meus-imoveis/empreendimentos/incluir" title="Novo Empreendimento">
+                                            <Plus size={20} className="cursor-pointer" />
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         )}
                     </div>
 
                     <div className={styles.propertyCountBar}>
-                        {imoveis.length} {imoveis.length === 1 ? 'imóvel' : 'imóveis'}
+                        {listMode === 'imoveis'
+                            ? `${imoveis.length} ${imoveis.length === 1 ? 'imóvel' : 'imóveis'}`
+                            : `${empreendimentos.length} ${empreendimentos.length === 1 ? 'empreendimento' : 'empreendimentos'}`
+                        }
                     </div>
 
                     <div className={styles.propertyList}>
@@ -421,6 +462,43 @@ function MeusImoveisContent() {
                             })}
                     </div>
 
+                    {/* EMPREENDIMENTOS LIST */}
+                    {listMode === 'empreendimentos' && (
+                        <div className={styles.propertyList}>
+                            {empreendimentos.length === 0 ? (
+                                <div style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8' }}>
+                                    <Building2 size={40} strokeWidth={1} style={{ margin: '0 auto 12px' }} />
+                                    <p style={{ fontSize: '14px' }}>Nenhum empreendimento cadastrado.</p>
+                                    <Link href="/meus-imoveis/empreendimentos/incluir" style={{ color: '#6366f1', fontSize: '13px', marginTop: '8px', display: 'inline-block' }}>+ Adicionar Empreendimento</Link>
+                                </div>
+                            ) : (
+                                empreendimentos.map((emp: any) => (
+                                    <div
+                                        key={emp.id}
+                                        className={`${styles.cardCompact} ${selectedEmpreendimento?.id === emp.id ? styles.cardCompactActive : ''}`}
+                                        onClick={() => setSelectedEmpreendimento(emp)}
+                                    >
+                                        <div className={styles.cardCompactImage}>
+                                            <div className={styles.cardCompactPlaceholder} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <Building2 size={24} color="#94a3b8" />
+                                            </div>
+                                        </div>
+                                        <div className={styles.cardCompactContent}>
+                                            <div className={styles.cardCompactId}>Cód {emp.id}</div>
+                                            <h3 className={styles.cardCompactTitle}>{emp.descricao}</h3>
+                                            <div className={styles.cardCompactAddress}>
+                                                {emp.bairro_nome ? `${emp.bairro_nome}, ` : ''}{emp.cidade_nome || ''}
+                                            </div>
+                                            {emp.estado_sigla && (
+                                                <div className={styles.cardCompactAddress}>{emp.estado_sigla}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+
                     {/* SPEED DIAL FAB */}
                     <div className={styles.fabContainer}>
                         <div className={`${styles.fabMenu} ${isFabOpen ? styles.fabMenuOpen : ''}`}>
@@ -445,7 +523,63 @@ function MeusImoveisContent() {
 
                 {/* MAIN CONTENT AREA */}
                 <section className={styles.mainSection}>
-                    {selectedImovel ? (
+                    {/* EMPREENDIMENTO DETAIL VIEW */}
+                    {listMode === 'empreendimentos' && selectedEmpreendimento && (
+                        <div style={{ padding: '32px', maxWidth: '700px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                                <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <Building2 size={28} color="white" />
+                                </div>
+                                <div>
+                                    <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '2px' }}>Cód {selectedEmpreendimento.id}</p>
+                                    <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b', margin: 0 }}>{selectedEmpreendimento.descricao}</h2>
+                                </div>
+                            </div>
+
+                            <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                                {selectedEmpreendimento.bairro_nome && (
+                                    <div>
+                                        <p style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Bairro</p>
+                                        <p style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{selectedEmpreendimento.bairro_nome}</p>
+                                    </div>
+                                )}
+                                {selectedEmpreendimento.cidade_nome && (
+                                    <div>
+                                        <p style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Cidade</p>
+                                        <p style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{selectedEmpreendimento.cidade_nome}</p>
+                                    </div>
+                                )}
+                                {selectedEmpreendimento.estado_nome && (
+                                    <div>
+                                        <p style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Estado</p>
+                                        <p style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{selectedEmpreendimento.estado_nome} ({selectedEmpreendimento.estado_sigla})</p>
+                                    </div>
+                                )}
+                                {selectedEmpreendimento.cep && (
+                                    <div>
+                                        <p style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>CEP</p>
+                                        <p style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{selectedEmpreendimento.cep}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <Link
+                                href={`/meus-imoveis/empreendimentos/incluir`}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#6366f1', color: 'white', borderRadius: '8px', fontSize: '14px', fontWeight: 500, textDecoration: 'none' }}
+                            >
+                                <Plus size={16} /> Novo Empreendimento
+                            </Link>
+                        </div>
+                    )}
+
+                    {listMode === 'empreendimentos' && !selectedEmpreendimento && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', gap: '12px' }}>
+                            <Building2 size={56} strokeWidth={1} />
+                            <p style={{ fontSize: '16px' }}>Selecione um empreendimento para ver os detalhes</p>
+                        </div>
+                    )}
+
+                    {listMode === 'imoveis' && selectedImovel ? (
                         <>
                             <div className={styles.detailHeader}>
                                 <div className={styles.detailImageArea} onClick={() => {
