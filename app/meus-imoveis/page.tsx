@@ -1082,12 +1082,12 @@ function MeusImoveisContent() {
                             </div>
 
                         </>
-                    ) : (
+                    ) : listMode === 'imoveis' ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-10">
                             <Home size={64} className="mb-4" />
                             <p>Selecione um imóvel para ver os detalhes</p>
                         </div>
-                    )}
+                    ) : null}
                 </section>
             </div>
 
