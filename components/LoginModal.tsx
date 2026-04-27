@@ -10,7 +10,7 @@ interface LoginModalProps {
     onClose: () => void
 }
 
-type ViewMode = 'login' | 'signup'
+type ViewMode = 'login' | 'signup' | 'forgot-password'
 
 const countries = [
     { name: 'Afeganistão', code: '+93', flag: '🇦🇫' },
@@ -99,12 +99,15 @@ const countries = [
     { name: 'Irlanda', code: '+353', flag: '🇮🇪' },
     { name: 'Israel', code: '+972', flag: '🇮🇱' },
     { name: 'Itália', code: '+39', flag: '🇮🇹' },
-    { name: 'Costa do Marfim', code: '+225', flag: '🇨🇮' },
     { name: 'Jamaica', code: '+1-876', flag: '🇯🇲' },
     { name: 'Japão', code: '+81', flag: '🇯🇵' },
     { name: 'Jordânia', code: '+962', flag: '🇯🇴' },
     { name: 'Cazaquistão', code: '+7', flag: '🇰🇿' },
-    { name: 'Quénia', code: '+254', flag: '🇰🇪' },
+    { name: 'Quênia', code: '+254', flag: '🇰🇪' },
+    { name: 'Kiribati', code: '+686', flag: '🇰🇮' },
+    { name: 'Coreia do Norte', code: '+850', flag: '🇰🇵' },
+    { name: 'Coreia do Sul', code: '+82', flag: '🇰🇷' },
+    { name: 'Kuwait', code: '+965', flag: '🇰🇼' },
     { name: 'Quirguistão', code: '+996', flag: '🇰🇬' },
     { name: 'Laos', code: '+856', flag: '🇱🇦' },
     { name: 'Letônia', code: '+371', flag: '🇱🇻' },
@@ -143,7 +146,6 @@ const countries = [
     { name: 'Nicarágua', code: '+505', flag: '🇳🇮' },
     { name: 'Níger', code: '+227', flag: '🇳🇪' },
     { name: 'Nigéria', code: '+234', flag: '🇳🇬' },
-    { name: 'Coreia do Norte', code: '+850', flag: '🇰🇵' },
     { name: 'Noruega', code: '+47', flag: '🇳🇴' },
     { name: 'Omã', code: '+968', flag: '🇴🇲' },
     { name: 'Paquistão', code: '+92', flag: '🇵🇰' },
@@ -156,12 +158,11 @@ const countries = [
     { name: 'Filipinas', code: '+63', flag: '🇵🇭' },
     { name: 'Polônia', code: '+48', flag: '🇵🇱' },
     { name: 'Portugal', code: '+351', flag: '🇵🇹' },
-    { name: 'Porto Rico', code: '+1-787', flag: '🇵🇷' },
     { name: 'Catar', code: '+974', flag: '🇶🇦' },
     { name: 'Romênia', code: '+40', flag: '🇷🇴' },
     { name: 'Rússia', code: '+7', flag: '🇷🇺' },
     { name: 'Ruanda', code: '+250', flag: '🇷🇼' },
-    { name: 'São Cristóvão e Neves', code: '+1-869', flag: '🇰🇳' },
+    { name: 'São Cristóvão e Névis', code: '+1-869', flag: '🇰🇳' },
     { name: 'Santa Lúcia', code: '+1-758', flag: '🇱🇨' },
     { name: 'São Vicente e Granadinas', code: '+1-784', flag: '🇻🇨' },
     { name: 'Samoa', code: '+685', flag: '🇼🇸' },
@@ -178,7 +179,6 @@ const countries = [
     { name: 'Ilhas Salomão', code: '+677', flag: '🇸🇧' },
     { name: 'Somália', code: '+252', flag: '🇸🇴' },
     { name: 'África do Sul', code: '+27', flag: '🇿🇦' },
-    { name: 'Coreia do Sul', code: '+82', flag: '🇰🇷' },
     { name: 'Sudão do Sul', code: '+211', flag: '🇸🇸' },
     { name: 'Espanha', code: '+34', flag: '🇪🇸' },
     { name: 'Sri Lanka', code: '+94', flag: '🇱🇰' },
@@ -194,7 +194,7 @@ const countries = [
     { name: 'Timor-Leste', code: '+670', flag: '🇹🇱' },
     { name: 'Togo', code: '+228', flag: '🇹🇬' },
     { name: 'Tonga', code: '+676', flag: '🇹🇴' },
-    { name: 'Trindade e Tobago', code: '+1-868', flag: '🇹🇹' },
+    { name: 'Trinidad e Tobago', code: '+1-868', flag: '🇹🇹' },
     { name: 'Tunísia', code: '+216', flag: '🇹🇳' },
     { name: 'Turquia', code: '+90', flag: '🇹🇷' },
     { name: 'Turcomenistão', code: '+993', flag: '🇹🇲' },
@@ -207,10 +207,10 @@ const countries = [
     { name: 'Uruguai', code: '+598', flag: '🇺🇾' },
     { name: 'Uzbequistão', code: '+998', flag: '🇺🇿' },
     { name: 'Vanuatu', code: '+678', flag: '🇻🇺' },
-    { name: 'Cidade do Vaticano', code: '+39-06', flag: '🇻🇦' },
+    { name: 'Vaticano', code: '+39', flag: '🇻🇦' },
     { name: 'Venezuela', code: '+58', flag: '🇻🇪' },
     { name: 'Vietnã', code: '+84', flag: '🇻🇳' },
-    { name: 'Iêmen', code: '+967', flag: '🇾🇪' },
+    { name: 'Iémen', code: '+967', flag: '🇾🇪' },
     { name: 'Zâmbia', code: '+260', flag: '🇿🇲' },
     { name: 'Zimbábue', code: '+263', flag: '🇿🇼' }
 ]
@@ -219,80 +219,79 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const [viewMode, setViewMode] = useState<ViewMode>('login')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [emailExistsError, setEmailExistsError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [needsActivation, setNeedsActivation] = useState(false)
+    const [emailExistsError, setEmailExistsError] = useState<string | null>(null);
+    const [showCountryPicker, setShowCountryPicker] = useState(false);
+    const [countrySearch, setCountrySearch] = useState('');
     const [passwordRequirements, setPasswordRequirements] = useState({
         length: false,
         upper: false,
         lower: false,
         number: false,
         special: false
-    })
+    });
 
-    const checkPasswordStrength = (pass: string) => {
-        setPasswordRequirements({
-            length: pass.length >= 8,
-            upper: /[A-Z]/.test(pass),
-            lower: /[a-z]/.test(pass),
-            number: /[0-9]/.test(pass),
-            special: /[^A-Za-z0-9]/.test(pass)
-        })
-    }
-    const [showCountryPicker, setShowCountryPicker] = useState(false)
-    const [countrySearch, setCountrySearch] = useState('')
-
-    // Form states
     const [formData, setFormData] = useState({
         name: '',
         social_name: '',
-        phone: '',
-        country_code: '+55',
         email: '',
         password: '',
         confirmPassword: '',
-        idTipoUsuario: 2, // 1: Corretor, 2: Proprietário (Padrão)
+        phone: '',
+        country_code: '+55',
+        idTipoUsuario: 2 // 1: Corretor/Imobiliária, 2: Proprietário
     })
 
-    useEffect(() => {
-        if (viewMode === 'signup') {
-            checkPasswordStrength(formData.password);
-        }
-    }, [formData.password, viewMode]);
-
-    // Refs for focus management
     const nameRef = useRef<HTMLInputElement>(null)
     const socialNameRef = useRef<HTMLInputElement>(null)
-    const phoneRef = useRef<HTMLInputElement>(null)
     const emailRef = useRef<HTMLInputElement>(null)
     const passwordRef = useRef<HTMLInputElement>(null)
     const confirmPasswordRef = useRef<HTMLInputElement>(null)
+    const phoneRef = useRef<HTMLInputElement>(null)
+    const modalRef = useRef<HTMLDivElement>(null)
 
-    // Initial focus when modal opens or mode changes
     useEffect(() => {
         if (isOpen) {
-            // Pequeno delay para garantir que o modal terminou a transição de entrada
-            const timer = setTimeout(() => {
-                if (viewMode === 'signup') {
-                    nameRef.current?.focus()
-                } else {
+            document.body.style.overflow = 'hidden'
+            // Focus email if in login mode, else focus name
+            setTimeout(() => {
+                if (viewMode === 'login' || viewMode === 'forgot-password') {
                     emailRef.current?.focus()
+                } else {
+                    nameRef.current?.focus()
                 }
-            }, 100)
-            return () => clearTimeout(timer)
+            }, 50)
+        } else {
+            document.body.style.overflow = 'unset'
+            // Reset state when closing
+            setSuccess(null)
+            setError(null)
+            setNeedsActivation(false)
+            setEmailExistsError(null);
         }
     }, [isOpen, viewMode])
 
-    if (!isOpen) return null
+    useEffect(() => {
+        if (viewMode === 'signup') {
+            const pass = formData.password;
+            setPasswordRequirements({
+                length: pass.length >= 8,
+                upper: /[A-Z]/.test(pass),
+                lower: /[a-z]/.test(pass),
+                number: /[0-9]/.test(pass),
+                special: /[^A-Za-z0-9]/.test(pass)
+            });
+        }
+    }, [formData.password, viewMode]);
 
     const toggleMode = () => {
         setViewMode(viewMode === 'login' ? 'signup' : 'login')
         setError(null)
         setSuccess(null)
         setNeedsActivation(false)
-        setEmailExistsError(null)
         setFormData(prev => ({
             ...prev,
             password: '',
@@ -306,6 +305,20 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             special: false
         })
         // Focus email after switching mode
+        setTimeout(() => {
+            if (viewMode === 'login') {
+                nameRef.current?.focus()
+            } else {
+                emailRef.current?.focus()
+            }
+        }, 50)
+    }
+
+    const handleForgotPasswordClick = () => {
+        setViewMode('forgot-password')
+        setError(null)
+        setSuccess(null)
+        setNeedsActivation(false)
         setTimeout(() => emailRef.current?.focus(), 50)
     }
 
@@ -447,7 +460,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             formData.confirmPassword = confirmPass;
         }
 
-        const endpoint = viewMode === 'login' ? '/api/auth/login' : '/api/auth/register'
+        const endpoint = viewMode === 'login' 
+            ? '/api/auth/login' 
+            : viewMode === 'signup' 
+                ? '/api/auth/register'
+                : '/api/auth/forgot-password'
 
         try {
             const res = await fetch(endpoint, {
@@ -456,28 +473,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 body: JSON.stringify(formData),
             })
 
-            const contentType = res.headers.get("content-type");
-            let data;
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                data = await res.json();
-            } else {
-                // Se não for JSON, provavelmente é um erro do Gateway (HTML)
-                throw new Error('O servidor demorou muito para responder ou ocorreu um erro interno. Por favor, tente novamente em instantes.');
-            }
+            const data = await res.json()
 
             if (!res.ok) {
                 if (data.needsActivation) {
                     setNeedsActivation(true)
                 }
-                throw new Error(data.error || 'Erro ao processar solicitação')
+                throw new Error(data.error || 'Ocorreu um erro ao processar sua solicitação.')
             }
 
-            if (viewMode === 'signup') {
-                setSuccess('Conta criada com sucesso! Faça login para continuar.')
-                setViewMode('login')
+            if (viewMode === 'forgot-password') {
+                setSuccess('Se o e-mail estiver cadastrado, você receberá instruções para recuperar sua senha.')
             } else {
-                // Login successful
-                window.location.reload() // Or handle state globally
+                setSuccess(data.message || 'Operação realizada com sucesso!')
+                if (viewMode === 'login') {
+                    // Recarrega a página após login bem-sucedido
+                    window.location.reload()
+                }
             }
         } catch (err: any) {
             setError(err.message)
@@ -486,22 +498,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
     }
 
-    const handleGoogleLogin = () => {
-        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-        const redirectUri = `${window.location.origin}/api/auth/callback/google`
-        const scope = 'email profile'
-        const responseType = 'code'
-        
-        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`
-        
-        window.location.href = authUrl
-    }
+    if (!isOpen) return null
 
     return (
-        <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                <button className={styles.closeButton} onClick={onClose} aria-label="Fechar">
-                    <X size={24} />
+        <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+            <div className={styles.modal} ref={modalRef}>
+                <button className={styles.closeButton} onClick={onClose}>
+                    <X size={20} />
                 </button>
 
                 <div className={styles.content}>
@@ -509,48 +512,35 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         <Image
                             src="/logo_hv5_final.png"
                             alt="HV5 Logo"
-                            width={320}
-                            height={130}
+                            width={160}
+                            height={60}
                             className={styles.logoImage} style={{ maxWidth: "110px", height: "auto" }}
                             priority
                         />
                     </div>
 
-                    <h2 className={styles.title} style={{ textAlign: 'center', marginTop: '0' }}>
-                        {viewMode === 'login' ? 'Acesse ou crie sua conta' : 'Crie sua conta ou faça o login'}
+                    <h2 className={styles.title}>
+                        {viewMode === 'login' ? 'Acesse ou crie sua conta' : 
+                         viewMode === 'signup' ? 'Crie sua conta na HV5' : 'Recuperar sua senha'}
                     </h2>
 
                     {error && <div className={styles.errorMessage}>{error}</div>}
                     {success && <div className={styles.successMessage}>{success}</div>}
-
+                    
                     {needsActivation && (
                         <div className={styles.resendContainer}>
+                            <p className={styles.formNote} style={{ color: '#7F34E6', fontWeight: '600' }}>
+                                Seu cadastro ainda não foi ativado.
+                            </p>
                             <button 
-                                type="button" 
                                 className={styles.resendLink} 
                                 onClick={handleResendEmail}
                                 disabled={loading}
                             >
-                                {loading ? 'Enviando...' : 'Clique aqui para reenviar o e-mail de ativação'}
+                                Clique aqui para reenviar o e-mail de ativação
                             </button>
                         </div>
                     )}
-
-                    {/* 
-                    <button className={styles.googleButton} type="button" onClick={handleGoogleLogin}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={styles.googleIcon}>
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.26 1.07-3.71 1.07-2.87 0-5.3-1.94-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                            <path d="M5.84 14.11c-.22-.66-.35-1.36-.35-2.11s.13-1.45.35-2.11V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.83z" fill="#FBBC05" />
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.86-2.59 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-                        </svg>
-                        <span>{viewMode === 'login' ? 'Entrar com Google' : 'Cadastrar com Google'}</span>
-                    </button>
-
-                    <div className={styles.divider}>
-                        <span>ou</span>
-                    </div> 
-                    */}
 
                     <form className={styles.form} onSubmit={handleSubmit}>
                         {viewMode === 'signup' && (
@@ -598,7 +588,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                             ref={socialNameRef}
                                             type="text" 
                                             name="social_name"
-                                            placeholder="Nome social (como prefere ser chamado)" 
+                                            placeholder="Como gostaria de ser chamado(a)?" 
                                             className={styles.input} 
                                             value={formData.social_name}
                                             onChange={handleChange}
@@ -607,80 +597,36 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                         <User className={styles.fieldIcon} size={20} strokeWidth={2.5} />
                                     </div>
                                     <div className={styles.inputWrapper}>
-                                        <button 
-                                            type="button"
+                                        <div 
+                                            className={styles.countryPicker}
                                             onClick={() => setShowCountryPicker(!showCountryPicker)}
-                                            style={{ 
-                                                position: 'absolute', 
-                                                left: '3rem', 
-                                                height: '100%', 
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.25rem',
-                                                border: 'none',
-                                                borderRight: '1px solid #cbd5e1',
-                                                background: 'none',
-                                                fontSize: '0.9rem',
-                                                color: '#1e293b',
-                                                fontWeight: 600,
-                                                zIndex: 11,
-                                                cursor: 'pointer',
-                                                padding: '0 0.5rem',
-                                                minWidth: '4.5rem'
-                                            }}
                                         >
-                                            <span>{countries.find(c => c.code === formData.country_code)?.flag || '🇧🇷'}</span>
-                                            <span>{formData.country_code}</span>
-                                        </button>
+                                            <span className={styles.countryFlag}>
+                                                {countries.find(c => c.code === formData.country_code)?.flag}
+                                            </span>
+                                            <span className={styles.countryCode}>
+                                                {formData.country_code}
+                                            </span>
+                                        </div>
 
                                         {showCountryPicker && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '100%',
-                                                left: '3rem',
-                                                width: '200px',
-                                                maxHeight: '250px',
-                                                backgroundColor: 'white',
-                                                border: '1px solid #e2e8f0',
-                                                borderRadius: '8px',
-                                                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                                                zIndex: 100,
-                                                marginTop: '5px',
-                                                overflow: 'hidden',
-                                                display: 'flex',
-                                                flexDirection: 'column'
-                                            }}>
-                                                <input 
-                                                    autoFocus
-                                                    type="text"
-                                                    placeholder="Buscar país..."
-                                                    value={countrySearch}
-                                                    onChange={(e) => setCountrySearch(e.target.value)}
-                                                    style={{
-                                                        padding: '10px',
-                                                        border: 'none',
-                                                        borderBottom: '1px solid #e2e8f0',
-                                                        outline: 'none',
-                                                        fontSize: '0.85rem',
-                                                        width: '100%'
-                                                    }}
-                                                />
+                                            <div className={styles.countryDropdown}>
+                                                <div className={styles.countrySearch}>
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="Pesquisar país..." 
+                                                        value={countrySearch}
+                                                        onChange={(e) => setCountrySearch(e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        autoFocus
+                                                    />
+                                                </div>
                                                 <div style={{ overflowY: 'auto' }}>
                                                     {filteredCountries.map((c, i) => (
                                                         <div 
                                                             key={i}
                                                             onClick={() => selectCountry(c)}
-                                                            style={{
-                                                                padding: '10px',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '10px',
-                                                                cursor: 'pointer',
-                                                                fontSize: '0.85rem',
-                                                                transition: 'background 0.2s'
-                                                            }}
-                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                            className={styles.countryOption}
                                                         >
                                                             <span>{c.flag}</span>
                                                             <span style={{ flex: 1 }}>{c.name}</span>
@@ -711,13 +657,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     ref={emailRef}
                                     type="email" 
                                     name="email"
-                                    placeholder={viewMode === 'login' ? "E-mail cadastrado" : "Digite seu e-mail"} 
+                                    placeholder={viewMode === 'login' ? "E-mail cadastrado" : (viewMode === 'forgot-password' ? "Digite seu e-mail para recuperar" : "Digite seu e-mail")} 
                                     className={`${styles.input} ${emailExistsError ? styles.inputError : ''}`} 
                                     required
                                     value={formData.email}
                                     onChange={handleChange}
                                     onBlur={handleEmailBlur}
-                                    onKeyDown={(e) => handleKeyDown(e, passwordRef)}
+                                    onKeyDown={(e) => viewMode !== 'forgot-password' ? handleKeyDown(e, passwordRef) : undefined}
                                 />
                                 <Mail className={styles.fieldIcon} size={20} strokeWidth={2.5} />
                                 {emailExistsError && (
@@ -733,28 +679,31 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     </span>
                                 )}
                             </div>
-                            <div className={styles.inputWrapper}>
-                                <input 
-                                    ref={passwordRef}
-                                    type={showPassword ? "text" : "password"} 
-                                    name="password"
-                                    placeholder={viewMode === 'login' ? "Senha cadastrada" : "Crie uma senha"} 
-                                    className={styles.input} 
-                                    required
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    onKeyDown={(e) => viewMode === 'signup' ? handleKeyDown(e, confirmPasswordRef) : undefined}
-                                />
-                                <Lock className={styles.fieldIcon} size={20} strokeWidth={2.5} />
-                                <button 
-                                    type="button" 
-                                    className={styles.eyeButton} 
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    tabIndex={-1}
-                                >
-                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
+
+                            {viewMode !== 'forgot-password' && (
+                                <div className={styles.inputWrapper}>
+                                    <input 
+                                        ref={passwordRef}
+                                        type={showPassword ? "text" : "password"} 
+                                        name="password"
+                                        placeholder={viewMode === 'login' ? "Senha cadastrada" : "Crie uma senha"} 
+                                        className={styles.input} 
+                                        required
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        onKeyDown={(e) => viewMode === 'signup' ? handleKeyDown(e, confirmPasswordRef) : undefined}
+                                    />
+                                    <Lock className={styles.fieldIcon} size={20} strokeWidth={2.5} />
+                                    <button 
+                                        type="button" 
+                                        className={styles.eyeButton} 
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+                            )}
 
                             {viewMode === 'signup' && (
                                 <div className={styles.passwordStrengthContainer}>
@@ -822,22 +771,33 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         </div>
 
                         <button className={styles.loginButton} type="submit" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : (viewMode === 'login' ? 'Entrar' : 'Criar sua conta')}
+                            {loading ? <Loader2 className="animate-spin mx-auto" size={20} /> : (
+                                viewMode === 'login' ? 'Entrar' : 
+                                viewMode === 'signup' ? 'Criar sua conta' : 'Recuperar senha'
+                            )}
                         </button>
                     </form>
 
                     {viewMode === 'login' && (
-                        <button className={styles.forgotPassword} type="button">
+                        <button className={styles.forgotPassword} type="button" onClick={handleForgotPasswordClick}>
                             Esqueci a senha
                         </button>
                     )}
 
-                    <div className={styles.registerContainer}>
-                        <span>{viewMode === 'login' ? 'Não possui conta? ' : 'Já possui conta? '}</span>
-                        <button className={styles.registerLink} onClick={toggleMode} type="button">
-                            {viewMode === 'login' ? 'Cadastre-se aqui' : 'Faça o login aqui'}
+                    {viewMode === 'forgot-password' && (
+                        <button className={styles.forgotPassword} type="button" onClick={() => setViewMode('login')}>
+                            Voltar para o login
                         </button>
-                    </div>
+                    )}
+
+                    {viewMode !== 'forgot-password' && (
+                        <div className={styles.registerContainer}>
+                            <span>{viewMode === 'login' ? 'Não possui conta? ' : 'Já possui conta? '}</span>
+                            <button className={styles.registerLink} onClick={toggleMode} type="button">
+                                {viewMode === 'login' ? 'Cadastre-se aqui' : 'Faça o login aqui'}
+                            </button>
+                        </div>
+                    )}
 
                     <p className={styles.footerNote}>
                         Ao continuar você aceita os <a href="#">Termos de uso</a> e <a href="#">Política de privacidade</a>.
@@ -847,7 +807,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <div className={styles.modalFooter}>
                     <div className={styles.partnerLogos}>
                         <span className={styles.groupText}>soluções</span>
-                        <Image src="/logo_hv5_final.png" alt="HV5" width={40} height={20} className={styles.miniLogo} />
+                        <Image src="/icone_5.png" alt="HV5" width={24} height={24} className={styles.miniLogo} />
                     </div>
                 </div>
             </div>
