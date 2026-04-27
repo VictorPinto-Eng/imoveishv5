@@ -87,3 +87,36 @@ export async function sendPropertyContactEmail(
     return { success: false, error };
   }
 }
+
+export async function sendPasswordResetEmail(email: string, name: string, token: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
+  const resetLink = `${appUrl}/recuperar-senha?token=${token}`;
+
+  try {
+    const data = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'souhv5@gmail.com',
+      to: email,
+      subject: 'Recuperação de Senha - HV5',
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h1 style="color: #333; text-align: center;">Recuperação de Senha</h1>
+          <p>Olá, <strong>${name}</strong>!</p>
+          <p>Recebemos uma solicitação para redefinir a senha da sua conta no ecossistema HV5.</p>
+          <p>Para criar uma nova senha, clique no botão abaixo:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #7F34E6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Redefinir Minha Senha</a>
+          </div>
+          <p><strong>Importante:</strong> Este link expirará em 1 hora.</p>
+          <p>Se você não solicitou a alteração da senha, por favor ignore este e-mail. Sua senha atual permanecerá segura.</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #999; text-align: center;">HV5 - Segurança e transparência em cada conexão.</p>
+        </div>
+      `,
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return { success: false, error };
+  }
+}
