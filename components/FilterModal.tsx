@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, Check } from 'lucide-react'
 import styles from './FilterModal.module.css'
+import SearchableSelect from './SearchableSelect'
 
 interface FilterModalProps {
     isOpen: boolean
@@ -15,6 +16,7 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
     const [filters, setFilters] = useState(initialFilters)
     const [categories, setCategories] = useState<any[]>([])
     const [propertyTypes, setPropertyTypes] = useState<any[]>([])
+    const [empreendimentos, setEmpreendimentos] = useState<any[]>([])
 
     useEffect(() => {
         setFilters(initialFilters)
@@ -25,6 +27,11 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
             .then(res => res.ok ? res.json() : [])
             .then(data => setCategories(Array.isArray(data) ? data : []))
             .catch(() => setCategories([]))
+
+        fetch('/api/property/empreendimentos')
+            .then(res => res.json())
+            .then(data => setEmpreendimentos(data.empreendimentos || []))
+            .catch(() => setEmpreendimentos([]))
     }, [])
 
     useEffect(() => {
@@ -67,7 +74,8 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
             banheiros: undefined,
             minArea: '',
             maxArea: '',
-            status: 'ativo'
+            status: 'ativo',
+            empreendimento: undefined
         })
     }
 
@@ -139,6 +147,17 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
                                     {propertyTypes.map(t => <option key={t.id} value={t.id}>{t.descricao}</option>)}
                                 </select>
                             </div>
+                        </div>
+
+                        {/* Empreendimento Searchable Filter */}
+                        <div className={styles.filterSection}>
+                            <label className={styles.sectionLabel}>Empreendimento</label>
+                            <SearchableSelect 
+                                options={empreendimentos}
+                                value={filters.empreendimento || ''}
+                                onChange={(val) => setFilters((prev: any) => ({ ...prev, empreendimento: val }))}
+                                placeholder="Buscar empreendimento..."
+                            />
                         </div>
 
                         {/* Price Range */}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
-import { query } from '@/lib/db';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import { JWT_SECRET } from '@/lib/auth-config';
 import { recordAuditLog } from '@/lib/analytics-service';
@@ -52,6 +51,7 @@ export async function GET(
             plus_code: res.rows[0].plus_code || '',
             pub_site: res.rows[0].pub_site,
             pub_price: res.rows[0].pub_price,
+            empreendimento: res.rows[0].imbempreendimento_id,
             photos: photosRes.rows
         } 
     });

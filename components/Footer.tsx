@@ -14,15 +14,15 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className={styles.brandColumn}>
                         <Image 
-                            src="/logo_hv5_v3.png" 
-                            alt="HV5.com" 
-                            width={220} 
-                            height={80} 
+                            src="/logo_hv5_final.png" 
+                            alt="HV5" 
+                            width={120} 
+                            height={44} 
                             className={styles.logoImage} 
                         />
                         <p className={styles.tagline}>
-                            Conectando pessoas aos melhores imóveis com tecnologia e transparência. 
-                            Sua jornada imobiliária no ecossistema HV5.
+                            Onde grandes oportunidades se encontram. Conectamos pessoas a bens físicos, 
+                            digitais e imóveis com a segurança do ecossistema HV5.
                         </p>
                     </div>
 
@@ -45,6 +45,17 @@ export default function Footer() {
                             <li><Link href="/termos" className={styles.link}>Termos de uso</Link></li>
                             <li><Link href="/codigo-de-defesa-do-consumidor" className={styles.link}>Código de Defesa do Consumidor</Link></li>
                             <li><Link href="#" className={styles.link}>Preferências de cookies</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Navigation Column 3 */}
+                    <div className={styles.column}>
+                        <h3>Serviços</h3>
+                        <ul className={styles.list}>
+                            <li><Link href="#" className={styles.link}>Anunciar Imóvel</Link></li>
+                            <li><Link href="#" className={styles.link}>Guia de Vendas</Link></li>
+                            <li><Link href="#" className={styles.link}>Simulador de Financiamento</Link></li>
+                            <li><Link href="#" className={styles.link}>HV5 Prime</Link></li>
                         </ul>
                     </div>
 

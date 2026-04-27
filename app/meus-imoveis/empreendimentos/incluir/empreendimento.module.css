@@ -1,14 +1,20 @@
 .container {
     display: flex;
-    min-height: 100vh;
-    background-color: #f1f5f9;
+    position: fixed;
+    top: 5.7rem; /* Starts after the Header */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    z-index: 1000;
 }
 
 .sidebar {
     width: 420px;
-    background-color: #0f172a; /* Darker blue for Empreendimentos */
+    background-color: #0f172a;
     color: white;
-    padding: 3rem 2rem;
+    padding: 3rem 2rem; /* Removed the 80px as container now starts after header */
     display: flex;
     flex-direction: column;
     position: relative;
@@ -230,9 +236,9 @@
 
     .sidebar {
         width: 100%;
-        padding: 2rem;
+        padding: 1.5rem;
         flex-direction: row;
-        flex-wrap: wrap;
+        flex-wrap: nowrap; /* Prevent wrapping for a cleaner header-like bar */
         align-items: center;
         gap: 1rem;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -240,14 +246,16 @@
 
     .logoIcon {
         margin-bottom: 0;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
     }
 
     .backBtn {
         margin-bottom: 0;
-        width: 100%;
-        margin-bottom: 1rem;
+        width: auto;
+        white-space: nowrap;
+        font-size: 0.85rem;
     }
 
     .sidebarTitle {

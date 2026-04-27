@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
-import { query } from '@/lib/db';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import { JWT_SECRET } from '@/lib/auth-config';
 import { recordAuditLog } from '@/lib/analytics-service';
@@ -29,6 +28,7 @@ export async function POST(req: NextRequest) {
       condoFee, iptuValue, hasIptu, status,
       latitude, longitude, plus_code,
       imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel,
+      empreendimento,
       pub_site, pub_price
     } = data;
 
@@ -192,9 +192,9 @@ export async function POST(req: NextRequest) {
     // Insert into produtos_servicos
     const insertResult = await query(`
       INSERT INTO produtos_servicos 
-        (nome, preco_base, descricao, status, custom_fields, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, tipo, categoria, ativo, tags, organization_id)
+        (nome, preco_base, descricao, status, custom_fields, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel, imbempreendimento_id, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, tipo, categoria, ativo, tags, organization_id)
       VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, 'produto', 'Imovel', true, '[]', '1')
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, 'produto', 'Imovel', true, '[]', '1')
       RETURNING id
     `, [
       title || `${type} - ${rooms} quartos`,
@@ -230,6 +230,7 @@ export async function POST(req: NextRequest) {
       imbfinalidade_id || null,
       imbtpimovel_id || null,
       statusimovel || 2,
+      empreendimento || null,
       parseInt(sala) || 0,
       dimensoes_terreno || null,
       latitude || null,

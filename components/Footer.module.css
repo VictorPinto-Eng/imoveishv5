@@ -8,8 +8,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.5fr;
-  gap: 3rem;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  gap: 2.5rem;
   margin-bottom: 3rem;
 }
 
@@ -25,8 +25,8 @@
 }
 
 .tagline {
-  color: var(--secondary);
-  font-size: 0.95rem;
+  color: #718096;
+  font-size: 0.95rem; font-weight: 400;
   line-height: 1.6;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .link {
-  color: var(--secondary);
+  color: #718096;
   font-size: 0.9rem;
   transition: color 0.2s ease, transform 0.2s ease;
   display: inline-block;
@@ -77,16 +77,15 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #f1f5f9;
-  color: var(--secondary);
+  background-color: #2B2D42; /* Charcoal Brand Color */
+  color: white;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .socialIcon:hover {
   background-color: var(--primary);
-  color: white;
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(127, 52, 230, 0.2);
 }
 
 .appBadges {
@@ -139,7 +138,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-  color: var(--secondary);
+  color: #718096;
   font-size: 0.85rem;
 }
 
@@ -154,7 +153,7 @@
 
 @media (max-width: 1024px) {
   .grid {
-    grid-template-columns: 1.5fr 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
   }
   .socialApps {
@@ -162,6 +161,8 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
   }
 }
 

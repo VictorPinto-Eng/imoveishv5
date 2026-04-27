@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
 
-export const metadata = {
-    title: 'HV5 Imóveis',
+export const metadata = { 
+    icons: { icon: '/icone_5_navegador.png?v=4' },
+    title: 'HV5',
     description: 'Encontre o imóvel dos seus sonhos',
 }
 

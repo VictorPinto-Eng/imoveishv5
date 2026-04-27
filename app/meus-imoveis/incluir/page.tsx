@@ -8,6 +8,7 @@ import { maskCurrencyInput, formatCurrency, completeCurrencyWithZeros, maskInteg
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import dynamic from 'next/dynamic';
 import WhatsAppLink from '@/components/WhatsAppLink';
+import SearchableSelect from '@/components/SearchableSelect';
 
 const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
 
@@ -57,6 +58,7 @@ interface PropertyData {
     imbfinalidade_id?: number;
     imbtpimovel_id?: number;
     statusimovel?: number;
+    empreendimento?: number;
     pub_site: boolean;
     pub_price: boolean;
 }
@@ -92,6 +94,7 @@ export default function IncluirImovelPage() {
     const [propertyTypesList, setPropertyTypesList] = useState<{ id: number; descricao: string }[]>([]);
     const [operacoes, setOperacoes] = useState<{ id: number; descricao: string }[]>([]);
     const [propertyStatuses, setPropertyStatuses] = useState<{ id: number; nome: string }[]>([]);
+    const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
 
     const [formData, setFormData] = useState<PropertyData>({
         address: '',
@@ -137,6 +140,7 @@ export default function IncluirImovelPage() {
         imbfinalidade_id: undefined,
         imbtpimovel_id: undefined,
         statusimovel: 2, // Default to Pendente (ID 2)
+        empreendimento: undefined,
         pub_site: true,
         pub_price: true
     });
@@ -213,6 +217,24 @@ export default function IncluirImovelPage() {
             }
         };
         fetchStatuses();
+    }, []);
+
+    // Fetch Empreendimentos
+    useEffect(() => {
+        const fetchEmps = async () => {
+            try {
+                const res = await fetch('/api/property/empreendimentos');
+                const data = await res.json();
+                if (data.empreendimentos && Array.isArray(data.empreendimentos)) {
+                    setEmpreendimentos(data.empreendimentos);
+                } else if (Array.isArray(data)) {
+                    setEmpreendimentos(data);
+                }
+            } catch (error) {
+                console.error('Error fetching empreendimentos:', error);
+            }
+        };
+        fetchEmps();
     }, []);
 
     // Fetch Property Types when Finalidade changes
@@ -639,6 +661,7 @@ export default function IncluirImovelPage() {
         imbfinalidade_id: formData.imbfinalidade_id,
         imbtpimovel_id: formData.imbtpimovel_id,
         statusimovel: formData.statusimovel,
+        empreendimento: formData.empreendimento,
         pub_site: formData.pub_site,
         pub_price: formData.pub_price
     });
@@ -1159,6 +1182,16 @@ export default function IncluirImovelPage() {
                                     </div>
 
                                     {/* Status removed as requested - forced to Pendente by default */}
+
+                                    <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                        <p className={styles.subQuestion} style={{ marginBottom: '8px' }}>Empreendimento</p>
+                                        <SearchableSelect
+                                            options={empreendimentos}
+                                            value={formData.empreendimento || ''}
+                                            onChange={(val) => setFormData(prev => ({ ...prev, empreendimento: val }))}
+                                            placeholder="Selecione um empreendimento..."
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}

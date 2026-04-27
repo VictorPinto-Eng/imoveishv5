@@ -507,11 +507,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <div className={styles.content}>
                     <div className={styles.header}>
                         <Image
-                            src="/logo_hv5_v3.png"
+                            src="/logo_hv5_final.png"
                             alt="HV5 Logo"
                             width={320}
                             height={130}
-                            className={styles.logoImage}
+                            className={styles.logoImage} style={{ maxWidth: "110px", height: "auto" }}
                             priority
                         />
                     </div>
@@ -847,7 +847,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <div className={styles.modalFooter}>
                     <div className={styles.partnerLogos}>
                         <span className={styles.groupText}>soluções</span>
-                        <Image src="/logo_hv5_v3.png" alt="HV5" width={40} height={20} className={styles.miniLogo} />
+                        <Image src="/logo_hv5_final.png" alt="HV5" width={40} height={20} className={styles.miniLogo} />
                     </div>
                 </div>
             </div>

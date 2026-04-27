@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './empreendimento.module.css';
 import { maskCep } from '@/lib/format';
+import Header from '@/components/Header';
 
 interface LocationItem {
     id: number;
@@ -225,7 +226,9 @@ export default function IncluirEmpreendimentoPage() {
 
     if (success) {
         return (
-            <div className={styles.container}>
+            <>
+                <Header />
+                <div className={styles.container}>
                 <aside className={styles.sidebar}>
                     <Link href="/meus-imoveis" className={styles.backBtn}>
                         <ArrowLeft size={20} />
@@ -267,12 +270,15 @@ export default function IncluirEmpreendimentoPage() {
                         </div>
                     </div>
                 </main>
-            </div>
+                </div>
+            </>
         );
     }
 
     return (
-        <div className={styles.container}>
+        <>
+            <Header />
+            <div className={styles.container}>
             <aside className={styles.sidebar}>
                 <Link href="/meus-imoveis" className={styles.backBtn}>
                     <ArrowLeft size={20} />
@@ -379,6 +385,7 @@ export default function IncluirEmpreendimentoPage() {
                     </form>
                 </div>
             </main>
-        </div>
+            </div>
+        </>
     );
 }

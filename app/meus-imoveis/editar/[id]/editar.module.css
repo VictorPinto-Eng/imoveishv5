@@ -64,8 +64,10 @@
 
 .grid {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: 1fr;
     gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .section {
@@ -117,7 +119,8 @@
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
-    width: 160px; /* Reduzido de 200px */
+    flex: 1;
+    min-width: 160px;
 }
 
 .formGroupLarge {
@@ -125,7 +128,8 @@
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
-    width: 120px; /* Ajustado para 120px a pedido do usuário */
+    flex: 2;
+    min-width: 200px;
 }
 
 .formGroupFull {
@@ -141,7 +145,8 @@
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
-    width: 344px; /* Reduzido de 424px (160 + 160 + 24 gap) */
+    flex: 2;
+    min-width: 280px;
 }
 
 .formGroupTitle {
@@ -172,7 +177,7 @@
 /* Garante que o select dentro do Full não seja 100% */
 .formGroupFull select,
 .formGroupFull input {
-    width: 200px !important; /* Reduzido de 240px */
+    width: 100% !important;
 }
 
 .formGroupSmall {
@@ -180,7 +185,8 @@
     flex-direction: column;
     gap: 0.4rem;
     margin-bottom: 1.25rem;
-    width: 140px;
+    flex: 1;
+    min-width: 120px;
 }
 
 .formGroup label {
@@ -457,18 +463,21 @@
 
 @media (max-width: 768px) {
     .section {
-        padding: 1.5rem;
+        padding: 1.25rem;
     }
 
     .featGrid {
-        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .formGroup, .formGroupLarge, .formGroupWide, .formGroupSmall {
+        min-width: 100%;
     }
 
     .header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1.5rem;
-        margin-bottom: 2rem;
+        gap: 1rem;
     }
 
     .headerActions {
@@ -478,6 +487,12 @@
     .saveBtn {
         width: 100%;
         justify-content: center;
+        padding: 0.6rem;
+    }
+
+    .stickyHeader {
+        top: 4.5rem;
+        padding: 0.75rem 0;
     }
 }
 
@@ -594,8 +609,8 @@
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
-    width: 270px !important;
-    min-width: 270px;
+    flex: 1;
+    min-width: 120px;
 }
 
 /* Quadra / Torre / Bloco group – fixed 250px */
@@ -604,8 +619,8 @@
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
-    width: 250px !important;
-    min-width: 250px;
+    flex: 1;
+    min-width: 180px;
 }
 
 /* Map Preview (hv5soft style) */

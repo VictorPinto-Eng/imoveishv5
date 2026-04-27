@@ -54,7 +54,7 @@
 }
 
 .content {
-    padding: 6rem 2rem 2.5rem;
+    padding: 3rem 2rem 2.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -67,7 +67,7 @@
 }
 
 .header {
-    margin-bottom: -15px;
+    margin-bottom: 1.5rem;
     width: 100%;
     display: flex;
     justify-content: center;

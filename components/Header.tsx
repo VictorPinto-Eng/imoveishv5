@@ -91,11 +91,11 @@ export default function Header() {
                     <div className={styles.logoContainer}>
                         <a href="/" className={styles.logoLink} onClick={() => setIsMenuOpen(false)}>
                             <Image
-                                src="/logo_hv5_v3.png"
+                                src="/logo_hv5_final.png"
                                 alt="HV5 Logo"
                                 width={320}
                                 height={130}
-                                className={styles.logoImage}
+                                className={styles.logoImage} style={{ width: "105px", height: "auto", objectFit: "contain" }}
                             />
                         </a>
                     </div>

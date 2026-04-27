@@ -69,6 +69,7 @@ export interface Imovel {
   longitude?: number | null
   plus_code?: string
   created_at?: string | Date
+  pending_questions?: number | string
 }
 
 export interface ImovelFilters {

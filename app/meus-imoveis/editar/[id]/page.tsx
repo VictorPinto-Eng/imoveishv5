@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import NextImage from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import SearchableSelect from '@/components/SearchableSelect';
 import {
     ArrowLeft, Loader2, Save, Home,
     Maximize2, Bed, Bath, Car, MapPin,
@@ -257,7 +258,11 @@ export default function EditarImovelPage() {
             try {
                 const res = await fetch('/api/property/empreendimentos');
                 const data = await res.json();
-                if (Array.isArray(data)) setEmpreendimentos(data);
+                if (data.empreendimentos && Array.isArray(data.empreendimentos)) {
+                    setEmpreendimentos(data.empreendimentos);
+                } else if (Array.isArray(data)) {
+                    setEmpreendimentos(data);
+                }
             } catch (error) {
                 console.error('Error fetching empreendimentos:', error);
             }
@@ -575,6 +580,7 @@ export default function EditarImovelPage() {
                 imbtpoperacao_id: imovel.imbtpoperacao_id,
                 imbfinalidade_id: imovel.imbfinalidade_id,
                 imbtpimovel_id: imovel.imbtpimovel_id,
+                empreendimento: imovel.empreendimento,
                 statusimovel: imovel.statusimovel,
                 pub_site: imovel.pub_site,
                 pub_price: imovel.pub_price
@@ -942,19 +948,15 @@ export default function EditarImovelPage() {
                                 {/* -- Empreendimento -- */}
                                 <div className={styles.formGroupWide}>
                                     <h3 className={styles.question}>Empreendimento</h3>
-                                    <select
+                                    <SearchableSelect
+                                        options={empreendimentos}
                                         value={imovel.empreendimento || ''}
-                                        onChange={(e) => setImovel({
+                                        onChange={(val) => setImovel({
                                             ...imovel,
-                                            empreendimento: parseInt(e.target.value) || undefined
+                                            empreendimento: val
                                         })}
-                                        className={styles.select}
-                                    >
-                                        <option value="">Selecione...</option>
-                                        {empreendimentos.map(emp => (
-                                            <option key={emp.id} value={emp.id}>{emp.descricao}</option>
-                                        ))}
-                                    </select>
+                                        placeholder="Selecione um empreendimento..."
+                                    />
                                 </div>
 
                                 {/* -- Quadra / Torre / Bloco -- */}

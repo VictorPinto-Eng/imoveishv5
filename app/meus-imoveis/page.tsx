@@ -169,7 +169,8 @@ function MeusImoveisContent() {
         banheiros: undefined,
         minArea: '',
         maxArea: '',
-        status: 'ativo'
+        status: 'ativo',
+        empreendimento: undefined
     });
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -402,6 +403,8 @@ function MeusImoveisContent() {
                                 
                                 if (activeFilters.minArea && (imovel.area_util || 0) < Number(activeFilters.minArea)) return false;
                                 if (activeFilters.maxArea && (imovel.area_util || 0) > Number(activeFilters.maxArea)) return false;
+
+                                if (activeFilters.empreendimento && imovel.imbempreendimento_id?.toString() !== activeFilters.empreendimento.toString()) return false;
 
                                 return true;
                             })
