@@ -30,6 +30,12 @@ interface CustomFields {
     complemento?: string;
     pub_facebook?: boolean;
     pub_instagram?: boolean;
+    tipo_imovel?: string;
+    finalidade?: string;
+    objetivo?: string;
+    condominio?: number;
+    iptu?: number;
+    [key: string]: any;
 }
 
 interface Imovel {

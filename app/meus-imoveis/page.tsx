@@ -41,6 +41,11 @@ interface CustomFields {
     uf?: string;
     objetivo?: string;
     unidade?: string;
+    tipo_imovel?: string;
+    finalidade?: string;
+    condominio?: number;
+    iptu?: number;
+    [key: string]: any;
 }
 
 interface Imovel {
