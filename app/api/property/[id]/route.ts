@@ -21,10 +21,22 @@ export async function GET(
     const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
     const userId = decoded.id;
 
-    const res = await query(
-      'SELECT * FROM produtos_servicos WHERE id = $1 AND user_id = $2',
-      [id, userId]
-    );
+    const res = await query(`
+      SELECT 
+        p.*,
+        tp.descricao as tipo_nome,
+        op.descricao as operacao_nome,
+        est.sigla as uf_nome,
+        cid.descricao as cidade_nome,
+        bai.descricao as bairro_nome
+      FROM produtos_servicos p
+      LEFT JOIN imbtpimovel tp ON p.imbtpimovel_id = tp.id
+      LEFT JOIN imbtpoperacao op ON p.imbtpoperacao_id = op.id
+      LEFT JOIN apoestado est ON p.estado_id = est.id
+      LEFT JOIN apocidade cid ON p.cidade_id = cid.id
+      LEFT JOIN apobairro bai ON p.bairro_id = bai.id
+      WHERE p.id = $1 AND p.user_id = $2
+    `, [id, userId]);
 
     if (res.rowCount === 0) {
       return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão' }, { status: 404 });
@@ -326,12 +338,6 @@ export async function PUT(
 
     columnsWithDedicatedStorage.forEach(key => delete normalizedCustomFields[key]);
 
-    // Add back the names for easy display (as requested by previous code logic)
-    normalizedCustomFields.uf = ufSigla;
-    normalizedCustomFields.cidade = cidadeNome;
-    normalizedCustomFields.bairro = bairroNome;
-    normalizedCustomFields.tipo_imovel = body.type;
-    normalizedCustomFields.finalidade = body.finalidade;
     normalizedCustomFields.pub_facebook = body.pub_facebook !== undefined ? body.pub_facebook : normalizedCustomFields.pub_facebook;
     normalizedCustomFields.pub_instagram = body.pub_instagram !== undefined ? body.pub_instagram : normalizedCustomFields.pub_instagram;
 

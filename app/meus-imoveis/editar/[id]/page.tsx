@@ -84,6 +84,12 @@ interface Imovel {
     pub_site?: boolean;
     pub_price?: boolean;
     relimovel_id?: number;
+    // Joined field names
+    tipo_nome?: string;
+    operacao_nome?: string;
+    uf_nome?: string;
+    cidade_nome?: string;
+    bairro_nome?: string;
 }
 
 export default function EditarImovelPage() {
@@ -157,7 +163,7 @@ export default function EditarImovelPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    type: imovel.custom_fields.tipo_imovel,
+                    type: imovel.tipo_nome,
                     rooms: imovel.dormitorios,
                     bathrooms: imovel.banheiros,
                     suites: imovel.suites,
@@ -167,8 +173,8 @@ export default function EditarImovelPage() {
                     areaConstruida: imovel.area_construida,
                     varandas: imovel.varandas,
                     address: imovel.logradouro,
-                    finalidade: imovel.custom_fields.finalidade,
-                    objective: imovel.custom_fields.objetivo,
+                    finalidade: imovel.imbfinalidade_id,
+                    objective: imovel.imbtpoperacao_id,
                     condoFee: imovel.custom_fields.condominio,
                     iptuValue: imovel.custom_fields.iptu,
                     price: imovel.preco_base

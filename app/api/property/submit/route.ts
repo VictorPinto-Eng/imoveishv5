@@ -201,18 +201,10 @@ export async function POST(req: NextRequest) {
 
     // Build clean custom_fields (only fields that DON'T have a top-level column)
     const custom_fields_clean = {
-      objetivo: objective,
       aceita_pets: acceptsPets,
-      relacao_imovel: relationship,
       condominio: condoFeeNum,
       iptu: iptuNum,
       paga_iptu: hasIptu,
-      // Supporting literal names for easier display
-      uf: ufSigla || null,
-      cidade: cidadeNome || null,
-      bairro: bairroNome || null,
-      tipo_imovel: type,
-      finalidade: finalidade,
       pub_facebook: pub_facebook ?? true,
       pub_instagram: pub_instagram ?? true,
     };
