@@ -72,8 +72,6 @@ interface Imovel {
     custom_fields: CustomFields;
     pub_facebook?: boolean;
     pub_instagram?: boolean;
-    operacao_nome?: string;
-    tipo_nome?: string;
     uf_nome?: string;
     cidade_nome?: string;
     bairro_nome?: string;
