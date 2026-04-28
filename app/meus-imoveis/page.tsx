@@ -15,7 +15,16 @@ import {
 import Link from 'next/link';
 import NextImage from 'next/image';
 import styles from './meus-imoveis.module.css';
-import PhotoManager from '@/components/PhotoManager';
+import type { Photo } from '@/components/PhotoManager';
+const PhotoManager = dynamic(() => import('@/components/PhotoManager'), { 
+    ssr: false,
+    loading: () => (
+        <div className="flex flex-col items-center justify-center p-20 gap-4">
+            <Loader2 className="animate-spin text-blue-600" size={40} />
+            <p className="text-gray-500 font-medium">Carregando fotos...</p>
+        </div>
+    )
+});
 import PropertyPerformance from '@/components/PropertyPerformance';
 import FilterModal from '@/components/FilterModal';
 import DashboardQuestions from '@/components/DashboardQuestions';
@@ -127,12 +136,13 @@ function MeusImoveisContent() {
     const [selectedEmpreendimento, setSelectedEmpreendimento] = useState<any>(null);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [shareUrl, setShareUrl] = useState('');
+    const [photosCache, setPhotosCache] = useState<Record<number, Photo[]>>({});
     const actionsMenuRef = useRef<HTMLDivElement>(null);
     const listModeRef = useRef<HTMLDivElement>(null);
     const fabRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
+        function handleClickOutside(event: MouseEvent | TouchEvent) {
             if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
                 setShowActions(false);
             }
@@ -144,7 +154,11 @@ function MeusImoveisContent() {
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
     }, []);
 
     const updatePropertyField = async (propertyId: number, field: string, value: any) => {
@@ -264,6 +278,20 @@ function MeusImoveisContent() {
             }).catch(err => console.error('Error recording impressions:', err));
         }
     }, [imoveis]);
+
+    // Prefetch photos for selected property
+    useEffect(() => {
+        if (selectedImovel && !photosCache[selectedImovel.id]) {
+            fetch(`/api/property/${selectedImovel.id}/photos`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        setPhotosCache(prev => ({ ...prev, [selectedImovel.id]: data.photos }));
+                    }
+                })
+                .catch(err => console.error('Error prefetching photos:', err));
+        }
+    }, [selectedImovel?.id]);
 
     useEffect(() => {
         // Close property actions menu when selection changes
@@ -1210,8 +1238,19 @@ function MeusImoveisContent() {
                         </div>
                         <PhotoManager 
                             imovelId={selectedImovel.id} 
-                            initialPhotos={[]} 
-                            onUpdate={fetchMyImoveis}
+                            initialPhotos={photosCache[selectedImovel.id] || []} 
+                            onUpdate={() => {
+                                // Clear cache to force refresh on next fetch if needed, 
+                                // or better, fetch again to update cache
+                                fetch(`/api/property/${selectedImovel.id}/photos`)
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            setPhotosCache(prev => ({ ...prev, [selectedImovel.id]: data.photos }));
+                                        }
+                                    });
+                                fetchMyImoveis();
+                            }}
                             isReordering={isReordering}
                         />
                     </div>

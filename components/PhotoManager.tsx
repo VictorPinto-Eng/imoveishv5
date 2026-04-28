@@ -7,7 +7,7 @@ import { Camera, Trash2, Upload, MoreVertical, Layout, Lock, Eye, UploadCloud, M
 import styles from './photoManager.module.css';
 import PhotoDetailsModal from '@/components/PhotoDetailsModal';
 
-interface Photo {
+export interface Photo {
     id: number;
     url_referencia: string;
     legenda: string | null;
@@ -45,8 +45,14 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
     };
 
     useEffect(() => {
-        loadPhotos();
-    }, [imovelId]);
+        // Se já temos fotos iniciais, não precisamos dar fetch imediatamente 
+        // (ou podemos dar fetch em background se quisermos garantir sincronia)
+        if (initialPhotos && initialPhotos.length > 0) {
+            setPhotos(initialPhotos);
+        } else {
+            loadPhotos();
+        }
+    }, [imovelId, initialPhotos]);
 
     const convertToWebP = (file: File): Promise<Blob> => {
         return new Promise((resolve, reject) => {
