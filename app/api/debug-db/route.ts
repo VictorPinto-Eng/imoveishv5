@@ -1,8 +1,4 @@
-import { query } from '../../../lib/db'; // Correct depth: app/api/debug-db (3) -> app (2) -> root (1) -> lib (0)
-// wait, app/api/debug-db is 3 levels deep from root.
-// app/api/debug-db/route.ts -> (1) app/api/debug-db -> (2) app/api -> (3) app -> (4) root
-// So ../../../lib/db is correct.
-
+import { query } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
