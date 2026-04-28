@@ -139,6 +139,10 @@ export default function ImovelCard({ imovel }: ImovelCardProps) {
           }
           return null;
         })()}
+
+        <div className={styles.statusBadge}>
+            {(imovel.status_imovel_nome || imovel.status || '').toUpperCase()}
+        </div>
         
         {imagens_urls.length > 1 && (
           <>

@@ -60,6 +60,7 @@ export interface Imovel {
   tipo_imovel_nome?: string
   tipo_nome?: string
   foto_capa?: string
+  status_imovel_nome?: string
   imoveis_detalhes?: ImovelDetalhes | null
   imbtpoperacao_id?: number
   operacao_nome?: string
@@ -157,10 +158,12 @@ const BASE_SELECT = `
     I.*, 
     ARRAY(SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC) as all_photos,
     OP.descricao as operacao_nome,
-    TP.descricao as tipo_nome
+    TP.descricao as tipo_nome,
+    ST.nome as status_imovel_nome
   FROM produtos_servicos I
   LEFT JOIN imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
   LEFT JOIN imbtpimovel TP ON I.imbtpimovel_id = TP.id
+  LEFT JOIN statimovel ST ON I.statusimovel = ST.id
 `
 
 export async function getFeaturedImoveis(limit = 6, excludeId?: string) {

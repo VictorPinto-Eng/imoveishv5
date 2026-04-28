@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -20,6 +20,7 @@ import PropertyPerformance from '@/components/PropertyPerformance';
 import FilterModal from '@/components/FilterModal';
 import DashboardQuestions from '@/components/DashboardQuestions';
 import { generateWhatsAppShareMessage } from '@/lib/share-templates';
+import ShareModal from '@/components/ShareModal';
 import dynamic from 'next/dynamic';
 import type { PropertyMapProps } from '@/components/PropertyMap';
 
@@ -48,12 +49,15 @@ interface Imovel {
     preco_base: number;
     pending_questions?: number | string;
     status: string;
+    status_imovel_nome?: string;
     imagens_urls: string[];
     foto_capa?: string;
     total_fotos?: string | number;
     categoria: string;
     descricao: string;
     custom_fields: CustomFields;
+    pub_facebook?: boolean;
+    pub_instagram?: boolean;
     // Location DB Columns
     logradouro: string;
     numero: string;
@@ -111,6 +115,27 @@ function MeusImoveisContent() {
     const [listMode, setListMode] = useState<'imoveis' | 'empreendimentos'>('imoveis');
     const [isListModeDropdownOpen, setIsListModeDropdownOpen] = useState(false);
     const [selectedEmpreendimento, setSelectedEmpreendimento] = useState<any>(null);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [shareUrl, setShareUrl] = useState('');
+    const actionsMenuRef = useRef<HTMLDivElement>(null);
+    const listModeRef = useRef<HTMLDivElement>(null);
+    const fabRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
+                setShowActions(false);
+            }
+            if (listModeRef.current && !listModeRef.current.contains(event.target as Node)) {
+                setIsListModeDropdownOpen(false);
+            }
+            if (fabRef.current && !fabRef.current.contains(event.target as Node)) {
+                setIsFabOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const updatePropertyField = async (propertyId: number, field: string, value: any) => {
         if (!selectedImovel) return;
@@ -148,6 +173,18 @@ function MeusImoveisContent() {
         if (!selectedImovel) return;
         const newValue = !selectedImovel.pub_price;
         updatePropertyField(selectedImovel.id, 'pub_price', newValue);
+    };
+
+    const togglePubFacebook = () => {
+        if (!selectedImovel) return;
+        const newValue = !selectedImovel.pub_facebook;
+        updatePropertyField(selectedImovel.id, 'pub_facebook', newValue);
+    };
+
+    const togglePubInstagram = () => {
+        if (!selectedImovel) return;
+        const newValue = !selectedImovel.pub_instagram;
+        updatePropertyField(selectedImovel.id, 'pub_instagram', newValue);
     };
     const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
     const [activities, setActivities] = useState<any[]>([]);
@@ -320,6 +357,7 @@ function MeusImoveisContent() {
                                         className={styles.sidebarTitleRow} 
                                         style={{ position: 'relative', cursor: 'pointer' }}
                                         onClick={() => setIsListModeDropdownOpen(!isListModeDropdownOpen)}
+                                        ref={listModeRef}
                                     >
                                         <h2 className={styles.sidebarTitle}>
                                             {listMode === 'imoveis' ? 'Imóveis' : 'Empreendimentos'}
@@ -505,7 +543,7 @@ function MeusImoveisContent() {
                     )}
 
                     {/* SPEED DIAL FAB */}
-                    <div className={styles.fabContainer}>
+                    <div className={styles.fabContainer} ref={fabRef}>
                         <div className={`${styles.fabMenu} ${isFabOpen ? styles.fabMenuOpen : ''}`}>
                             <Link href="/meus-imoveis/incluir" className={styles.fabMenuItem} title="Adicionar Imóvel">
                                 <span className={styles.fabMenuLabel}>Imóvel</span>
@@ -604,7 +642,7 @@ function MeusImoveisContent() {
 
                                     <div className={styles.actionOverlay}>
                                         {/* Action Button (Top Right Discreet) */}
-                                        <div style={{ position: 'absolute', top: '1rem', right: '0.5rem', pointerEvents: 'auto' }}>
+                                        <div style={{ position: 'absolute', top: '1rem', right: '0.5rem', pointerEvents: 'auto' }} ref={actionsMenuRef}>
                                             <button 
                                                 className={styles.actionButton}
                                                 style={{ background: 'transparent', boxShadow: 'none', color: 'white' }}
@@ -714,12 +752,8 @@ function MeusImoveisContent() {
                                                         e.stopPropagation(); 
                                                         if (selectedImovel) {
                                                             const shareUrl = `${window.location.origin}/imovel/${selectedImovel.id}`;
-                                                            navigator.clipboard.writeText(shareUrl).then(() => {
-                                                                alert('Link copiado para a área de transferência!');
-                                                            }).catch(err => {
-                                                                console.error('Failed to copy:', err);
-                                                                alert('Erro ao copiar link.');
-                                                            });
+                                                            setShareUrl(shareUrl);
+                                                            setIsShareModalOpen(true);
                                                             setShowActions(false);
                                                         }
                                                     }}>
@@ -820,12 +854,7 @@ function MeusImoveisContent() {
                                         Cód: {selectedImovel?.id}
                                     </div>
                                     <div className={styles.statusBadge}>
-                                        {selectedImovel?.status === 'ativo' 
-                                            ? 'DISPONÍVEL' 
-                                            : (selectedImovel?.operacao_nome?.toLowerCase().includes('locaç') 
-                                                ? 'LOCADO' 
-                                                : 'VENDIDO')
-                                        }
+                                        {(selectedImovel?.status_imovel_nome || selectedImovel?.status || '').toUpperCase()}
                                     </div>
                                 </div>
 
@@ -999,6 +1028,24 @@ function MeusImoveisContent() {
                                                     <div className={styles.premiumSwitchIndicator}></div>
                                                 </div>
                                             </div>
+                                            <div className={styles.divulgacaoRow}>
+                                                <span className={styles.divulgacaoLabel}>Publicar no Facebook</span>
+                                                <div 
+                                                    className={`${styles.premiumSwitch} ${selectedImovel.pub_facebook ? styles.premiumSwitchActive : ''}`}
+                                                    onClick={togglePubFacebook}
+                                                >
+                                                    <div className={styles.premiumSwitchIndicator}></div>
+                                                </div>
+                                            </div>
+                                            <div className={styles.divulgacaoRow}>
+                                                <span className={styles.divulgacaoLabel}>Publicar no Instagram</span>
+                                                <div 
+                                                    className={`${styles.premiumSwitch} ${selectedImovel.pub_instagram ? styles.premiumSwitchActive : ''}`}
+                                                    onClick={togglePubInstagram}
+                                                >
+                                                    <div className={styles.premiumSwitchIndicator}></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </>
                                 )}
@@ -1168,6 +1215,12 @@ function MeusImoveisContent() {
                 initialFilters={activeFilters}
             />
 
+            <ShareModal 
+                isOpen={isShareModalOpen} 
+                onClose={() => setIsShareModalOpen(false)} 
+                shareUrl={shareUrl}
+                title={selectedImovel?.nome}
+            />
             <Footer />
         </main>
     );

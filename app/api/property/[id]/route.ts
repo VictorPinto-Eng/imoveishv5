@@ -36,10 +36,24 @@ export async function GET(
       [id]
     );
 
+    // Map relimovel_id back to relationship string for frontend
+    const relMapping: Record<number, string> = {
+        1: 'Proprietário',
+        2: 'Corretor',
+        3: 'Administrador/Outro'
+    };
+    const relationship = relMapping[res.rows[0].relimovel_id] || 'Administrador/Outro';
+
+    const pub_facebook = res.rows[0].custom_fields?.pub_facebook ?? true;
+    const pub_instagram = res.rows[0].custom_fields?.pub_instagram ?? true;
+
     return NextResponse.json({ 
         success: true, 
         imovel: {
             ...res.rows[0],
+            relationship,
+            pub_facebook,
+            pub_instagram,
             // Map singular DB to plural JSON for frontend compatibility
             dormitorios: res.rows[0].dormitorio,
             suites: res.rows[0].suite,
@@ -140,6 +154,20 @@ export async function PUT(
     const imbfinalidade_id = body.imbfinalidade_id !== undefined ? body.imbfinalidade_id : oldData.imbfinalidade_id;
     const imbtpimovel_id = body.imbtpimovel_id !== undefined ? body.imbtpimovel_id : oldData.imbtpimovel_id;
     const statusimovel = body.statusimovel !== undefined ? body.statusimovel : oldData.statusimovel;
+
+    // Relationship ID mapping
+    const relMapping: Record<string, number> = {
+      'Proprietário': 1,
+      'Corretor': 2,
+      'Administrador/Outro': 3
+    };
+    
+    let relimovel_id = oldData.relimovel_id;
+    let prop_id = oldData.prop_id;
+    if (body.relationship !== undefined) {
+      relimovel_id = relMapping[body.relationship] || 3;
+      prop_id = body.relationship === 'Proprietário' ? userId : null;
+    }
 
     const ufRaw = custom_fields_req?.uf || '';
     const cidadeRaw = custom_fields_req?.cidade || '';
@@ -293,7 +321,7 @@ export async function PUT(
       'pais_id', 'estado_id', 'cidade_id', 'bairro_id',
       'imbtpoperacao_id', 'imbfinalidade_id', 'imbtpimovel_id', 'statusimovel',
       'status', 'area_total', 'latitude', 'longitude', 'plus_code',
-      'pub_site', 'pub_price'
+      'pub_site', 'pub_price', 'relimovel_id', 'prop_id'
     ];
 
     columnsWithDedicatedStorage.forEach(key => delete normalizedCustomFields[key]);
@@ -304,6 +332,8 @@ export async function PUT(
     normalizedCustomFields.bairro = bairroNome;
     normalizedCustomFields.tipo_imovel = body.type;
     normalizedCustomFields.finalidade = body.finalidade;
+    normalizedCustomFields.pub_facebook = body.pub_facebook !== undefined ? body.pub_facebook : normalizedCustomFields.pub_facebook;
+    normalizedCustomFields.pub_instagram = body.pub_instagram !== undefined ? body.pub_instagram : normalizedCustomFields.pub_instagram;
 
     // Update query
     const updateRes = await query(`
@@ -349,10 +379,12 @@ export async function PUT(
         plus_code = $38,
         pub_site = $39,
         pub_price = $40,
+        relimovel_id = $41,
+        prop_id = $42,
         updated_at = NOW(),
-        updated_by = $41,
+        updated_by = $43,
         organization_id = COALESCE(organization_id, '1')
-      WHERE id = $42 AND user_id = $43
+      WHERE id = $44 AND user_id = $45
       RETURNING id
     `, [
       title || oldData.nome || 'Imóvel sem título', 
@@ -395,6 +427,8 @@ export async function PUT(
       plus_code || '',
       pub_site ?? true,
       pub_price ?? true,
+      relimovel_id,
+      prop_id,
       userId,
       id,
       userId

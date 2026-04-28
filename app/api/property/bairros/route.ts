@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { sanitizeLocationName } from '@/lib/sanitize-location';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { descricao, cidade_id, estado_id } = await req.json();
-    const cleanDesc = descricao?.toUpperCase().trim();
+    const cleanDesc = sanitizeLocationName(descricao);
 
     if (!cleanDesc || !cidade_id) {
       return NextResponse.json({ error: 'Descrição e cidade_id são obrigatórios' }, { status: 400 });

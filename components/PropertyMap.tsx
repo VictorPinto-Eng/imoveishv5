@@ -95,7 +95,7 @@ export default function PropertyMap({ latitude, longitude, address }: PropertyMa
                 </button>
             </div>
 
-            <MapViewerModal 
+            <MapViewerModal
                 isOpen={isViewerOpen}
                 onClose={() => setIsViewerOpen(false)}
                 latitude={latitude}

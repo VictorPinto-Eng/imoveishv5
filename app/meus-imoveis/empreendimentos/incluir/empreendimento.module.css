@@ -1,7 +1,7 @@
 .container {
     display: flex;
     position: fixed;
-    top: 5.7rem; /* Starts after the Header */
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;

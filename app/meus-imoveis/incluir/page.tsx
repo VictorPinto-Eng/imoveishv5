@@ -105,8 +105,8 @@ export default function IncluirImovelPage() {
         unidade: '',
         andar: '',
         objective: 'Alugar',
-        acceptsPets: true,
-        relationship: 'Proprietário',
+        acceptsPets: false,
+        relationship: '',
         finalidade: '',
         type: 'Apartamento',
         rooms: '0',
@@ -141,11 +141,22 @@ export default function IncluirImovelPage() {
         imbtpimovel_id: undefined,
         statusimovel: 2, // Default to Pendente (ID 2)
         empreendimento: undefined,
-        pub_site: true,
-        pub_price: true
+        pub_site: false,
+        pub_price: false,
+        pub_facebook: false,
+        pub_instagram: false
     });
 
     // Fetch UFs from IBGE
+    useEffect(() => {
+        // Remove global body padding from globals.css for this focused page
+        const originalPadding = document.body.style.paddingTop;
+        document.body.style.paddingTop = '0';
+        return () => {
+            document.body.style.paddingTop = originalPadding;
+        };
+    }, []);
+
     useEffect(() => {
         const fetchUfs = async () => {
             try {
@@ -529,9 +540,7 @@ export default function IncluirImovelPage() {
                 return false;
             }
 
-            const estRes = await fetch(`/api/property/cidades?uf=${sigla}`); // We can use cidades API to get estadoId
-            // Actually, let's use a cleaner way. GET /api/property/estados and find.
-            const allEstsRes = await fetch('/api/property/estados');
+            const allEstsRes = await fetch('/api/property/estados', { cache: 'no-store' });
             const allEsts = await allEstsRes.json();
             const normalizedSigla = sigla.trim().toUpperCase();
             const matchedEst = allEsts.find((e: any) => e.sigla.trim().toUpperCase() === normalizedSigla);
@@ -543,7 +552,6 @@ export default function IncluirImovelPage() {
                 return false;
             }
             const estadoId = matchedEst.id;
-            setResolvedIds(prev => ({ ...prev, estadoId }));
 
             // 2. Check Cidade
             const cidadeNome = formData.cidade || selectedCity;
@@ -552,40 +560,41 @@ export default function IncluirImovelPage() {
                 return false;
             }
 
-            const cidRes = await fetch(`/api/property/cidades?estado_id=${estadoId}`);
+            const cidRes = await fetch(`/api/property/cidades?estado_id=${estadoId}`, { cache: 'no-store' });
             const cities = await cidRes.json();
-            const normalizedCid = cidadeNome.trim().toUpperCase();
-            const matchedCid = cities.find((c: any) => c.nome.trim().toUpperCase() === normalizedCid);
+            const normalizedCid = sanitizeLocationName(cidadeNome);
+            const matchedCid = cities.find((c: any) => sanitizeLocationName(c.nome) === normalizedCid);
 
             if (!matchedCid) {
+                setResolvedIds(prev => ({ ...prev, estadoId }));
                 setBairroCreateLabel(cidadeNome);
                 setActiveVerification('cidade');
                 setShowBairroCreateModal(true);
                 return false;
             }
             const cidadeId = matchedCid.id;
-            setResolvedIds(prev => ({ ...prev, cidadeId }));
 
             // 3. Check Bairro
             const bairroNome = formData.bairro;
             if (!bairroNome) {
-                // Neighborhood is optional? In some designs Yes, but here we check it.
+                setResolvedIds({ estadoId, cidadeId, bairroId: 0 });
                 return true; 
             }
 
-            const baiRes = await fetch(`/api/property/bairros?cidade_id=${cidadeId}`);
+            const baiRes = await fetch(`/api/property/bairros?cidade_id=${cidadeId}`, { cache: 'no-store' });
             const bairros = await baiRes.json();
-            const normalizedBai = bairroNome.trim().toUpperCase();
-            const matchedBai = bairros.find((b: any) => b.nome.trim().toUpperCase() === normalizedBai);
+            const normalizedBai = sanitizeLocationName(bairroNome);
+            const matchedBai = bairros.find((b: any) => sanitizeLocationName(b.nome) === normalizedBai);
 
             if (!matchedBai) {
+                setResolvedIds({ estadoId, cidadeId, bairroId: 0 });
                 setBairroCreateLabel(bairroNome);
                 setActiveVerification('bairro');
                 setShowBairroCreateModal(true);
                 return false;
             }
-            setResolvedIds(prev => ({ ...prev, bairroId: matchedBai.id }));
-
+            
+            setResolvedIds({ estadoId, cidadeId, bairroId: matchedBai.id });
             return true;
         } catch (error) {
             console.error('Error in verification sequence:', error);
@@ -663,7 +672,9 @@ export default function IncluirImovelPage() {
         statusimovel: formData.statusimovel,
         empreendimento: formData.empreendimento,
         pub_site: formData.pub_site,
-        pub_price: formData.pub_price
+        pub_price: formData.pub_price,
+        pub_facebook: formData.pub_facebook,
+        pub_instagram: formData.pub_instagram
     });
 
     const submitProperty = async (payload: any) => {
@@ -707,6 +718,22 @@ export default function IncluirImovelPage() {
     const handleConfirmCreateBairro = async () => {
         setLoading(true);
         try {
+            // Se viemos do Step 5 (Finalizar Cadastro) com erro 409 de Bairro
+            if (pendingPayload) {
+                const { res, data } = await submitProperty(pendingPayload);
+                if (data.success) {
+                    setSuccess(true);
+                    setShowBairroCreateModal(false);
+                    setPendingPayload(null);
+                    window.location.href = `/meus-imoveis?id=${data.id}&refresh=${Date.now()}`;
+                    return;
+                } else {
+                    alert(data.error || 'Erro ao cadastrar imóvel');
+                    setLoading(false);
+                    return;
+                }
+            }
+
             let res;
             if (activeVerification === 'estado') {
                 res = await fetch('/api/property/estados', {
@@ -740,9 +767,17 @@ export default function IncluirImovelPage() {
 
                 setShowBairroCreateModal(false);
                 setActiveVerification(null);
-                // Return focus to CEP
-                const cepInput = document.getElementsByName('cep')[0] || document.getElementsByName('address')[0];
-                if (cepInput) (cepInput as HTMLElement).focus();
+                
+                // Se estamos na Etapa 1, aciona o continuar automaticamente após pequeno delay
+                if (step === 1) {
+                    setTimeout(() => {
+                        handleNext();
+                    }, 500);
+                } else {
+                    // Return focus to CEP only if not advancing
+                    const cepInput = document.getElementsByName('cep')[0] || document.getElementsByName('address')[0];
+                    if (cepInput) (cepInput as HTMLElement).focus();
+                }
                 return;
             }
             alert(data?.error || 'Erro ao cadastrar');
@@ -1059,7 +1094,7 @@ export default function IncluirImovelPage() {
                                             placeholder="Ex: 349 – A"
                                             value={formData.complement}
                                             onChange={handleChange}
-                                            onKeyDown={(e) => handleKeyDown(e, 'next')}
+                                            onKeyDown={(e) => handleKeyDown(e, 'quadra_torre_bloco')}
                                         />
                                     </div>
                                 </div>
@@ -1104,7 +1139,7 @@ export default function IncluirImovelPage() {
                                             placeholder="Ex: 5"
                                             value={formData.andar}
                                             onChange={handleChange}
-                                            onKeyDown={(e) => handleKeyDown(e, 'type')}
+                                            onKeyDown={(e) => handleKeyDown(e, 'imbtpoperacao_id')}
                                         />
                                     </div>
                                 </div>
@@ -1196,9 +1231,25 @@ export default function IncluirImovelPage() {
                             </div>
                         )}
 
+                        <div className={styles.formGroup} style={{ marginTop: '32px' }}>
+                            <h3 className={styles.question}>Sua relação com o imóvel</h3>
+                            <div className={styles.pillGroup}>
+                                {['Proprietário', 'Corretor', 'Administrador/Outro'].map((rel) => (
+                                    <button
+                                        key={rel}
+                                        type="button"
+                                        className={`${styles.pillButton} ${formData.relationship === rel ? styles.pillButtonActive : ''}`}
+                                        onClick={() => setFormData(prev => ({ ...prev, relationship: rel }))}
+                                    >
+                                        {rel}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* Map Section - Parity with hv5soft */}
                         {/* Map Section - Parity with hv5soft */}
-                        {(formData.cep.length >= 5 || formData.address.length >= 3) && (
+                        {isAddressFound && (
                             <>
                                 <div style={{ marginTop: '32px' }}>
                                     <label className={styles.mapLabel}>Ponto de Localização</label>
@@ -1313,23 +1364,7 @@ export default function IncluirImovelPage() {
                             </div>
                         )}
 
-                        <div className={styles.formGroup} style={{ marginTop: '32px' }}>
-                            <h3 className={styles.question}>Sua relação com o imóvel</h3>
-                            <div className={styles.pillGroup}>
-                                {['Proprietário', 'Administrador/Outro'].map((rel) => (
-                                    <button
-                                        key={rel}
-                                        type="button"
-                                        className={`${styles.pillButton} ${formData.relationship === rel ? styles.pillButtonActive : ''}`}
-                                        onClick={() => setFormData(prev => ({ ...prev, relationship: rel }))}
-                                    >
-                                        {rel}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className={styles.toggleRow} style={{ marginTop: '16px' }}>
+                        <div className={styles.toggleRow} style={{ marginTop: '32px' }}>
                             <div className={styles.toggleLabelGroup}>
                                 <h3 className={styles.question} style={{ marginBottom: 0 }}>Publicar no Site (Página Inicial)</h3>
                                 <p className={styles.toggleDescription}>Aparece na home e nos resultados de busca</p>
@@ -1354,6 +1389,36 @@ export default function IncluirImovelPage() {
                                     type="checkbox"
                                     checked={formData.pub_price}
                                     onChange={(e) => setFormData(prev => ({ ...prev, pub_price: e.target.checked }))}
+                                />
+                                <span className={styles.slider}></span>
+                            </label>
+                        </div>
+
+                        <div className={styles.toggleRow} style={{ marginTop: '0' }}>
+                            <div className={styles.toggleLabelGroup}>
+                                <h3 className={styles.question} style={{ marginBottom: 0 }}>Publicar no Facebook</h3>
+                                <p className={styles.toggleDescription}>Enviar automaticamente para o marketplace e página</p>
+                            </div>
+                            <label className={styles.switch}>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.pub_facebook}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, pub_facebook: e.target.checked }))}
+                                />
+                                <span className={styles.slider}></span>
+                            </label>
+                        </div>
+
+                        <div className={styles.toggleRow} style={{ marginTop: '0' }}>
+                            <div className={styles.toggleLabelGroup}>
+                                <h3 className={styles.question} style={{ marginBottom: 0 }}>Publicar no Instagram</h3>
+                                <p className={styles.toggleDescription}>Enviar automaticamente para o feed e stories</p>
+                            </div>
+                            <label className={styles.switch}>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.pub_instagram}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, pub_instagram: e.target.checked }))}
                                 />
                                 <span className={styles.slider}></span>
                             </label>
@@ -1572,7 +1637,10 @@ export default function IncluirImovelPage() {
                             <DollarSign size={24} /> Valores
                         </h2>
                         <div className={styles.formGroup}>
-                            <h3 className={styles.question} style={{ marginBottom: '4px' }}>Preço Base ( R$ )</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <h3 className={styles.question} style={{ margin: 0 }}>Preço Base ( R$ )</h3>
+                                {!formData.price && <span className={styles.requiredStatus}>obrigatório</span>}
+                            </div>
                             <div className={styles.currencyInputWrapper}>
                                 <input
                                     type="text"
@@ -1585,12 +1653,14 @@ export default function IncluirImovelPage() {
                                     onFocus={(e) => e.target.select()}
                                     onKeyDown={(e) => handleKeyDown(e, 'condoFee')}
                                 />
-                                {!formData.price && <span className={styles.requiredStatus}>obrigatório</span>}
                             </div>
                         </div>
 
                         <div className={styles.formGroup} style={{ marginTop: '32px' }}>
-                            <h3 className={styles.question} style={{ marginBottom: '4px' }}>Condomínio ( R$ / mês )</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                <h3 className={styles.question} style={{ margin: 0 }}>Condomínio ( R$ / mês )</h3>
+                                {!formData.condoFee && <span className={styles.requiredStatus}>obrigatório</span>}
+                            </div>
                             <p className={styles.subQuestion} style={{ fontSize: '14px', marginBottom: '16px' }}>
                                 Não incluir despesas pontuais (aluguel de salão ou churrasqueira, etc.)
                             </p>
@@ -1598,7 +1668,7 @@ export default function IncluirImovelPage() {
                                 <input
                                     type="text"
                                     name="condoFee"
-                                    className={`${styles.input} ${styles.rightAlignInput} ${!formData.condoFee ? styles.inputError : ''}`}
+                                    className={`${styles.input} ${styles.priceInput} ${!formData.condoFee ? styles.inputError : ''}`}
                                     placeholder="0,00"
                                     value={formData.condoFee}
                                     onChange={handleCurrencyChange}
@@ -1606,7 +1676,6 @@ export default function IncluirImovelPage() {
                                     onFocus={(e) => e.target.select()}
                                     onKeyDown={(e) => handleKeyDown(e, formData.hasIptu ? 'iptuValue' : 'next')}
                                 />
-                                {!formData.condoFee && <span className={styles.requiredStatus}>obrigatório</span>}
                             </div>
                             {!formData.condoFee && (
                                 <p className={styles.errorText}>
@@ -1641,13 +1710,16 @@ export default function IncluirImovelPage() {
                         </div>
 
                         {formData.hasIptu && (
-                            <div className={styles.formGroup} style={{ marginTop: '32px' }}>
-                                <h3 className={styles.question} style={{ marginBottom: '4px' }}>IPTU ( R$ / total anual )</h3>
+                            <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <h3 className={styles.question} style={{ margin: 0 }}>IPTU ( R$ / total anual )</h3>
+                                    {!formData.iptuValue && <span className={styles.requiredStatus}>obrigatório</span>}
+                                </div>
                                 <div className={styles.currencyInputWrapper}>
                                     <input
                                         type="text"
                                         name="iptuValue"
-                                        className={`${styles.input} ${styles.rightAlignInput} ${!formData.iptuValue ? styles.inputError : ''}`}
+                                        className={`${styles.input} ${styles.priceInput} ${!formData.iptuValue ? styles.inputError : ''}`}
                                         placeholder="0,00"
                                         value={formData.iptuValue}
                                         onChange={handleCurrencyChange}
@@ -1655,7 +1727,6 @@ export default function IncluirImovelPage() {
                                         onFocus={(e) => e.target.select()}
                                         onKeyDown={(e) => handleKeyDown(e, 'next')}
                                     />
-                                    {!formData.iptuValue && <span className={styles.requiredStatus}>obrigatório</span>}
                                 </div>
                                 {!formData.iptuValue && (
                                     <p className={styles.errorText}>

@@ -54,3 +54,24 @@ const [isFocused, setIsFocused] = useState(false);
 ```
 
 Sempre utilize `onBlur` nos inputs para garantir que o auto-completar seja disparado quando o usuário terminar a edição.
+
+---
+
+## 📱 Comportamento de Campos de Telefone Internacional
+
+Para todos os campos que capturam números de telefone (Cadastro, Perfil, Leads, etc.), deve-se obrigatoriamente utilizar o padrão **International Phone Input** com seletor de países.
+
+### 1. Seletor de País (Country Picker)
+- **Bandeira e DDI**: O campo deve exibir a bandeira e o código DDI (ex: 🇧🇷 +55).
+- **Busca**: O seletor deve possuir um campo de busca interna para facilitar a localização de países.
+- **Padrão**: O país padrão deve ser o **Brasil (+55)**.
+
+### 2. Máscara e Formatação
+- **Máscara Automática**: Deve aplicar máscara de telefone brasileiro `(00) 00000-0000` quando o DDI for +55.
+- **Limpeza de Caracteres**: Para envio ao backend/CRM, o número deve ser sanitizado (apenas números) e concatenado com o DDI selecionado.
+
+### 3. Implementação Referência
+A lógica de seletor e máscara deve ser replicada a partir do componente [LoginModal.tsx](file:///d:/_DEVELOP/SITE/GITHUB/hv5com/components/LoginModal.tsx) ou [LeadCaptureModal.tsx](file:///d:/_DEVELOP/SITE/GITHUB/hv5com/components/LeadCaptureModal.tsx).
+
+- **Estado**: Deve gerenciar `country_code` e `phone` separadamente.
+- **Componente**: Futuramente, esses elementos devem ser extraídos para um componente reutilizável `PhoneInput`.

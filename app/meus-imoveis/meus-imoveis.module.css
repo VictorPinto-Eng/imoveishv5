@@ -291,7 +291,7 @@
 
 .cardCompactTitle {
   font-family: var(--font-menu);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #1a202c;
   margin-bottom: 2px;
@@ -299,7 +299,7 @@
 }
 
 .cardCompactAddress {
-  font-size: 11px;
+  font-size: 10px;
   color: #64748b;
   line-height: 1.2;
   white-space: nowrap;
@@ -309,7 +309,7 @@
 
 .cardCompactPrice {
   font-family: var(--font-sans);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #118B8A;
   margin-top: 6px;
@@ -436,7 +436,7 @@
 
 .detailMainTitle {
   font-family: var(--font-menu);
-  font-size: 2.75rem;
+  font-size: 2.2rem;
   font-weight: 700;
   color: #0f172a; /* Deeper, more premium slate */
   margin-bottom: 0.5rem;
@@ -448,7 +448,7 @@
 .detailSubTitle {
   font-family: var(--font-sans);
   color: #475569; /* Slightly darker than before for better contrast */
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: -0.02em;
@@ -486,7 +486,7 @@
 
 .priceValue {
   font-family: var(--font-sans);
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.02em;

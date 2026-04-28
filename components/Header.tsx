@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGrid, LogOut, ChevronDown, PlusCircle } from 'lucide-react'
@@ -23,6 +23,17 @@ export default function Header() {
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [user, setUser] = useState<User | null>(null)
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const dropdownRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
 
     useEffect(() => {
         checkAuth();
@@ -123,7 +134,7 @@ export default function Header() {
                     {/* Desktop Actions */}
                     <div className={`${styles.actions} ${styles.desktopActions}`}>
                         {user ? (
-                            <div className={styles.userMenuContainer}>
+                            <div className={styles.userMenuContainer} ref={dropdownRef}>
                                 <button
                                     className={styles.profilePill}
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}

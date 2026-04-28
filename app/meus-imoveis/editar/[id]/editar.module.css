@@ -12,12 +12,45 @@
 
 .stickyHeader {
     position: sticky;
-    top: 5.7rem;
+    top: 0;
     z-index: 9000;
-    background-color: #f8fafc;
+    background-color: #ffffff;
     padding: 1rem 0;
     margin-bottom: 2rem;
     border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.headerDivider {
+    width: 1px;
+    height: 24px;
+    background-color: #e2e8f0;
+}
+
+.logo {
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.logo:hover {
+    opacity: 0.8;
+}
+
+.logoText {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.logoHighlight {
+    color: #ef4444;
 }
 
 .backBtn {

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './empreendimento.module.css';
 import { maskCep } from '@/lib/format';
-import Header from '@/components/Header';
 
 interface LocationItem {
     id: number;
@@ -227,7 +226,7 @@ export default function IncluirEmpreendimentoPage() {
     if (success) {
         return (
             <>
-                <Header />
+
                 <div className={styles.container}>
                 <aside className={styles.sidebar}>
                     <Link href="/meus-imoveis" className={styles.backBtn}>
@@ -277,7 +276,7 @@ export default function IncluirEmpreendimentoPage() {
 
     return (
         <>
-            <Header />
+
             <div className={styles.container}>
             <aside className={styles.sidebar}>
                 <Link href="/meus-imoveis" className={styles.backBtn}>
@@ -320,6 +319,8 @@ export default function IncluirEmpreendimentoPage() {
                                 className={styles.input}
                                 placeholder="Digite para auto-completar"
                                 value={cep}
+                                name="cep_novo_empreendimento"
+                                autoComplete="new-password"
                                 onChange={(e) => {
                                     const raw = e.target.value.replace(/\D/g, '').substring(0, 8);
                                     setCep(maskCep(raw));

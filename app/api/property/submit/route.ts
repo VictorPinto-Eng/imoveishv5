@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       area_construida, area_terreno,
       title, description, price,
       condoFee, iptuValue, hasIptu, status,
+      pub_facebook, pub_instagram,
       latitude, longitude, plus_code,
       imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel,
       empreendimento,
@@ -126,14 +127,26 @@ export async function POST(req: NextRequest) {
         console.log(`[DEBUG Location Submit] Resolved Bairro ID: ${resolvedBairroId}`);
       } else {
         // Bairro resolution (Pure lookup)
-        const bairroRes = await query(
+        const bairroResBackup = await query(
           `SELECT id FROM public.apobairro WHERE cidade_id = $1 AND ${fuzzyMatchSql('descricao', 2)}`,
           [resolvedCidadeId, bairroNome]
         );
-        if (bairroRes.rows.length > 0) {
-          resolvedBairroId = Number(bairroRes.rows[0].id);
+        if (bairroResBackup.rows.length > 0) {
+          resolvedBairroId = Number(bairroResBackup.rows[0].id);
+        } else if (resolvedEstadoId && cidadeNome) {
+          // Final backup: search in ANY city with same name in same state
+          const deepBairroRes = await query(
+            `SELECT b.id FROM public.apobairro b 
+             JOIN public.apocidade c ON b.cidade_id = c.id 
+             WHERE c.estado_id = $1 AND ${fuzzyMatchSql('c.descricao', 2)} AND ${fuzzyMatchSql('b.descricao', 3)} 
+             LIMIT 1`,
+            [resolvedEstadoId, cidadeNome, bairroNome]
+          );
+          if (deepBairroRes.rows.length > 0) {
+            resolvedBairroId = Number(deepBairroRes.rows[0].id);
+          }
         }
-        console.log(`[DEBUG Location Submit] Resolved Bairro ID: ${resolvedBairroId}`);
+        console.log(`[DEBUG Location Submit] Resolved Bairro ID (Fallback): ${resolvedBairroId}`);
       }
     }
 
@@ -161,6 +174,19 @@ export async function POST(req: NextRequest) {
     const iptuNum = parsePriceBR(iptuValue);
     const resolvedLocation = await resolveLocationIds();
 
+    // Check if we need to trigger the bairro creation modal
+    if (!resolvedLocation.bairroId && bairroNome && !autoCreateBairro) {
+      return NextResponse.json({ 
+        error: 'Bairro não encontrado', 
+        needsBairroCreation: true,
+        details: { 
+            bairroNome, 
+            cidadeNome, 
+            ufSigla 
+        }
+      }, { status: 409 });
+    }
+
     // Sanitization of Address fields (Uppercase + Accents removal)
     const addressSanitized = sanitizeLocationName(String(address || ''));
     const numberSanitized = sanitizeLocationName(String(number || ''));
@@ -187,14 +213,25 @@ export async function POST(req: NextRequest) {
       bairro: bairroNome || null,
       tipo_imovel: type,
       finalidade: finalidade,
+      pub_facebook: pub_facebook ?? true,
+      pub_instagram: pub_instagram ?? true,
     };
+
+    // Relationship ID mapping
+    const relMapping: Record<string, number> = {
+      'Proprietário': 1,
+      'Corretor': 2,
+      'Administrador/Outro': 3
+    };
+    const relimovel_id = relMapping[relationship] || 3;
+    const prop_id = relationship === 'Proprietário' ? userId : null;
 
     // Insert into produtos_servicos
     const insertResult = await query(`
       INSERT INTO produtos_servicos 
-        (nome, preco_base, descricao, status, custom_fields, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel, imbempreendimento_id, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, tipo, categoria, ativo, tags, organization_id)
+        (nome, preco_base, descricao, status, custom_fields, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, prop_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel, imbempreendimento_id, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, relimovel_id, tipo, categoria, ativo, tags, organization_id)
       VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, 'produto', 'Imovel', true, '[]', '1')
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, 'produto', 'Imovel', true, '[]', '1')
       RETURNING id
     `, [
       title || `${type} - ${rooms} quartos`,
@@ -214,6 +251,7 @@ export async function POST(req: NextRequest) {
       resolvedLocation.cidadeId,
       resolvedLocation.bairroId,
       userId,
+      prop_id,
       parseInt(rooms) || 0,
       parseInt(suites) || 0,
       parseInt(varandas) || 0,
@@ -237,7 +275,8 @@ export async function POST(req: NextRequest) {
       longitude || null,
       plus_code || '',
       pub_site ?? true,
-      pub_price ?? true
+      pub_price ?? true,
+      relimovel_id
     ]);
 
     const produtoId = insertResult.rows[0].id;

@@ -11,7 +11,7 @@ import {
     ArrowLeft, Loader2, Save, Home,
     Maximize2, Bed, Bath, Car, MapPin,
     FileText, Building2, DollarSign, Sparkles, Ruler,
-    Map as MapIcon, Navigation, Plus
+    Map as MapIcon, Navigation, Plus, Share2
 } from 'lucide-react';
 import styles from './editar.module.css';
 import { formatCurrency, maskCurrencyInput, parseCurrencyToNumber, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
@@ -28,16 +28,8 @@ interface CustomFields {
     uf?: string;
     cep?: string;
     complemento?: string;
-    objetivo?: string;
-    finalidade?: string;
-    paga_iptu?: boolean;
-    iptu?: number;
-    condominio?: number;
-    tipo_imovel?: string;
-    statimovel_id?: string | number;
-    latitude?: number | null;
-    longitude?: number | null;
-    plus_code?: string;
+    pub_facebook?: boolean;
+    pub_instagram?: boolean;
 }
 
 interface Imovel {
@@ -85,6 +77,7 @@ interface Imovel {
     plus_code?: string;
     pub_site?: boolean;
     pub_price?: boolean;
+    relimovel_id?: number;
 }
 
 export default function EditarImovelPage() {
@@ -116,6 +109,15 @@ export default function EditarImovelPage() {
         e.stopPropagation();
         router.push(`/meus-imoveis?id=${id}`);
     };
+
+    useEffect(() => {
+        // Remove global body padding from globals.css for this focused page
+        const originalPadding = document.body.style.paddingTop;
+        document.body.style.paddingTop = '0';
+        return () => {
+            document.body.style.paddingTop = originalPadding;
+        };
+    }, []);
 
     useEffect(() => {
         const fetchImovel = async () => {
@@ -583,7 +585,10 @@ export default function EditarImovelPage() {
                 empreendimento: imovel.empreendimento,
                 statusimovel: imovel.statusimovel,
                 pub_site: imovel.pub_site,
-                pub_price: imovel.pub_price
+                pub_price: imovel.pub_price,
+                relationship: imovel.relimovel_id === 1 ? 'Proprietário' : imovel.relimovel_id === 2 ? 'Corretor' : 'Administrador/Outro',
+                pub_facebook: imovel.custom_fields.pub_facebook,
+                pub_instagram: imovel.custom_fields.pub_instagram
             };
 
             const res = await fetch(`/api/property/${id}`, {
@@ -754,18 +759,23 @@ export default function EditarImovelPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gray-50 pt-48 pb-20" onKeyDown={handleEnterKey}>
-            <Header />
-            <div className={styles.container}>
-                <div className={styles.stickyHeader}>
+        <main className="min-h-screen bg-gray-50 pb-20" onKeyDown={handleEnterKey}>
+            <div className={styles.stickyHeader}>
+                <div className={styles.container}>
                     <div className={styles.header}>
-                        <button
-                            onClick={handleBack}
-                            className={styles.backBtn}
-                        >
-                            <ArrowLeft size={20} />
-                            <span>Voltar</span>
-                        </button>
+                        <div className={styles.headerLeft}>
+                            <Link href="/meus-imoveis" className={styles.logo}>
+                                <span className={styles.logoText}>HV<span className={styles.logoHighlight}>5</span></span>
+                            </Link>
+                            <div className={styles.headerDivider}></div>
+                            <button
+                                onClick={handleBack}
+                                className={styles.backBtn}
+                            >
+                                <ArrowLeft size={20} />
+                                <span>Voltar</span>
+                            </button>
+                        </div>
                         <div className={styles.headerActions}>
                             <button
                                 onClick={handleSave}
@@ -778,6 +788,9 @@ export default function EditarImovelPage() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className={styles.container}>
 
                 {showBairroCreateModal && (
                     <div
@@ -1234,6 +1247,21 @@ export default function EditarImovelPage() {
                                     </select>
                                 </div>
                             </div>
+                             <div className={styles.featGrid} style={{ marginTop: '24px' }}>
+                                <div className={styles.formGroupFullWidth}>
+                                    <label>Sua relação com o imóvel</label>
+                                    <select
+                                        value={imovel.relimovel_id || ''}
+                                        className={styles.select}
+                                        onChange={(e) => setImovel({ ...imovel, relimovel_id: parseInt(e.target.value) || 3 })}
+                                        style={{ width: '270px' }}
+                                    >
+                                        <option value="1">Sou o Proprietário</option>
+                                        <option value="2">Sou o Corretor</option>
+                                        <option value="3">Administrador / Outro</option>
+                                    </select>
+                                </div>
+                            </div>
                         </section>
 
                         {/* 3. Características */}
@@ -1543,7 +1571,7 @@ export default function EditarImovelPage() {
                         {/* 5. Divulgação no site */}
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>
-                                <div className={styles.iconBox}><FileText size={20} /></div>
+                                <div className={styles.iconBox}><Share2 size={20} /></div>
                                 Divulgação no site
                             </h2>
                             <div className={styles.featGrid}>
@@ -1581,7 +1609,32 @@ export default function EditarImovelPage() {
                                     <div className={styles.premiumSwitchIndicator}></div>
                                 </div>
                             </div>
-                            <div className={styles.formGroupFullWidth}>
+                            <div className={styles.divulgacaoRow}>
+                                <span className={styles.divulgacaoLabel}>Publicar no Facebook</span>
+                                <div 
+                                    className={`${styles.premiumSwitch} ${imovel.custom_fields.pub_facebook ? styles.premiumSwitchActive : ''}`}
+                                    onClick={() => setImovel({ 
+                                        ...imovel, 
+                                        custom_fields: { ...imovel.custom_fields, pub_facebook: !imovel.custom_fields.pub_facebook } 
+                                    })}
+                                >
+                                    <div className={styles.premiumSwitchIndicator}></div>
+                                </div>
+                            </div>
+                            <div className={styles.divulgacaoRow}>
+                                <span className={styles.divulgacaoLabel}>Publicar no Instagram</span>
+                                <div 
+                                    className={`${styles.premiumSwitch} ${imovel.custom_fields.pub_instagram ? styles.premiumSwitchActive : ''}`}
+                                    onClick={() => setImovel({ 
+                                        ...imovel, 
+                                        custom_fields: { ...imovel.custom_fields, pub_instagram: !imovel.custom_fields.pub_instagram } 
+                                    })}
+                                >
+                                    <div className={styles.premiumSwitchIndicator}></div>
+                                </div>
+                            </div>
+
+                             <div className={styles.formGroupFullWidth}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                                     <label className={styles.label} style={{ margin: 0 }}>Título do Anúncio</label>
                                     <button

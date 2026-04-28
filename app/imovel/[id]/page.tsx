@@ -107,11 +107,9 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                                     {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
                                     {imovel.tipo_imovel_nome}
                                 </span>
-                                {imovel.status !== 'ativo' && (
-                                    <span className={styles.statusBadge}>
-                                        {imovel.operacao_nome?.toLowerCase().includes('locaç') ? 'LOCADO' : 'VENDIDO'}
-                                    </span>
-                                )}
+                                <span className={styles.statusBadge}>
+                                    {(imovel.status_imovel_nome || imovel.status || '').toUpperCase()}
+                                </span>
                             </div>
                             <h1 className={styles.title}>{imovel.nome}</h1>
                             <div className={styles.address}>
