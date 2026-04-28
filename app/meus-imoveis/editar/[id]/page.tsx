@@ -1283,189 +1283,211 @@ export default function EditarImovelPage() {
                                 Características
                             </h2>
                             <div className={styles.featGrid}>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Ruler size={14} /> Área Útil (m²)</label>
-                                    <input
-                                        type="text"
-                                        value={activeField === 'area_util' ? displayValue : formatCurrency(imovel.area_util, false, false, 2)}
-                                        onChange={(e) => {
-                                            const masked = maskCurrencyInput(e.target.value, false);
-                                            setDisplayValue(masked);
-                                            handleCharChange('area_util', masked);
-                                        }}
-                                        onFocus={(e) => {
-                                            setActiveField('area_util');
-                                            setDisplayValue(formatCurrency(imovel.area_util, false, false, 0));
-                                            setTimeout(() => e.target.select(), 0);
-                                        }}
-                                        onBlur={(e) => {
-                                            const completed = completeCurrencyWithZeros(e.target.value);
-                                            handleCharChange('area_util', completed);
-                                            setActiveField(null);
-                                        }}
-                                        placeholder="0,00"
-                                        className={styles.rightAlignInput}
-                                    />
+                                {/* Linha 1: Dormitório, Suíte, Banheiro, Sala */}
+                                <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', width: '100%' }}>
+                                    <div className={styles.formGroup}>
+                                        <label><Bed size={14} /> Dormitório</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.dormitorios ?? ''}
+                                            onChange={(e) => handleCharChange('dormitorios', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Bed size={14} /> Suíte</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.suites ?? ''}
+                                            onChange={(e) => handleCharChange('suites', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Bath size={14} /> Banheiro</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.banheiros ?? ''}
+                                            onChange={(e) => handleCharChange('banheiros', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Home size={14} /> Sala</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.sala ?? 0}
+                                            onChange={(e) => handleCharChange('sala', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
                                 </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Ruler size={14} /> Área Const. (m²)</label>
-                                    <input
-                                        type="text"
-                                        value={activeField === 'area_construida' ? displayValue : formatCurrency(imovel.area_construida, false, false, 2)}
-                                        onChange={(e) => {
-                                            const masked = maskCurrencyInput(e.target.value, false);
-                                            setDisplayValue(masked);
-                                            handleCharChange('area_construida', masked);
-                                        }}
-                                        onFocus={(e) => {
-                                            setActiveField('area_construida');
-                                            setDisplayValue(formatCurrency(imovel.area_construida, false, false, 0));
-                                            setTimeout(() => e.target.select(), 0);
-                                        }}
-                                        onBlur={(e) => {
-                                            const completed = completeCurrencyWithZeros(e.target.value);
-                                            handleCharChange('area_construida', completed);
-                                            setActiveField(null);
-                                        }}
-                                        placeholder="0,00"
-                                        className={styles.rightAlignInput}
-                                    />
+
+                                {/* Linha 2: Cozinha, Lavabo, Varanda, Área Serv, Qto Serv */}
+                                <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '24px', width: '100%', marginTop: '12px' }}>
+                                    <div className={styles.formGroup}>
+                                        <label><Home size={14} /> Cozinha</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.cozinha ?? 0}
+                                            onChange={(e) => handleCharChange('cozinha', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Bath size={14} /> Lavabo</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.lavabo ?? 0}
+                                            onChange={(e) => handleCharChange('lavabo', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Maximize2 size={14} /> Varanda</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.varandas ?? ''}
+                                            onChange={(e) => handleCharChange('varandas', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Sparkles size={14} /> Área Serv.</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.areaservico ?? 0}
+                                            onChange={(e) => handleCharChange('areaservico', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Bed size={14} /> Qto Serv.</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.quartoservico ?? ''}
+                                            onChange={(e) => handleCharChange('quartoservico', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
                                 </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Ruler size={14} /> Área Terreno (m²)</label>
-                                    <input
-                                        type="text"
-                                        value={activeField === 'area_terreno' ? displayValue : formatCurrency(imovel.area_terreno, false, false, 2)}
-                                        onChange={(e) => {
-                                            const masked = maskCurrencyInput(e.target.value, false);
-                                            setDisplayValue(masked);
-                                            handleCharChange('area_terreno', masked);
-                                        }}
-                                        onFocus={(e) => {
-                                            setActiveField('area_terreno');
-                                            setDisplayValue(formatCurrency(imovel.area_terreno, false, false, 0));
-                                            setTimeout(() => e.target.select(), 0);
-                                        }}
-                                        onBlur={(e) => {
-                                            const completed = completeCurrencyWithZeros(e.target.value);
-                                            handleCharChange('area_terreno', completed);
-                                            setActiveField(null);
-                                        }}
-                                        placeholder="0,00"
-                                        className={styles.rightAlignInput}
-                                    />
+
+                                {/* Linha 3: Vaga, Área Útil, Área Const, Área Terreno */}
+                                <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', width: '100%', marginTop: '12px' }}>
+                                    <div className={styles.formGroup}>
+                                        <label><Car size={14} /> Vaga</label>
+                                        <input
+                                            type="number"
+                                            value={imovel.vagas ?? ''}
+                                            onChange={(e) => handleCharChange('vagas', e.target.value)}
+                                            placeholder="0"
+                                            className={styles.rightAlignInput}
+                                            min="0"
+                                            onFocus={(e) => e.target.select()}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Ruler size={14} /> Área Útil (m²)</label>
+                                        <input
+                                            type="text"
+                                            value={activeField === 'area_util' ? displayValue : formatCurrency(imovel.area_util, false, false, 2)}
+                                            onChange={(e) => {
+                                                const masked = maskCurrencyInput(e.target.value, false);
+                                                setDisplayValue(masked);
+                                                handleCharChange('area_util', masked);
+                                            }}
+                                            onFocus={(e) => {
+                                                setActiveField('area_util');
+                                                setDisplayValue(formatCurrency(imovel.area_util, false, false, 0));
+                                                setTimeout(() => e.target.select(), 0);
+                                            }}
+                                            onBlur={(e) => {
+                                                const completed = completeCurrencyWithZeros(e.target.value);
+                                                handleCharChange('area_util', completed);
+                                                setActiveField(null);
+                                            }}
+                                            placeholder="0,00"
+                                            className={styles.rightAlignInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Ruler size={14} /> Área Const. (m²)</label>
+                                        <input
+                                            type="text"
+                                            value={activeField === 'area_construida' ? displayValue : formatCurrency(imovel.area_construida, false, false, 2)}
+                                            onChange={(e) => {
+                                                const masked = maskCurrencyInput(e.target.value, false);
+                                                setDisplayValue(masked);
+                                                handleCharChange('area_construida', masked);
+                                            }}
+                                            onFocus={(e) => {
+                                                setActiveField('area_construida');
+                                                setDisplayValue(formatCurrency(imovel.area_construida, false, false, 0));
+                                                setTimeout(() => e.target.select(), 0);
+                                            }}
+                                            onBlur={(e) => {
+                                                const completed = completeCurrencyWithZeros(e.target.value);
+                                                handleCharChange('area_construida', completed);
+                                                setActiveField(null);
+                                            }}
+                                            placeholder="0,00"
+                                            className={styles.rightAlignInput}
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label><Ruler size={14} /> Área Terreno (m²)</label>
+                                        <input
+                                            type="text"
+                                            value={activeField === 'area_terreno' ? displayValue : formatCurrency(imovel.area_terreno, false, false, 2)}
+                                            onChange={(e) => {
+                                                const masked = maskCurrencyInput(e.target.value, false);
+                                                setDisplayValue(masked);
+                                                handleCharChange('area_terreno', masked);
+                                            }}
+                                            onFocus={(e) => {
+                                                setActiveField('area_terreno');
+                                                setDisplayValue(formatCurrency(imovel.area_terreno, false, false, 0));
+                                                setTimeout(() => e.target.select(), 0);
+                                            }}
+                                            onBlur={(e) => {
+                                                const completed = completeCurrencyWithZeros(e.target.value);
+                                                handleCharChange('area_terreno', completed);
+                                                setActiveField(null);
+                                            }}
+                                            placeholder="0,00"
+                                            className={styles.rightAlignInput}
+                                        />
+                                    </div>
                                 </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Bed size={14} /> Dormitório</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.dormitorios ?? ''}
-                                        onChange={(e) => handleCharChange('dormitorios', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Bed size={14} /> Suíte</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.suites ?? ''}
-                                        onChange={(e) => handleCharChange('suites', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Bath size={14} /> Banheiro</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.banheiros ?? ''}
-                                        onChange={(e) => handleCharChange('banheiros', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Car size={14} /> Vaga</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.vagas ?? ''}
-                                        onChange={(e) => handleCharChange('vagas', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Maximize2 size={14} /> Varanda</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.varandas ?? ''}
-                                        onChange={(e) => handleCharChange('varandas', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Bed size={14} /> Quarto de Serviço</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.quartoservico ?? ''}
-                                        onChange={(e) => handleCharChange('quartoservico', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Home size={14} /> Cozinha</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.cozinha ?? 0}
-                                        onChange={(e) => handleCharChange('cozinha', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Bath size={14} /> Lavabo</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.lavabo ?? 0}
-                                        onChange={(e) => handleCharChange('lavabo', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Home size={14} /> Sala</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.sala ?? 0}
-                                        onChange={(e) => handleCharChange('sala', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupSmall}>
-                                    <label><Sparkles size={14} /> Área Serv.</label>
-                                    <input
-                                        type="number"
-                                        value={imovel.areaservico ?? 0}
-                                        onChange={(e) => handleCharChange('areaservico', e.target.value)}
-                                        placeholder="0"
-                                        className={styles.rightAlignInput}
-                                        min="0"
-                                    />
-                                </div>
-                                <div className={styles.formGroupFullWidth}>
+
+                                <div className={styles.formGroupFullWidth} style={{ marginTop: '12px' }}>
                                     <label><Ruler size={14} /> Dim. Terreno</label>
                                     <input
                                         type="text"
@@ -1473,6 +1495,7 @@ export default function EditarImovelPage() {
                                         onChange={(e) => setImovel(prev => prev ? ({ ...prev, dimensoes_terreno: e.target.value }) : null)}
                                         placeholder="EX: 10 X 30"
                                         className={styles.input}
+                                        onFocus={(e) => e.target.select()}
                                     />
                                     <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', lineHeight: '1.2' }}>
                                         Exemplo: TT: 8m; FR 3,95m; LE 18,11m; LD 25m; FD 4,10m

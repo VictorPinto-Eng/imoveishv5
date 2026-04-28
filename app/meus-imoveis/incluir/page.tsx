@@ -662,9 +662,9 @@ export default function IncluirImovelPage() {
         uf: formData.uf || selectedUf || '',
         cidade: formData.cidade || selectedCity || '',
         bairro: formData.bairro || '',
-        estado_id: resolvedIds.estadoId,
-        cidade_id: resolvedIds.cidadeId,
-        bairro_id: resolvedIds.bairroId,
+        estadoId: resolvedIds.estadoId,
+        cidadeId: resolvedIds.cidadeId,
+        bairroId: resolvedIds.bairroId,
         latitude: formData.latitude,
         longitude: formData.longitude,
         plus_code: formData.plus_code,
@@ -1436,7 +1436,146 @@ export default function IncluirImovelPage() {
                 {step === 3 && (
                     <div className={styles.formContent}>
                         <div className={styles.gridDetails}>
-                            <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+                            {/* Linha 1: Dormitório, Suíte, Banheiro, Sala */}
+                            <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Dormitório</label>
+                                    <input
+                                        type="text"
+                                        name="rooms"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.rooms}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'suites')}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Suíte</label>
+                                    <input
+                                        type="text"
+                                        name="suites"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.suites}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'bathrooms')}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Banheiro</label>
+                                    <input
+                                        type="text"
+                                        name="bathrooms"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.bathrooms}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'sala')}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Sala</label>
+                                    <input
+                                        type="text"
+                                        name="sala"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.sala}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'cozinha')}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Linha 2: Cozinha, Lavabo, Varanda, Área Serv, Qto Serv */}
+                            <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '24px', marginTop: '12px' }}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Cozinha</label>
+                                    <input
+                                        type="text"
+                                        name="cozinha"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.cozinha}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'lavabo')}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Lavabo</label>
+                                    <input
+                                        type="text"
+                                        name="lavabo"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.lavabo}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'varandas')}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Varanda</label>
+                                    <input
+                                        type="text"
+                                        name="varandas"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.varandas}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'areaservico')}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Área Serv.</label>
+                                    <input
+                                        type="text"
+                                        name="areaservico"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.areaservico}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'quartoservico')}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Qto Serv.</label>
+                                    <input
+                                        type="text"
+                                        name="quartoservico"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.quartoservico}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'parking')}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Linha 3: Vaga, Área Útil, Área Const, Área Terreno */}
+                            <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginTop: '12px' }}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Vaga</label>
+                                    <input
+                                        type="text"
+                                        name="parking"
+                                        className={`${styles.select} ${styles.rightAlignInput}`}
+                                        placeholder="0"
+                                        value={formData.parking}
+                                        onChange={handleCurrencyChange}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleKeyDown(e, 'area')}
+                                    />
+                                </div>
                                 <div className={styles.formGroup}>
                                     <label className={styles.label}>
                                         <Ruler size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
@@ -1485,141 +1624,23 @@ export default function IncluirImovelPage() {
                                         onChange={handleCurrencyChange}
                                         onBlur={handleCurrencyBlur}
                                         onFocus={(e) => e.target.select()}
-                                        onKeyDown={(e) => handleKeyDown(e, 'rooms')}
-                                    />
-                                </div>
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Dormitório</label>
-                                <input
-                                    type="text"
-                                    name="rooms"
-                                    className={`${styles.select} ${styles.rightAlignInput}`}
-                                    placeholder="0"
-                                    value={formData.rooms}
-                                    onChange={handleCurrencyChange}
-                                    onKeyDown={(e) => handleKeyDown(e, 'suites')}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Suíte</label>
-                                <input
-                                    type="text"
-                                    name="suites"
-                                    className={`${styles.select} ${styles.rightAlignInput}`}
-                                    placeholder="0"
-                                    value={formData.suites}
-                                    onChange={handleCurrencyChange}
-                                    onKeyDown={(e) => handleKeyDown(e, 'bathrooms')}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Banheiro</label>
-                                <input
-                                    type="text"
-                                    name="bathrooms"
-                                    className={`${styles.select} ${styles.rightAlignInput}`}
-                                    placeholder="0"
-                                    value={formData.bathrooms}
-                                    onChange={handleCurrencyChange}
-                                    onKeyDown={(e) => handleKeyDown(e, 'parking')}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Vaga</label>
-                                <input
-                                    type="text"
-                                    name="parking"
-                                    className={`${styles.select} ${styles.rightAlignInput}`}
-                                    placeholder="0"
-                                    value={formData.parking}
-                                    onChange={handleCurrencyChange}
-                                    onKeyDown={(e) => handleKeyDown(e, 'varandas')}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Varanda</label>
-                                <input
-                                    type="text"
-                                    name="varandas"
-                                    className={`${styles.select} ${styles.rightAlignInput}`}
-                                    placeholder="0"
-                                    value={formData.varandas}
-                                    onChange={handleCurrencyChange}
-                                    onKeyDown={(e) => handleKeyDown(e, 'quartoservico')}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Qto Serv.</label>
-                                <input
-                                    type="text"
-                                    name="quartoservico"
-                                    className={`${styles.select} ${styles.rightAlignInput}`}
-                                    placeholder="0"
-                                    value={formData.quartoservico}
-                                    onChange={handleCurrencyChange}
-                                    onKeyDown={(e) => handleKeyDown(e, 'cozinha')}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Cozinha</label>
-                                <input
-                                    type="text"
-                                    name="cozinha"
-                                    className={`${styles.select} ${styles.rightAlignInput}`}
-                                    placeholder="0"
-                                    value={formData.cozinha}
-                                    onChange={handleCurrencyChange}
-                                    onKeyDown={(e) => handleKeyDown(e, 'lavabo')}
-                                />
-                            </div>
-                                <div className={styles.formGroup}>
-                                    <label className={styles.label}>Lavabo</label>
-                                    <input
-                                        type="text"
-                                        name="lavabo"
-                                        className={`${styles.select} ${styles.rightAlignInput}`}
-                                        placeholder="0"
-                                        value={formData.lavabo}
-                                        onChange={handleCurrencyChange}
-                                        onKeyDown={(e) => handleKeyDown(e, 'sala')}
-                                    />
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label className={styles.label}>Sala</label>
-                                    <input
-                                        type="text"
-                                        name="sala"
-                                        className={`${styles.select} ${styles.rightAlignInput}`}
-                                        placeholder="0"
-                                        value={formData.sala}
-                                        onChange={handleCurrencyChange}
-                                        onKeyDown={(e) => handleKeyDown(e, 'areaservico')}
-                                    />
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label className={styles.label}>Área Serv.</label>
-                                    <input
-                                        type="text"
-                                        name="areaservico"
-                                        className={`${styles.select} ${styles.rightAlignInput}`}
-                                        placeholder="0"
-                                        value={formData.areaservico}
-                                        onChange={handleCurrencyChange}
                                         onKeyDown={(e) => handleKeyDown(e, 'dimensoes_terreno')}
                                     />
                                 </div>
-                                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
-                                    <label className={styles.label}>Dim. Terreno</label>
-                                    <input
-                                        type="text"
-                                        name="dimensoes_terreno"
-                                        className={styles.select}
-                                        placeholder="EX: 10 X 30"
-                                        value={formData.dimensoes_terreno}
-                                        onChange={handleChange}
-                                        onKeyDown={(e) => handleKeyDown(e, 'next')}
-                                    />
+                            </div>
+
+                            <div className={styles.formGroup} style={{ gridColumn: 'span 2', marginTop: '12px' }}>
+                                <label className={styles.label}>Dim. Terreno</label>
+                                <input
+                                    type="text"
+                                    name="dimensoes_terreno"
+                                    className={styles.select}
+                                    placeholder="EX: 10 X 30"
+                                    value={formData.dimensoes_terreno}
+                                    onChange={handleChange}
+                                    onFocus={(e) => e.target.select()}
+                                    onKeyDown={(e) => handleKeyDown(e, 'next')}
+                                />
                                     <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', lineHeight: '1.2' }}>
                                         Exemplo: TT: 8m; FR 3,95m; LE 18,11m; LD 25m; FD 4,10m
                                     </p>
