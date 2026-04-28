@@ -117,20 +117,46 @@ export default function MapPicker({
                         }
                     }
 
-                    // 4. Final Fallback to addressContext (keyword search)
+                    if (data && data.length > 0) {
+                        const { lat: pLat, lon: pLon } = data[0];
+                        setCenter([parseFloat(pLat), parseFloat(pLon)]);
+                        setZoom(addressZoom);
+                    } else if (addressData) {
+                        // 4. Fallback to Neighborhood + City + State
+                        if (addressData.neighborhood && addressData.city) {
+                            const neighborhoodQuery = `${addressData.neighborhood}, ${addressData.city}, ${addressData.state || ''}, Brazil`;
+                            const res4 = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(neighborhoodQuery)}&limit=1`);
+                            const data4 = await res4.json();
+                            if (data4 && data4.length > 0) {
+                                setCenter([parseFloat(data4[0].lat), parseFloat(data4[0].lon)]);
+                                setZoom(15); // Zoom level for neighborhood
+                                return;
+                            }
+                        }
+
+                        // 5. Fallback to City + State
+                        if (addressData.city) {
+                            const cityQuery = `${addressData.city}, ${addressData.state || ''}, Brazil`;
+                            const res5 = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityQuery)}&limit=1`);
+                            const data5 = await res5.json();
+                            if (data5 && data5.length > 0) {
+                                setCenter([parseFloat(data5[0].lat), parseFloat(data5[0].lon)]);
+                                setZoom(12); // Zoom level for city
+                                return;
+                            }
+                        }
+                    }
+
+                    // 6. Final Fallback to addressContext (keyword search)
                     if ((!data || data.length === 0) && addressContext) {
                         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressContext)}&limit=1`, {
                             headers: { 'Accept-Language': 'pt-BR' }
                         });
-                        data = await response.json();
-                    }
-
-                    if (data && data.length > 0) {
-                        const { lat: pLat, lon: pLon } = data[0];
-                        const parsedLat = parseFloat(pLat);
-                        const parsedLng = parseFloat(pLon);
-                        setCenter([parsedLat, parsedLng]);
-                        setZoom(addressZoom);
+                        const dataContext = await response.json();
+                        if (dataContext && dataContext.length > 0) {
+                            setCenter([parseFloat(dataContext[0].lat), parseFloat(dataContext[0].lon)]);
+                            setZoom(addressZoom);
+                        }
                     }
                 } catch (error) {
                     console.error('Geocoding error:', error);
