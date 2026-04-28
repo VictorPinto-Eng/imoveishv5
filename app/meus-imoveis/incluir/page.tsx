@@ -58,9 +58,11 @@ interface PropertyData {
     imbfinalidade_id?: number;
     imbtpimovel_id?: number;
     statusimovel?: number;
-    empreendimento?: number;
     pub_site: boolean;
     pub_price: boolean;
+    pub_facebook: boolean;
+    pub_instagram: boolean;
+    empreendimento?: number;
 }
 
 export default function IncluirImovelPage() {
