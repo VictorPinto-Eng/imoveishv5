@@ -318,10 +318,17 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                         }}
                     >
                         <img 
-                            src={photo.url_referencia ? `${photo.url_referencia}${photo.url_referencia.includes('?') ? '&' : '?'}t=${new Date().getTime()}` : '/placeholder-image.png'} 
+                            src={photo.url_referencia ? encodeURI(photo.url_referencia) : '/placeholder-image.png'} 
                             alt={photo.legenda || 'Foto'} 
                             className={styles.image}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ 
+                                width: '100%', 
+                                height: '100%', 
+                                objectFit: 'cover',
+                                display: 'block',
+                                border: '2px solid red' // Borda vermelha temporária para debug
+                            }}
+                            onLoad={() => console.log('Imagem carregada com sucesso:', photo.url_referencia)}
                             onError={(e) => {
                                 console.error('Erro ao carregar a imagem específica:', photo.url_referencia);
                             }}
