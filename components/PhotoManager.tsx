@@ -82,16 +82,9 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         });
     };
 
-    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUploadFiles = async (fileArray: File[]) => {
         if (isUploadingRef.current) return;
         
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        // Copy files to array cause we will reset input immediately
-        const fileArray = Array.from(files);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-
         isUploadingRef.current = true;
         setUploading(true);
         try {
@@ -100,7 +93,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 let fileToUpload: File | Blob = originalFile;
                 let fileName = originalFile.name;
 
-                // Only convert if it's an image and not already WebP (optional check)
+                // Only convert if it's an image and not already WebP
                 if (originalFile.type.startsWith('image/')) {
                     try {
                         fileToUpload = await convertToWebP(originalFile);
@@ -125,16 +118,47 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 }
 
                 if (!res.ok) {
-                    alert(`Erro ao subir arquivo ${fileName}`);
+                    const errorMsg = data.error || `Erro ao subir arquivo ${fileName}`;
+                    console.error('Upload failed:', errorMsg);
+                    alert(errorMsg);
                 }
             }
             await loadPhotos();
         } catch (error) {
             console.error('Upload error:', error);
+            alert('Ocorreu um erro ao enviar as fotos. Por favor, tente novamente.');
         } finally {
             isUploadingRef.current = false;
             setUploading(false);
         }
+    };
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const fileArray = Array.from(files);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+
+        await handleUploadFiles(fileArray);
+    };
+
+    const handleFileDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Se estivermos em modo de reordenamento, não fazemos upload por drop aqui
+        if (isReordering) return;
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            await handleUploadFiles(Array.from(files));
+        }
+    };
+
+    const handleGlobalDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
     };
 
     const handleDelete = async (e: React.MouseEvent, photoId: number) => {
@@ -217,7 +241,12 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
 
             {photos.length === 0 ? (
                 <div className={styles.emptyContainer}>
-                    <div className={styles.dropzoneEmpty} onClick={() => fileInputRef.current?.click()}>
+                    <div 
+                        className={styles.dropzoneEmpty} 
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={handleGlobalDragOver}
+                        onDrop={handleFileDrop}
+                    >
                         <UploadCloud size={48} color="#118B8A" />
                         <span className={styles.dropzoneTextEmpty}>
                             {uploading ? 'Enviando...' : 'Solte ou clique para enviar fotos'}
@@ -227,7 +256,12 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
             ) : (
                 <div className={styles.grid}>
                     {/* Dropzone dentro da grid */}
-                    <div className={styles.dropzone} onClick={() => fileInputRef.current?.click()}>
+                    <div 
+                        className={styles.dropzone} 
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={handleGlobalDragOver}
+                        onDrop={handleFileDrop}
+                    >
                         <div className={styles.iconCircle}>
                             <UploadCloud size={20} />
                         </div>

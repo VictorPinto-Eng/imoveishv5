@@ -68,8 +68,20 @@ export async function POST(
         const filename = `${crypto.randomUUID()}.${ext}`;
         const uploadDir = join(process.cwd(), 'public', 'uploads', 'imoveis', imovelId);
         
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(join(uploadDir, filename), buffer);
+        try {
+            console.log(`Attempting to create directory: ${uploadDir}`);
+            await mkdir(uploadDir, { recursive: true });
+            
+            const filePath = join(uploadDir, filename);
+            console.log(`Attempting to write file: ${filePath}`);
+            await writeFile(filePath, buffer);
+        } catch (fsError: any) {
+            console.error('File system error during upload:', fsError);
+            return NextResponse.json({ 
+                error: `Erro ao salvar arquivo no servidor: ${fsError.message}. Verifique as permissões da pasta public/uploads.`,
+                details: fsError.code
+            }, { status: 500 });
+        }
 
         const fileUrl = `/uploads/imoveis/${imovelId}/${filename}`;
 
