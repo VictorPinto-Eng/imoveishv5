@@ -317,12 +317,11 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                             if (!isReordering) setSelectedPhoto(photo);
                         }}
                     >
-                        <NextImage 
+                        <img 
                             src={photo.url_referencia ? `${photo.url_referencia}${photo.url_referencia.includes('?') ? '&' : '?'}t=${new Date().getTime()}` : '/placeholder-image.png'} 
                             alt={photo.legenda || 'Foto'} 
-                            fill 
-                            unoptimized={true}
                             className={styles.image}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
                                 console.error('Erro ao carregar a imagem específica:', photo.url_referencia);
                             }}
