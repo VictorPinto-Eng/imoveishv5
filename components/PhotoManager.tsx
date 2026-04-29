@@ -121,7 +121,21 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                     body: formData,
                 });
 
-                const data = await res.json();
+                const contentType = res.headers.get("content-type");
+                let data;
+                if (contentType && contentType.includes("application/json")) {
+                    data = await res.json();
+                } else {
+                    const text = await res.text();
+                    console.error('Servidor retornou algo que não é JSON:', text);
+                    if (res.status === 413) {
+                        alert("A foto é muito grande para o servidor. Por favor, diminua o tamanho ou ajuste o limite no Nginx.");
+                    } else {
+                        alert(`Erro do servidor (${res.status}). Verifique os logs do Nginx/PM2.`);
+                    }
+                    throw new Error(`Server returned status ${res.status}`);
+                }
+
                 console.log('Resposta da API:', data);
 
                 if (data.success && data.photo) {
