@@ -85,6 +85,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
     const handleUploadFiles = async (fileArray: File[]) => {
         if (isUploadingRef.current) return;
         
+        console.log(`Iniciando upload de ${fileArray.length} arquivos...`);
         isUploadingRef.current = true;
         setUploading(true);
         try {
@@ -93,39 +94,51 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 let fileToUpload: File | Blob = originalFile;
                 let fileName = originalFile.name;
 
+                console.log(`Processando arquivo ${i + 1}: ${fileName} (${originalFile.type})`);
+
                 // Only convert if it's an image and not already WebP
                 if (originalFile.type.startsWith('image/')) {
                     try {
+                        console.log('Convertendo para WebP...');
                         fileToUpload = await convertToWebP(originalFile);
-                        // Change extension to .webp
                         fileName = originalFile.name.replace(/\.[^/.]+$/, "") + ".webp";
+                        console.log('Conversão concluída.');
                     } catch (err) {
-                        console.warn('Failed to convert to WebP, uploading original:', err);
+                        console.warn('Falha na conversão para WebP, usando original:', err);
                     }
                 }
 
                 const formData = new FormData();
                 formData.append('file', fileToUpload, fileName);
 
+                console.log(`Enviando para a API: /api/property/${imovelId}/photos`);
                 const res = await fetch(`/api/property/${imovelId}/photos`, {
                     method: 'POST',
                     body: formData,
                 });
 
                 const data = await res.json();
+                console.log('Resposta da API:', data);
+
                 if (data.success && data.photo && i === 0) {
                     setSelectedPhoto(data.photo);
                 }
 
                 if (!res.ok) {
                     const errorMsg = data.error || `Erro ao subir arquivo ${fileName}`;
-                    console.error('Upload failed:', errorMsg);
+                    console.error('Upload falhou no servidor:', errorMsg);
                     alert(errorMsg);
                 }
             }
-            await loadPhotos();
+            
+            console.log('Todos os uploads finalizados. Recarregando fotos...');
+            // Pequeno delay para garantir que o sistema de arquivos do servidor atualizou
+            setTimeout(async () => {
+                await loadPhotos();
+            }, 1000);
+
         } catch (error) {
-            console.error('Upload error:', error);
+            console.error('Erro crítico no upload:', error);
             alert('Ocorreu um erro ao enviar as fotos. Por favor, tente novamente.');
         } finally {
             isUploadingRef.current = false;
