@@ -127,6 +127,11 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 if (data.success && data.photo) {
                     // Adiciona a nova foto ao estado local imediatamente para feedback visual
                     setPhotos(prev => [...prev, data.photo]);
+                    
+                    // Se for a primeira foto do lote, abre o modal de detalhes/opções
+                    if (i === 0) {
+                        setSelectedPhoto(data.photo);
+                    }
                 }
 
                 if (!res.ok) {
