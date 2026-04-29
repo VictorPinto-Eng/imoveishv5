@@ -5,12 +5,12 @@ import { join } from 'path';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { path: string[] } }
+    { params }: { params: Promise<{ path: string[] }> }
 ) {
     try {
         // Resolve o caminho do arquivo
-        const filePathArray = await params.path;
-        const relativePath = filePathArray.join('/');
+        const { path } = await params;
+        const relativePath = path.join('/');
         
         // Caminho absoluto no servidor/Docker
         const isDocker = process.platform === 'linux';
