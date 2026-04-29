@@ -33,14 +33,18 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
 
     const loadPhotos = async () => {
         try {
+            console.log(`Carregando fotos para o imovelId: ${imovelId}`);
             const res = await fetch(`/api/property/${imovelId}/photos`);
             const data = await res.json();
             if (data.success) {
+                console.log('Fotos carregadas do banco:', data.photos);
                 setPhotos(data.photos);
                 if (onUpdate) onUpdate();
+            } else {
+                console.error('Erro na resposta da API ao carregar fotos:', data.error);
             }
         } catch (error) {
-            console.error('Error loading photos:', error);
+            console.error('Erro ao buscar fotos na API:', error);
         }
     };
 
@@ -295,11 +299,14 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                         }}
                     >
                         <NextImage 
-                            src={`${photo.url_referencia}?t=${new Date().getTime()}`} 
+                            src={photo.url_referencia ? `${photo.url_referencia}${photo.url_referencia.includes('?') ? '&' : '?'}t=${new Date().getTime()}` : '/placeholder-image.png'} 
                             alt={photo.legenda || 'Foto'} 
                             fill 
                             unoptimized={true}
                             className={styles.image}
+                            onError={(e) => {
+                                console.error('Erro ao carregar a imagem específica:', photo.url_referencia);
+                            }}
                         />
 
                         {photo.foto_principal && (
