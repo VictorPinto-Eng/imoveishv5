@@ -49,14 +49,11 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
     };
 
     useEffect(() => {
-        // Se já temos fotos iniciais, não precisamos dar fetch imediatamente 
-        // (ou podemos dar fetch em background se quisermos garantir sincronia)
-        if (initialPhotos && initialPhotos.length > 0) {
-            setPhotos(initialPhotos);
-        } else {
+        // Carrega fotos apenas se mudar o ID do imóvel ou se não houver fotos no estado
+        if (photos.length === 0) {
             loadPhotos();
         }
-    }, [imovelId, initialPhotos]);
+    }, [imovelId]);
 
     const convertToWebP = (file: File): Promise<Blob> => {
         return new Promise((resolve, reject) => {
