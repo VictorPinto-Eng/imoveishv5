@@ -44,7 +44,7 @@ export async function GET(
             debug_count: res.rowCount 
         });
     } catch (error: any) {
-        console.error(`[API Error] Erro ao buscar fotos para o imovel ${imovelId}:`, error);
+        console.error(`[API Error] Erro ao buscar fotos:`, error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
