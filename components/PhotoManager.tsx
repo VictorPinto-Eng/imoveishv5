@@ -120,8 +120,9 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 const data = await res.json();
                 console.log('Resposta da API:', data);
 
-                if (data.success && data.photo && i === 0) {
-                    setSelectedPhoto(data.photo);
+                if (data.success && data.photo) {
+                    // Adiciona a nova foto ao estado local imediatamente para feedback visual
+                    setPhotos(prev => [...prev, data.photo]);
                 }
 
                 if (!res.ok) {
@@ -131,11 +132,8 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 }
             }
             
-            console.log('Todos os uploads finalizados. Recarregando fotos...');
-            // Pequeno delay para garantir que o sistema de arquivos do servidor atualizou
-            setTimeout(async () => {
-                await loadPhotos();
-            }, 1000);
+            console.log('Todos os uploads finalizados. Sincronizando com o banco...');
+            await loadPhotos();
 
         } catch (error) {
             console.error('Erro crítico no upload:', error);
@@ -297,7 +295,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                         }}
                     >
                         <NextImage 
-                            src={photo.url_referencia} 
+                            src={`${photo.url_referencia}?t=${new Date().getTime()}`} 
                             alt={photo.legenda || 'Foto'} 
                             fill 
                             unoptimized={true}
