@@ -321,11 +321,8 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                             style={{ 
                                 width: '100%', 
                                 height: '100%', 
-                                objectFit: 'cover',
-                                display: 'block',
-                                border: '2px solid red' // Borda vermelha temporária para debug
+                                objectFit: 'cover'
                             }}
-                            onLoad={() => console.log('Imagem carregada com sucesso:', photo.url_referencia)}
                             onError={(e) => {
                                 console.error('Erro ao carregar a imagem específica:', photo.url_referencia);
                             }}
