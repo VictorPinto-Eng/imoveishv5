@@ -36,8 +36,15 @@ export async function GET(
             [imovelId]
         );
 
-        return NextResponse.json({ success: true, photos: res.rows || [] });
+        console.log(`[API Debug] Fotos encontradas para o imovel ${imovelId}:`, res.rowCount);
+
+        return NextResponse.json({ 
+            success: true, 
+            photos: res.rows || [],
+            debug_count: res.rowCount 
+        });
     } catch (error: any) {
+        console.error(`[API Error] Erro ao buscar fotos para o imovel ${imovelId}:`, error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
