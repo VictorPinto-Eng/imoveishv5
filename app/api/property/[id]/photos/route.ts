@@ -73,7 +73,12 @@ export async function POST(
 
         const ext = file.name.split('.').pop() || 'jpg';
         const filename = `${crypto.randomUUID()}.${ext}`;
-        const uploadDir = join(process.cwd(), 'public', 'uploads', 'imoveis', imovelId);
+        
+        // Garante o caminho absoluto para o Docker (/app/public/uploads/imoveis)
+        // Se estivermos em desenvolvimento (Windows), ele usará o caminho relativo padrão
+        const isDocker = process.platform === 'linux';
+        const baseDir = isDocker ? '/app/public/uploads/imoveis' : join(process.cwd(), 'public', 'uploads', 'imoveis');
+        const uploadDir = join(baseDir, imovelId);
         
         try {
             console.log(`Attempting to create directory: ${uploadDir}`);
