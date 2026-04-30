@@ -43,6 +43,11 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
             <div className={styles.grid}>
                 {/* Main Image (Large) */}
                 <div className={styles.mainImageWrapper} onClick={() => openLightbox(0)}>
+                    {/* Blurred background layer */}
+                    <div 
+                        className={styles.gridImageBlur} 
+                        style={{ backgroundImage: `url(${images[0]})` }} 
+                    />
                     <img 
                         src={images[0]} 
                         alt={`${alt} - Principal`} 
@@ -59,6 +64,11 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                             className={styles.sideImageWrapper}
                             onClick={() => openLightbox(index + 1)}
                         >
+                            {/* Blurred background layer */}
+                            <div 
+                                className={styles.gridImageBlur} 
+                                style={{ backgroundImage: `url(${img})` }} 
+                            />
                             <img 
                                 src={img} 
                                 alt={`${alt} - Foto ${index + 2}`} 

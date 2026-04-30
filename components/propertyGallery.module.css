@@ -24,8 +24,20 @@
 .mainImage {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.7s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.gridImageBlur {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(20px) brightness(0.7);
+    transform: scale(1.1);
+    z-index: 1;
 }
 
 .imageOverlay {
@@ -63,8 +75,10 @@
 .sideImage {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.7s ease;
+    position: relative;
+    z-index: 2;
 }
 
 .overlayMore {
