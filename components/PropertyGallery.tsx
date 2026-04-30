@@ -43,11 +43,6 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
             <div className={styles.grid}>
                 {/* Main Image (Large) */}
                 <div className={styles.mainImageWrapper} onClick={() => openLightbox(0)}>
-                    {/* Blurred background layer */}
-                    <div 
-                        className={styles.gridImageBlur} 
-                        style={{ backgroundImage: `url(${images[0]})` }} 
-                    />
                     <img 
                         src={images[0]} 
                         alt={`${alt} - Principal`} 
@@ -56,43 +51,35 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                     <div className={styles.imageOverlay} />
                 </div>
 
-                {/* Side Grid (4 images) */}
-                <div className={styles.sideGrid}>
-                    {images.slice(1, 5).map((img, index) => (
-                        <div 
-                            key={index} 
-                            className={styles.sideImageWrapper}
-                            onClick={() => openLightbox(index + 1)}
-                        >
-                            {/* Blurred background layer */}
-                            <div 
-                                className={styles.gridImageBlur} 
-                                style={{ backgroundImage: `url(${img})` }} 
-                            />
-                            <img 
-                                src={img} 
-                                alt={`${alt} - Foto ${index + 2}`} 
-                                className={styles.sideImage}
-                            />
-                            <div className={styles.imageOverlay} />
-                            
-                            {/* "Show More" overlay on the last image if applicable */}
-                            {index === 3 && images.length > 5 && (
-                                <div className={styles.overlayMore}>
-                                    <span>+{images.length - 5}</span>
-                                    <small>fotos</small>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                    
-                    {/* Fill empty slots with placeholder style if needed */}
-                    {images.length < 5 && Array.from({ length: 5 - images.length }).map((_, i) => (
-                        <div key={`empty-${i}`} className={styles.emptySlot}>
-                            <ImageIcon size={24} color="#e2e8f0" />
-                        </div>
-                    ))}
-                </div>
+                {/* Grid Images (Side) */}
+                {images.slice(1, 5).map((img, index) => (
+                    <div 
+                        key={index} 
+                        className={`${styles.sideImageWrapper} ${styles[`side${index + 1}`]}`}
+                        onClick={() => openLightbox(index + 1)}
+                    >
+                        <img 
+                            src={img} 
+                            alt={`${alt} - Foto ${index + 2}`} 
+                            className={styles.sideImage}
+                        />
+                        <div className={styles.imageOverlay} />
+                        
+                        {index === 3 && images.length > 5 && (
+                            <div className={styles.overlayMore}>
+                                <span>+{images.length - 5}</span>
+                                <small>fotos</small>
+                            </div>
+                        )}
+                    </div>
+                ))}
+                
+                {/* Fill empty slots */}
+                {images.length < 5 && Array.from({ length: 5 - images.length }).map((_, i) => (
+                    <div key={`empty-${i}`} className={styles.emptySlot}>
+                        <ImageIcon size={24} color="#e2e8f0" />
+                    </div>
+                ))}
             </div>
 
             <div className={styles.galleryActions}>

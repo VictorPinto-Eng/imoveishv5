@@ -42,10 +42,6 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                     </div>
                 </div>
 
-                <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar galeria">
-                    <X size={28} />
-                </button>
-
                 {/* Main Content */}
                 <div className={styles.content}>
                     <button className={styles.navBtn} onClick={onPrev}>
@@ -83,6 +79,10 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                     ))}
                 </div>
             </div>
+
+            <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar galeria">
+                <X size={32} />
+            </button>
         </div>
     );
 }
