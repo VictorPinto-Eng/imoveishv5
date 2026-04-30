@@ -40,10 +40,11 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                     <div className={styles.counter}>
                         {currentIndex + 1} / {images.length}
                     </div>
-                    <button className={styles.closeBtn} onClick={onClose}>
-                        <X size={24} />
-                    </button>
                 </div>
+
+                <button className={styles.closeBtn} onClick={onClose} aria-label="Fechar galeria">
+                    <X size={28} />
+                </button>
 
                 {/* Main Content */}
                 <div className={styles.content}>

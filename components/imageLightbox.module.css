@@ -17,9 +17,9 @@
 }
 
 .header {
-    padding: 20px 40px;
+    padding: 24px 32px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     color: white;
 }
@@ -31,17 +31,26 @@
 }
 
 .closeBtn {
-    background: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
     border: none;
     color: white;
     cursor: pointer;
-    padding: 8px;
+    padding: 12px;
     border-radius: 50%;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
 }
 
 .closeBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
 }
 
 .content {
