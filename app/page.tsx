@@ -6,7 +6,8 @@ import HomeFeatured from '@/components/home/HomeFeatured'
 import { getFeaturedImoveis, getRecentImoveis, getPriceUpdatedImoveis } from '@/lib/imoveis'
 import { Imovel } from '@/lib/imoveis'
 
-export const revalidate = 60 // ISR: revalida a cada 60 segundos
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function Home() {
   // Busca todas as fontes em paralelo
