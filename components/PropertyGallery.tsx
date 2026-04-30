@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import styles from './propertyGallery.module.css';
 import { Camera, Image as ImageIcon } from 'lucide-react';
+import ImageLightbox from './ImageLightbox';
 
 interface PropertyGalleryProps {
     images: string[];
@@ -10,7 +11,16 @@ interface PropertyGalleryProps {
 }
 
 export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
-    const [showAll, setShowAll] = useState(false);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const openLightbox = (index: number) => {
+        setCurrentIndex(index);
+        setIsLightboxOpen(true);
+    };
+
+    const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
+    const prevImage = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
 
     if (!images || images.length === 0) {
         return (
@@ -31,38 +41,43 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
     return (
         <div className={styles.galleryContainer}>
             <div className={styles.grid}>
-                {/* Main Large Image */}
-                <div className={styles.mainImageWrapper}>
+                {/* Main Image (Large) */}
+                <div className={styles.mainImageWrapper} onClick={() => openLightbox(0)}>
                     <img 
                         src={images[0]} 
                         alt={`${alt} - Principal`} 
                         className={styles.mainImage}
                     />
-                    <div className={styles.countBadge}>
-                        <Camera size={16} />
-                        <span>{images.length} fotos</span>
-                    </div>
+                    <div className={styles.imageOverlay} />
                 </div>
 
-                {/* Smaller Grid Images */}
+                {/* Side Grid (4 images) */}
                 <div className={styles.sideGrid}>
-                    {displayImages.slice(1).map((img, index) => (
-                        <div key={index} className={styles.sideImageWrapper}>
+                    {images.slice(1, 5).map((img, index) => (
+                        <div 
+                            key={index} 
+                            className={styles.sideImageWrapper}
+                            onClick={() => openLightbox(index + 1)}
+                        >
                             <img 
                                 src={img} 
                                 alt={`${alt} - Foto ${index + 2}`} 
                                 className={styles.sideImage}
                             />
-                            {index === 3 && hasMore && (
+                            <div className={styles.imageOverlay} />
+                            
+                            {/* "Show More" overlay on the last image if applicable */}
+                            {index === 3 && images.length > 5 && (
                                 <div className={styles.overlayMore}>
                                     <span>+{images.length - 5}</span>
+                                    <small>fotos</small>
                                 </div>
                             )}
                         </div>
                     ))}
                     
-                    {/* Fill empty slots if less than 5 images */}
-                    {displayImages.length < 5 && Array.from({ length: 5 - displayImages.length }).map((_, i) => (
+                    {/* Fill empty slots with placeholder style if needed */}
+                    {images.length < 5 && Array.from({ length: 5 - images.length }).map((_, i) => (
                         <div key={`empty-${i}`} className={styles.emptySlot}>
                             <ImageIcon size={24} color="#e2e8f0" />
                         </div>
@@ -70,9 +85,25 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                 </div>
             </div>
 
-            <button className={styles.viewMoreBtn} onClick={() => console.log('Abrir lightbox')}>
-                Ver todas as fotos
-            </button>
+            <div className={styles.galleryActions}>
+                <div className={styles.countBadge}>
+                    <Camera size={16} />
+                    <span>{images.length} fotos</span>
+                </div>
+                <button className={styles.viewMoreBtn} onClick={() => openLightbox(0)}>
+                    Ver todas as fotos
+                </button>
+            </div>
+
+            {isLightboxOpen && (
+                <ImageLightbox 
+                    images={images}
+                    currentIndex={currentIndex}
+                    onClose={() => setIsLightboxOpen(false)}
+                    onNext={nextImage}
+                    onPrev={prevImage}
+                />
+            )}
         </div>
     );
 }
