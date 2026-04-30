@@ -147,7 +147,10 @@ function parseImovel(item: any): Imovel {
       const parsed = parseFloat(lng);
       return !isNaN(parsed) ? parsed : null;
     })(),
-    plus_code: item.plus_code || custom_fields.plus_code
+    plus_code: item.plus_code || custom_fields.plus_code,
+    uf_nome: item.uf_nome || custom_fields.uf || custom_fields.estado || '',
+    cidade_nome: item.cidade_nome || custom_fields.cidade || '',
+    bairro_nome: item.bairro_nome || custom_fields.bairro || ''
   }
 }
 
@@ -162,17 +165,11 @@ const BASE_SELECT = `
     ARRAY(SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC) as all_photos,
     OP.descricao as operacao_nome,
     TP.descricao as tipo_nome,
-    ST.nome as status_imovel_nome,
-    E.sigla as uf_nome,
-    C.descricao as cidade_nome,
-    B.descricao as bairro_nome
+    ST.nome as status_imovel_nome
   FROM produtos_servicos I
   LEFT JOIN imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
   LEFT JOIN imbtpimovel TP ON I.imbtpimovel_id = TP.id
   LEFT JOIN statimovel ST ON I.statusimovel = ST.id
-  LEFT JOIN public.apoestado E ON I.estado_id = E.id
-  LEFT JOIN public.apocidade C ON I.cidade_id = C.id
-  LEFT JOIN public.apobairro B ON I.bairro_id = B.id
 `
 
 export async function getFeaturedImoveis(limit = 6, excludeId?: string) {

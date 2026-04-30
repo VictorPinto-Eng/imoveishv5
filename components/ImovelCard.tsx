@@ -30,9 +30,10 @@ export default function ImovelCard({ imovel }: ImovelCardProps) {
   }).format(preco_base)
 
   // Location logic
-  const cf = typeof custom_fields === 'string' ? {} : custom_fields
-  const uf = imovel.uf_nome || cf.uf || '';
-  const locationTitle = [cf.bairro, cf.cidade].filter(Boolean).join(', ') + (uf ? ` - ${uf.toUpperCase()}` : '')
+  const uf = imovel.uf_nome || '';
+  const cidade = imovel.cidade_nome || '';
+  const bairro = imovel.bairro_nome || '';
+  const locationTitle = [bairro, cidade].filter(Boolean).join(', ') + (uf ? ` - ${uf.toUpperCase()}` : '')
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
