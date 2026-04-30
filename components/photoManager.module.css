@@ -226,3 +226,72 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* New Styles for Skeletons and Uploading */
+.skeletonCard {
+    aspect-ratio: 1;
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.uploadingCard {
+    aspect-ratio: 1;
+    position: relative;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px dashed #118B8A;
+    background-color: #f8fafc;
+}
+
+.uploadingImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+
+.uploadingOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.progressBar {
+    width: 60%;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: #118B8A;
+    animation: progress-indefinite 2s infinite linear;
+    width: 30%;
+}
+
+@keyframes progress-indefinite {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+}
+
+.uploadingText {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #118B8A;
+    text-transform: uppercase;
+}

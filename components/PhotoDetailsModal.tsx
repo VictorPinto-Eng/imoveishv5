@@ -62,6 +62,17 @@ export default function PhotoDetailsModal({ photo, onClose, onSave }: PhotoDetai
 
             <div className={styles.content}>
                 <div className={styles.previewContainer}>
+                    {/* Blurred Background Layer */}
+                    <div className={styles.blurredBackground}>
+                        <NextImage 
+                            src={photo.url_referencia} 
+                            alt="" 
+                            fill 
+                            style={{ objectFit: 'cover' }}
+                            unoptimized
+                        />
+                    </div>
+                    {/* Main Image Layer */}
                     <NextImage 
                         src={photo.url_referencia} 
                         alt="Preview" 

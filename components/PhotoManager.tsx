@@ -26,6 +26,8 @@ interface PhotoManagerProps {
 export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReordering }: PhotoManagerProps) {
     const [photos, setPhotos] = useState<Photo[]>(initialPhotos || []);
     const [uploading, setUploading] = useState(false);
+    const [isLoading, setIsLoading] = useState(initialPhotos.length === 0);
+    const [uploadingFiles, setUploadingFiles] = useState<{ id: string; preview: string }[]>([]);
     const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isUploadingRef = useRef(false);
@@ -45,6 +47,8 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
             }
         } catch (error) {
             console.error('Erro ao buscar fotos na API:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -89,9 +93,18 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         console.log(`Iniciando upload de ${fileArray.length} arquivos...`);
         isUploadingRef.current = true;
         setUploading(true);
+        
+        // Criar previews locais
+        const newUploads = fileArray.map(file => ({
+            id: Math.random().toString(36).substr(2, 9),
+            preview: URL.createObjectURL(file)
+        }));
+        setUploadingFiles(prev => [...prev, ...newUploads]);
+
         try {
             for (let i = 0; i < fileArray.length; i++) {
                 const originalFile = fileArray[i];
+                const currentUploadId = newUploads[i].id;
                 let fileToUpload: File | Blob = originalFile;
                 let fileName = originalFile.name;
 
@@ -139,6 +152,13 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                     // Adiciona a nova foto ao estado local imediatamente para feedback visual
                     setPhotos(prev => [...prev, data.photo]);
                     
+                    // Remove do estado de uploads e limpa a URL
+                    setUploadingFiles(prev => {
+                        const target = prev.find(u => u.id === currentUploadId);
+                        if (target) URL.revokeObjectURL(target.preview);
+                        return prev.filter(u => u.id !== currentUploadId);
+                    });
+
                     // Se for a primeira foto do lote, abre o modal de detalhes/opções
                     if (i === 0) {
                         setSelectedPhoto(data.photo);
@@ -161,6 +181,11 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         } finally {
             isUploadingRef.current = false;
             setUploading(false);
+            // Garantir que limpamos os previews e URLs se algo falhar
+            setUploadingFiles(prev => {
+                prev.forEach(u => URL.revokeObjectURL(u.preview));
+                return [];
+            });
         }
     };
 
@@ -300,6 +325,24 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                             {uploading ? 'Enviando...' : 'Adicionar fotos'}
                         </span>
                     </div>
+
+                    {/* Skeletons during initial load */}
+                    {isLoading && [1, 2, 3].map(i => (
+                        <div key={`skeleton-${i}`} className={styles.skeletonCard} />
+                    ))}
+
+                    {/* Local previews for files being uploaded */}
+                    {uploadingFiles.map((upload) => (
+                        <div key={upload.id} className={styles.uploadingCard}>
+                            <img src={upload.preview} alt="Uploading..." className={styles.uploadingImage} />
+                            <div className={styles.uploadingOverlay}>
+                                <div className={styles.progressBar}>
+                                    <div className={styles.progressFill} />
+                                </div>
+                                <span className={styles.uploadingText}>Enviando</span>
+                            </div>
+                        </div>
+                    ))}
 
                     {/* Photos */}
                 {photos.map((photo, index) => (
