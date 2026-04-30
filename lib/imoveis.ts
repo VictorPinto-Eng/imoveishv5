@@ -196,6 +196,42 @@ export async function getFeaturedImoveis(limit = 6, excludeId?: string) {
   }
 }
 
+// Imóveis cadastrados nos últimos 30 dias
+export async function getRecentImoveis(limit = 6) {
+  try {
+    const res = await query(`
+      ${BASE_SELECT}
+      WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
+        AND I.created_at >= NOW() - INTERVAL '30 days'
+      ORDER BY I.created_at DESC
+      LIMIT $1
+    `, [limit])
+    return parseImoveis(res.rows || [])
+  } catch (error) {
+    console.error('Error fetching recent imoveis:', error)
+    return []
+  }
+}
+
+// Imóveis com preço atualizado recentemente (excluindo recém-criados)
+export async function getPriceUpdatedImoveis(limit = 6) {
+  try {
+    const res = await query(`
+      ${BASE_SELECT}
+      WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
+        AND I.updated_at IS NOT NULL
+        AND I.updated_at > I.created_at + INTERVAL '1 hour'
+        AND I.updated_at >= NOW() - INTERVAL '60 days'
+      ORDER BY I.updated_at DESC
+      LIMIT $1
+    `, [limit])
+    return parseImoveis(res.rows || [])
+  } catch (error) {
+    console.error('Error fetching price-updated imoveis:', error)
+    return []
+  }
+}
+
 export async function getImoveis(filters: ImovelFilters = {}) {
   try {
     let sql = `${BASE_SELECT} WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true`

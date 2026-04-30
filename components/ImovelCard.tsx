@@ -12,9 +12,10 @@ import { supabase } from '@/lib/supabaseClient'
 
 interface ImovelCardProps {
   imovel: Imovel
+  showStatus?: boolean
 }
 
-export default function ImovelCard({ imovel }: ImovelCardProps) {
+export default function ImovelCard({ imovel, showStatus = false }: ImovelCardProps) {
     const { nome, preco_base, custom_fields, imagens_urls, logradouro, numero } = imovel
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [isContactModalOpen, setIsContactModalOpen] = useState(false)
@@ -141,9 +142,11 @@ export default function ImovelCard({ imovel }: ImovelCardProps) {
           return null;
         })()}
 
-        <div className={styles.statusBadge}>
+        {showStatus && (
+          <div className={styles.statusBadge}>
             {(imovel.status_imovel_nome || imovel.status || '').toUpperCase()}
-        </div>
+          </div>
+        )}
         
         {imagens_urls.length > 1 && (
           <>
