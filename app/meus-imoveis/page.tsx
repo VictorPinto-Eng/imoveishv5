@@ -31,6 +31,7 @@ import DashboardQuestions from '@/components/DashboardQuestions';
 import { generateWhatsAppShareMessage } from '@/lib/share-templates';
 import ShareModal from '@/components/ShareModal';
 import dynamic from 'next/dynamic';
+import Swal from 'sweetalert2';
 import type { PropertyMapProps } from '@/components/PropertyMap';
 
 const PropertyMap = dynamic<PropertyMapProps>(() => import('@/components/PropertyMap'), { ssr: false });
@@ -715,16 +716,18 @@ function MeusImoveisContent() {
                                                                     });
                                                                     if (res.ok) {
                                                                         const data = await res.json();
-                                                                        setShowActions(false);
-                                                                        await fetchMyImoveis();
-                                                                        alert('Imóvel clonado com sucesso!');
+                                                                        if (data.success) {
+                                                                            Swal.fire({ title: 'Sucesso!', text: 'Imóvel clonado com sucesso!', icon: 'success', confirmButtonColor: '#7F34E6' });
+                                                                            fetchMyImoveis();
+                                                                        } else {
+                                                                            Swal.fire({ title: 'Erro!', text: `Erro ao clonar: ${data.error || 'Erro desconhecido'}`, icon: 'error', confirmButtonColor: '#7F34E6' });
+                                                                        }
                                                                     } else {
-                                                                        const data = await res.json();
-                                                                        alert(`Erro ao clonar: ${data.error || 'Erro desconhecido'}`);
+                                                                        Swal.fire({ title: 'Erro!', text: 'Erro de conexão ao clonar o imóvel.', icon: 'error', confirmButtonColor: '#7F34E6' });
                                                                     }
                                                                 } catch (err) {
                                                                     console.error('Clone error:', err);
-                                                                    alert('Erro de conexão ao clonar o imóvel.');
+                                                                    Swal.fire({ title: 'Erro!', text: 'Erro de conexão ao clonar o imóvel.', icon: 'error', confirmButtonColor: '#7F34E6' });
                                                                 }
                                                             }
                                                         }}

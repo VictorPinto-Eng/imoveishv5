@@ -11,7 +11,7 @@ import {
     ArrowLeft, Loader2, Save, Home,
     Maximize2, Bed, Bath, Car, MapPin,
     FileText, Building2, DollarSign, Sparkles, Ruler,
-    Map as MapIcon, Navigation, Plus, Share2
+    Map as MapIcon, Navigation, Plus, Share2, ShieldCheck
 } from 'lucide-react';
 import styles from './editar.module.css';
 import { formatCurrency, maskCurrencyInput, parseCurrencyToNumber, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
@@ -19,6 +19,7 @@ import { sanitizeLocationName } from '@/lib/sanitize-location';
 import dynamic from 'next/dynamic';
 
 const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
+import Swal from 'sweetalert2';
 
 interface CustomFields {
     endereco?: string;
@@ -84,6 +85,11 @@ interface Imovel {
     pub_site?: boolean;
     pub_price?: boolean;
     relimovel_id?: number;
+    // New fields for Values
+    seguro_incendio?: number;
+    condominio_incluso?: boolean;
+    iptu_incluso?: boolean;
+    seguro_incendio_incluso?: boolean;
     // Joined field names
     tipo_nome?: string;
     operacao_nome?: string;
@@ -333,8 +339,8 @@ export default function EditarImovelPage() {
     const handleCharChange = (field: string, value: string, isCustom = false) => {
         if (!imovel) return;
 
-        // Decimais: area_util, area_construida, area_terreno
-        const isDecimal = ['area_util', 'area_construida', 'area_terreno'].includes(field);
+        // Decimais: area_util, area_construida, area_terreno, preco_base, condominio, iptu, seguro_incendio
+        const isDecimal = ['area_util', 'area_construida', 'area_terreno', 'preco_base', 'condominio', 'iptu', 'seguro_incendio'].includes(field);
 
         let numericValue: number;
         if (isDecimal) {
@@ -494,7 +500,7 @@ export default function EditarImovelPage() {
             e.preventDefault();
 
             // Formatação especial para campos de moeda ao apertar Enter
-            if (['preco_base', 'condominio', 'iptu'].includes(target.name)) {
+            if (['preco_base', 'condominio', 'iptu', 'seguro_incendio'].includes(target.name)) {
                 const completed = completeCurrencyWithZeros(target.value, false);
                 const numericValue = parseCurrencyToNumber(completed);
 
@@ -510,20 +516,24 @@ export default function EditarImovelPage() {
                         ...prev,
                         custom_fields: { ...prev.custom_fields, iptu: numericValue }
                     } : null);
+                } else if (target.name === 'seguro_incendio') {
+                    setImovel(prev => prev ? { ...prev, seguro_incendio: numericValue } : null);
                 }
             }
 
             // Busca o formulário ou container principal
             const form = target.closest('main') || document.body;
 
-            // Seleciona todos os elementos focáveis
+            // Seleciona todos os elementos focáveis (pulando checkboxes e rádios para navegação fluida)
             const focusable = Array.from(form.querySelectorAll('input, select, textarea, button'))
                 .filter(el => {
-                    const htmlEl = el as HTMLElement;
-                    // Filtra apenas elementos visíveis e habilitados
-                    return !(htmlEl as any).disabled &&
+                    const htmlEl = el as HTMLInputElement;
+                    // Filtra apenas elementos visíveis, habilitados e que não sejam seleções binárias (checkbox/radio)
+                    return !htmlEl.disabled &&
                         htmlEl.tabIndex !== -1 &&
                         htmlEl.offsetParent !== null &&
+                        htmlEl.type !== 'checkbox' &&
+                        htmlEl.type !== 'radio' &&
                         (htmlEl.tagName !== 'BUTTON' || htmlEl.classList.contains(styles.saveBtn));
                 });
 
@@ -598,6 +608,10 @@ export default function EditarImovelPage() {
                 statusimovel: imovel.statusimovel,
                 pub_site: imovel.pub_site,
                 pub_price: imovel.pub_price,
+                seguro_incendio: imovel.seguro_incendio,
+                condominio_incluso: imovel.condominio_incluso,
+                iptu_incluso: imovel.iptu_incluso,
+                seguro_incendio_incluso: imovel.seguro_incendio_incluso,
                 relationship: imovel.relimovel_id === 1 ? 'Proprietário' : imovel.relimovel_id === 2 ? 'Corretor' : 'Administrador/Outro',
                 pub_facebook: imovel.custom_fields.pub_facebook,
                 pub_instagram: imovel.custom_fields.pub_instagram
@@ -611,14 +625,29 @@ export default function EditarImovelPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                window.location.href = `/meus-imoveis?id=${id}&refresh=${Date.now()}`;
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Imóvel atualizado com sucesso.',
+                    icon: 'success',
+                    confirmButtonColor: '#7F34E6'
+                });
                 return;
             }
 
-            alert(data.error || 'Erro ao atualizar imóvel');
+            Swal.fire({
+                title: 'Erro!',
+                text: data.error || 'Erro ao atualizar imóvel',
+                icon: 'error',
+                confirmButtonColor: '#7F34E6'
+            });
         } catch (error) {
             console.error('Error saving imovel:', error);
-            alert('Erro de conexão');
+            Swal.fire({
+                title: 'Erro de Conexão',
+                text: 'Não foi possível salvar as alterações.',
+                icon: 'error',
+                confirmButtonColor: '#7F34E6'
+            });
         } finally {
             setSaving(false);
         }
@@ -733,10 +762,20 @@ export default function EditarImovelPage() {
                 if (cepInput) (cepInput as HTMLElement).focus();
                 return;
             }
-            alert(data?.error || 'Erro ao cadastrar');
+            Swal.fire({
+                title: 'Erro!',
+                text: data?.error || 'Erro ao cadastrar localidade',
+                icon: 'error',
+                confirmButtonColor: '#7F34E6'
+            });
         } catch (error) {
             console.error('Error confirming registration:', error);
-            alert('Erro de conexão');
+            Swal.fire({
+                title: 'Erro de Conexão',
+                text: 'Não foi possível cadastrar a localidade.',
+                icon: 'error',
+                confirmButtonColor: '#7F34E6'
+            });
         } finally {
             setSaving(false);
         }
@@ -1510,95 +1549,194 @@ export default function EditarImovelPage() {
                                 <div className={styles.iconBox}><DollarSign size={20} /></div>
                                 Valores
                             </h2>
-                            <div className={styles.featGrid} style={{ marginBottom: '1.5rem' }}>
-                                <div className={styles.formGroup}>
-                                    <label>Preço Base ( R$ )</label>
-                                    <input
-                                        type="text"
-                                        name="preco_base"
-                                        value={activeField === 'preco_base' ? displayValue : formatCurrency(imovel.preco_base, false, false)}
-                                        className={styles.priceInput}
-                                        onChange={(e) => {
-                                            const masked = maskCurrencyInput(e.target.value, false);
-                                            setDisplayValue(masked);
-                                            setImovel({ ...imovel, preco_base: parseCurrencyToNumber(masked) });
-                                        }}
-                                        onFocus={(e) => {
-                                            setActiveField('preco_base');
-                                            const val = formatCurrency(imovel.preco_base, false, false, 0);
-                                            setDisplayValue(val);
-                                            setTimeout(() => e.target.select(), 0);
-                                        }}
-                                        onBlur={(e) => {
-                                            const completed = completeCurrencyWithZeros(e.target.value);
-                                            setImovel({ ...imovel, preco_base: parseCurrencyToNumber(completed) });
-                                            setActiveField(null);
-                                        }}
-                                    />
+                            
+                            <div className={styles.valoresPremiumContainer}>
+                                {/* Preço Base */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><DollarSign size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>Preço Base</label>
+                                            <input
+                                                type="text"
+                                                name="preco_base"
+                                                value={activeField === 'preco_base' ? displayValue : formatCurrency(imovel.preco_base, false, false)}
+                                                className={`${styles.valorInput} ${styles.valorInputPrice}`}
+                                                onChange={(e) => {
+                                                    const masked = maskCurrencyInput(e.target.value, false);
+                                                    setDisplayValue(masked);
+                                                    setImovel({ ...imovel, preco_base: parseCurrencyToNumber(masked) });
+                                                }}
+                                                onFocus={(e) => {
+                                                    setActiveField('preco_base');
+                                                    setDisplayValue(formatCurrency(imovel.preco_base, false, false, 0));
+                                                    setTimeout(() => e.target.select(), 0);
+                                                }}
+                                                onBlur={(e) => {
+                                                    const completed = completeCurrencyWithZeros(e.target.value);
+                                                    setImovel({ ...imovel, preco_base: parseCurrencyToNumber(completed) });
+                                                    setActiveField(null);
+                                                }}
+                                                onKeyDown={handleEnterKey}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.valorRight}>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>BRL</span>
+                                    </div>
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label>Condomínio ( R$ )</label>
-                                    <input
-                                        type="text"
-                                        name="condominio"
-                                        className={styles.rightAlignInput}
-                                        value={activeField === 'condominio' ? displayValue : formatCurrency(imovel.custom_fields.condominio || 0, false, false)}
-                                        onChange={(e) => {
-                                            const masked = maskCurrencyInput(e.target.value, false);
-                                            setDisplayValue(masked);
-                                            setImovel({
-                                                ...imovel,
-                                                custom_fields: { ...imovel.custom_fields, condominio: parseCurrencyToNumber(masked) }
-                                            });
-                                        }}
-                                        onFocus={(e) => {
-                                            setActiveField('condominio');
-                                            const val = formatCurrency(imovel.custom_fields.condominio || 0, false, false, 0);
-                                            setDisplayValue(val);
-                                            setTimeout(() => e.target.select(), 0);
-                                        }}
-                                        onBlur={(e) => {
-                                            const completed = completeCurrencyWithZeros(e.target.value);
-                                            setImovel({
-                                                ...imovel,
-                                                custom_fields: { ...imovel.custom_fields, condominio: parseCurrencyToNumber(completed) }
-                                            });
-                                            setActiveField(null);
-                                        }}
-                                        onKeyDown={(e) => handleKeyDown(e, 'iptu', true)}
-                                    />
+
+                                {/* Condomínio */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><Building2 size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>Condomínio</label>
+                                            <input
+                                                type="text"
+                                                name="condominio"
+                                                className={styles.valorInput}
+                                                value={activeField === 'condominio' ? displayValue : formatCurrency(imovel.custom_fields.condominio || 0, false, false)}
+                                                onChange={(e) => {
+                                                    const masked = maskCurrencyInput(e.target.value, false);
+                                                    setDisplayValue(masked);
+                                                    setImovel({
+                                                        ...imovel,
+                                                        custom_fields: { ...imovel.custom_fields, condominio: parseCurrencyToNumber(masked) }
+                                                    });
+                                                }}
+                                                onFocus={(e) => {
+                                                    setActiveField('condominio');
+                                                    setDisplayValue(formatCurrency(imovel.custom_fields.condominio || 0, false, false, 0));
+                                                    setTimeout(() => e.target.select(), 0);
+                                                }}
+                                                onBlur={(e) => {
+                                                    const completed = completeCurrencyWithZeros(e.target.value);
+                                                    setImovel({
+                                                        ...imovel,
+                                                        custom_fields: { ...imovel.custom_fields, condominio: parseCurrencyToNumber(completed) }
+                                                    });
+                                                    setActiveField(null);
+                                                }}
+                                                onKeyDown={handleEnterKey}
+                                            />
+                                        </div>
+                                    </div>
+                                    {imovel.imbtpoperacao_id === 2 && (
+                                        <div className={styles.valorRight}>
+                                            <label className={`${styles.toggleLabel} ${imovel.condominio_incluso ? styles.toggleActive : ''}`}>
+                                                <span>Incluso</span>
+                                                <div className={styles.switch}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={!!imovel.condominio_incluso}
+                                                        onChange={(e) => setImovel({...imovel, condominio_incluso: e.target.checked})}
+                                                    />
+                                                    <span className={styles.slider}></span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label>IPTUAnual ( R$ )</label>
-                                    <input
-                                        type="text"
-                                        name="iptu"
-                                        className={styles.rightAlignInput}
-                                        value={activeField === 'iptu' ? displayValue : formatCurrency(imovel.custom_fields.iptu || 0, false, false)}
-                                        onChange={(e) => {
-                                            const masked = maskCurrencyInput(e.target.value, false);
-                                            setDisplayValue(masked);
-                                            setImovel({
-                                                ...imovel,
-                                                custom_fields: { ...imovel.custom_fields, iptu: parseCurrencyToNumber(masked) }
-                                            });
-                                        }}
-                                        onFocus={(e) => {
-                                            setActiveField('iptu');
-                                            const val = formatCurrency(imovel.custom_fields.iptu || 0, false, false, 0);
-                                            setDisplayValue(val);
-                                            setTimeout(() => e.target.select(), 0);
-                                        }}
-                                        onBlur={(e) => {
-                                            const completed = completeCurrencyWithZeros(e.target.value);
-                                            setImovel({
-                                                ...imovel,
-                                                custom_fields: { ...imovel.custom_fields, iptu: parseCurrencyToNumber(completed) }
-                                            });
-                                            setActiveField(null);
-                                        }}
-                                        onKeyDown={(e) => handleKeyDown(e, 'status', true)}
-                                    />
+
+                                {/* IPTU */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><FileText size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>IPTU Anual</label>
+                                            <input
+                                                type="text"
+                                                name="iptu"
+                                                className={styles.valorInput}
+                                                value={activeField === 'iptu' ? displayValue : formatCurrency(imovel.custom_fields.iptu || 0, false, false)}
+                                                onChange={(e) => {
+                                                    const masked = maskCurrencyInput(e.target.value, false);
+                                                    setDisplayValue(masked);
+                                                    setImovel({
+                                                        ...imovel,
+                                                        custom_fields: { ...imovel.custom_fields, iptu: parseCurrencyToNumber(masked) }
+                                                    });
+                                                }}
+                                                onFocus={(e) => {
+                                                    setActiveField('iptu');
+                                                    setDisplayValue(formatCurrency(imovel.custom_fields.iptu || 0, false, false, 0));
+                                                    setTimeout(() => e.target.select(), 0);
+                                                }}
+                                                onBlur={(e) => {
+                                                    const completed = completeCurrencyWithZeros(e.target.value);
+                                                    setImovel({
+                                                        ...imovel,
+                                                        custom_fields: { ...imovel.custom_fields, iptu: parseCurrencyToNumber(completed) }
+                                                    });
+                                                    setActiveField(null);
+                                                }}
+                                                onKeyDown={handleEnterKey}
+                                            />
+                                        </div>
+                                    </div>
+                                    {imovel.imbtpoperacao_id === 2 && (
+                                        <div className={styles.valorRight}>
+                                            <label className={`${styles.toggleLabel} ${imovel.iptu_incluso ? styles.toggleActive : ''}`}>
+                                                <span>Incluso</span>
+                                                <div className={styles.switch}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={!!imovel.iptu_incluso}
+                                                        onChange={(e) => setImovel({...imovel, iptu_incluso: e.target.checked})}
+                                                    />
+                                                    <span className={styles.slider}></span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Seguro Incêndio */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><ShieldCheck size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>Seguro Incêndio</label>
+                                            <input
+                                                type="text"
+                                                name="seguro_incendio"
+                                                className={styles.valorInput}
+                                                value={activeField === 'seguro_incendio' ? displayValue : formatCurrency(imovel.seguro_incendio || 0, false, false)}
+                                                onChange={(e) => {
+                                                    const masked = maskCurrencyInput(e.target.value, false);
+                                                    setDisplayValue(masked);
+                                                    setImovel({ ...imovel, seguro_incendio: parseCurrencyToNumber(masked) });
+                                                }}
+                                                onFocus={(e) => {
+                                                    setActiveField('seguro_incendio');
+                                                    setDisplayValue(formatCurrency(imovel.seguro_incendio || 0, false, false, 0));
+                                                    setTimeout(() => e.target.select(), 0);
+                                                }}
+                                                onBlur={(e) => {
+                                                    const completed = completeCurrencyWithZeros(e.target.value);
+                                                    setImovel({ ...imovel, seguro_incendio: parseCurrencyToNumber(completed) });
+                                                    setActiveField(null);
+                                                }}
+                                                onKeyDown={handleEnterKey}
+                                            />
+                                        </div>
+                                    </div>
+                                    {imovel.imbtpoperacao_id === 2 && (
+                                        <div className={styles.valorRight}>
+                                            <label className={`${styles.toggleLabel} ${imovel.seguro_incendio_incluso ? styles.toggleActive : ''}`}>
+                                                <span>Incluso</span>
+                                                <div className={styles.switch}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={!!imovel.seguro_incendio_incluso}
+                                                        onChange={(e) => setImovel({...imovel, seguro_incendio_incluso: e.target.checked})}
+                                                    />
+                                                    <span className={styles.slider}></span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </section>

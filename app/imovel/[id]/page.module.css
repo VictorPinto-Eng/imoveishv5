@@ -46,8 +46,32 @@
   font-size: 1.1rem;
   color: #64748b;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.addressIcon {
+  margin-top: 0.25rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.addressText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.street {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1.05rem;
+}
+
+.locationDetail {
+  font-size: 0.95rem;
+  color: #64748b;
 }
 
 .section {
@@ -250,5 +274,13 @@
 @media (max-width: 640px) {
   .title {
     font-size: 1.75rem;
+  }
+  .backFixed {
+    top: 82px;
+    right: 10px;
+  }
+  .backBtn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
   }
 }

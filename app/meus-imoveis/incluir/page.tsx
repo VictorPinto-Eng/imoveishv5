@@ -9,6 +9,7 @@ import { sanitizeLocationName } from '@/lib/sanitize-location';
 import dynamic from 'next/dynamic';
 import WhatsAppLink from '@/components/WhatsAppLink';
 import SearchableSelect from '@/components/SearchableSelect';
+import Swal from 'sweetalert2';
 
 const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
 
@@ -708,10 +709,10 @@ export default function IncluirImovelPage() {
                 return;
             }
 
-            alert(data.error || 'Erro ao cadastrar imóvel');
+            Swal.fire({ title: 'Erro!', text: data.error || 'Erro ao cadastrar imóvel', icon: 'error', confirmButtonColor: '#7F34E6' });
         } catch (error) {
             console.error('Error submitting property:', error);
-            alert('Erro ao conectar com o servidor');
+            Swal.fire({ title: 'Erro', text: 'Erro ao conectar com o servidor', icon: 'error', confirmButtonColor: '#7F34E6' });
         } finally {
             setLoading(false);
         }
@@ -730,7 +731,7 @@ export default function IncluirImovelPage() {
                     window.location.href = `/meus-imoveis?id=${data.id}&refresh=${Date.now()}`;
                     return;
                 } else {
-                    alert(data.error || 'Erro ao cadastrar imóvel');
+                    Swal.fire({ title: 'Erro!', text: data.error || 'Erro ao cadastrar imóvel', icon: 'error', confirmButtonColor: '#7F34E6' });
                     setLoading(false);
                     return;
                 }
@@ -782,10 +783,10 @@ export default function IncluirImovelPage() {
                 }
                 return;
             }
-            alert(data?.error || 'Erro ao cadastrar');
+            Swal.fire({ title: 'Erro!', text: data?.error || 'Erro ao cadastrar localidade', icon: 'error', confirmButtonColor: '#7F34E6' });
         } catch (error) {
             console.error('Error registering:', error);
-            alert('Erro de conexão');
+            Swal.fire({ title: 'Erro', text: 'Erro ao cadastrar a localidade', icon: 'error', confirmButtonColor: '#7F34E6' });
         } finally {
             setLoading(false);
         }

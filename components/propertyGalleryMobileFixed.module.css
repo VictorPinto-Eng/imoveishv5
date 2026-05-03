@@ -24,7 +24,7 @@
     overflow: hidden;
 }
 
-.mainImage {
+.mainImage, .sideImage {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -40,15 +40,6 @@
     overflow: hidden;
 }
 
-.sideImage {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.7s ease;
-    position: relative;
-    z-index: 2;
-}
-
 .imageOverlay {
     position: absolute;
     inset: 0;
@@ -62,11 +53,6 @@
     transform: scale(1.05);
 }
 
-.mainImageWrapper:hover .imageOverlay,
-.sideImageWrapper:hover .imageOverlay {
-    background: rgba(0, 0, 0, 0.1);
-}
-
 .overlayMore {
     position: absolute;
     inset: 0;
@@ -77,23 +63,37 @@
     justify-content: center;
     color: white;
     z-index: 10;
-    transition: background 0.3s ease;
 }
 
-.overlayMore span {
-    font-size: 1.5rem;
-    font-weight: 700;
+.navBtn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #0f172a;
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.overlayMore small {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.9;
-}
+.prevBtn { left: 10px; }
+.nextBtn { right: 10px; }
 
-.sideImageWrapper:hover .overlayMore {
-    background: rgba(0, 0, 0, 0.6);
+.navBtn:active {
+    transform: translateY(-50%) scale(0.95);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .galleryActions {
@@ -128,13 +128,6 @@
     font-weight: 600;
     font-size: 0.85rem;
     cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-}
-
-.viewMoreBtn:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
 }
 
 .emptySlot {
@@ -145,28 +138,28 @@
     border: 1px dashed #e2e8f0;
 }
 
+/* MOBILE FIX - PREMIUM CAROUSEL */
 @media (max-width: 1024px) {
-    .grid {
-        height: 400px;
+    .navBtn {
+        opacity: 1;
+        pointer-events: auto;
     }
-}
 
-@media (max-width: 768px) {
     .galleryContainer {
         margin-bottom: 1.5rem;
-        border-radius: 0;
-        margin-left: -1.5rem;
-        margin-right: -1.5rem;
-        box-shadow: none;
+        border-radius: 12px;
+        margin-left: 0;
+        margin-right: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     .grid {
-        display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        height: 300px;
-        gap: 0;
+        display: flex !important; /* Force flex for carousel */
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory !important;
+        height: 320px !important;
+        gap: 0 !important;
         scrollbar-width: none;
     }
 
@@ -176,21 +169,21 @@
 
     .mainImageWrapper, 
     .sideImageWrapper {
-        flex: 0 0 100%;
-        width: 100%;
-        height: 100%;
-        scroll-snap-align: start;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        scroll-snap-align: start !important;
         display: block !important;
-        grid-row: auto;
-        grid-column: auto;
+        grid-row: auto !important;
+        grid-column: auto !important;
     }
 
     .sideImageWrapper .overlayMore {
-        display: none; /* Hide the "+X photos" overlay inside the carousel */
+        display: none !important;
     }
 
     .emptySlot {
-        display: none;
+        display: none !important;
     }
 
     .galleryActions {
@@ -207,6 +200,6 @@
     }
 
     .viewMoreBtn {
-        display: none; /* On mobile, tapping the image is enough, or we can keep it smaller */
+        display: none !important; /* Hide button on mobile as promised */
     }
 }

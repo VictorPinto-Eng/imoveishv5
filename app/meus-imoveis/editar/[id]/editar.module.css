@@ -870,3 +870,157 @@
     font-weight: 600;
     font-size: 0.95rem;
 }
+/* Premium Values Section */
+.valoresPremiumContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+}
+
+.valorCard {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.valorCard:hover {
+    border-color: #7F34E6;
+    box-shadow: 0 4px 12px rgba(127, 52, 230, 0.05);
+}
+
+.valorLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+}
+
+.valorIcon {
+    width: 44px;
+    height: 44px;
+    background: #f5f3ff;
+    color: #7F34E6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.valorInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 240px;
+}
+
+.valorInfo label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.valorInput {
+    border: none !important;
+    background: transparent !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+.valorInput:focus {
+    color: #7F34E6 !important;
+}
+
+.valorInputPrice {
+    font-size: 1.4rem !important;
+    color: #7F34E6 !important;
+}
+
+.valorRight {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.toggleLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    background: #f8fafc;
+    padding: 0.6rem 1rem;
+    border-radius: 2rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.toggleLabel:hover {
+    background: #f1f5f9;
+}
+
+.toggleActive {
+    background: #f5f3ff;
+    border-color: #7F34E6;
+    color: #7F34E6;
+}
+
+/* Custom Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #7F34E6;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
+}

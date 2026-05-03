@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react';
-import styles from './propertyGallery.module.css';
-import { Camera, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import styles from './propertyGalleryMobileFixed.module.css';
+import { Camera, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
 
 interface PropertyGalleryProps {
@@ -13,6 +13,7 @@ interface PropertyGalleryProps {
 export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const openLightbox = (index: number) => {
         setCurrentIndex(index);
@@ -21,6 +22,14 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
 
     const nextImage = () => setCurrentIndex((prev) => (prev + 1) % images.length);
     const prevImage = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const { scrollLeft, clientWidth } = scrollRef.current;
+            const scrollTo = direction === 'left' ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+            scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+        }
+    };
 
     if (!images || images.length === 0) {
         return (
@@ -32,15 +41,11 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
     }
 
     // Modern 5-image grid layout
-    // [ 1 (Large) ] [ 2 ] [ 3 ]
-    //               [ 4 ] [ 5 ]
-
     const displayImages = images.slice(0, 5);
-    const hasMore = images.length > 5;
 
     return (
         <div className={styles.galleryContainer}>
-            <div className={styles.grid}>
+            <div className={styles.grid} ref={scrollRef}>
                 {/* Main Image (Large) */}
                 <div className={styles.mainImageWrapper} onClick={() => openLightbox(0)}>
                     <img 
@@ -55,7 +60,7 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                 {images.slice(1, 5).map((img, index) => (
                     <div 
                         key={index} 
-                        className={`${styles.sideImageWrapper} ${styles[`side${index + 1}`]}`}
+                        className={`${styles.sideImageWrapper}`}
                         onClick={() => openLightbox(index + 1)}
                     >
                         <img 
@@ -81,6 +86,14 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                     </div>
                 ))}
             </div>
+
+            {/* Navigation Arrows (Mobile Only via CSS) */}
+            <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={() => scroll('left')}>
+                <ChevronLeft size={24} />
+            </button>
+            <button className={`${styles.navBtn} ${styles.nextBtn}`} onClick={() => scroll('right')}>
+                <ChevronRight size={24} />
+            </button>
 
             <div className={styles.galleryActions}>
                 <div className={styles.countBadge}>

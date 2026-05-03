@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Heart, ChevronLeft, ChevronRight, Phone, Mail, MessageCircle, ImageOff, Share2 } from 'lucide-react'
 import styles from './ImovelCard.module.css'
 import { Imovel } from '@/lib/imoveis'
+import Swal from 'sweetalert2'
 import WhatsAppLink from './WhatsAppLink'
 import ContactModal from './ContactModal'
 import LeadCaptureModal from './LeadCaptureModal'
@@ -60,7 +61,15 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
         
         const shareUrl = `${window.location.origin}/imovel/${imovel.id}`;
         navigator.clipboard.writeText(shareUrl).then(() => {
-            alert('Link do imóvel copiado para a área de transferência!');
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                title: 'Link copiado!',
+                icon: 'success',
+            });
             logActivity('share_link_copied', '400');
         }).catch(err => {
             console.error('Failed to copy link:', err);

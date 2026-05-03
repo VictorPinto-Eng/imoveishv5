@@ -113,8 +113,14 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             </div>
                             <h1 className={styles.title}>{imovel.nome}</h1>
                             <div className={styles.address}>
-                                <MapPin size={18} />
-                                <span>{address}</span>
+                                <MapPin size={18} className={styles.addressIcon} />
+                                <div className={styles.addressText}>
+                                    <span className={styles.street}>{imovel.logradouro || 'Endereço não informado'}</span>
+                                    <span className={styles.locationDetail}>
+                                        {imovel.bairro_nome && `${imovel.bairro_nome} - `}
+                                        {imovel.cidade_nome}{imovel.uf_nome ? `/${imovel.uf_nome}` : ''}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 

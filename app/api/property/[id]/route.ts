@@ -78,6 +78,10 @@ export async function GET(
             pub_site: res.rows[0].pub_site,
             pub_price: res.rows[0].pub_price,
             empreendimento: res.rows[0].imbempreendimento_id,
+            seguro_incendio: res.rows[0].seguro_incendio || 0,
+            condominio_incluso: res.rows[0].condominio_incluso || false,
+            iptu_incluso: res.rows[0].iptu_incluso || false,
+            seguro_incendio_incluso: res.rows[0].seguro_incendio_incluso || false,
             photos: photosRes.rows
         } 
     });
@@ -166,6 +170,11 @@ export async function PUT(
     const imbfinalidade_id = body.imbfinalidade_id !== undefined ? body.imbfinalidade_id : oldData.imbfinalidade_id;
     const imbtpimovel_id = body.imbtpimovel_id !== undefined ? body.imbtpimovel_id : oldData.imbtpimovel_id;
     const statusimovel = body.statusimovel !== undefined ? body.statusimovel : oldData.statusimovel;
+    
+    const seguro_incendio = body.seguro_incendio !== undefined ? body.seguro_incendio : oldData.seguro_incendio;
+    const condominio_incluso = body.condominio_incluso !== undefined ? body.condominio_incluso : oldData.condominio_incluso;
+    const iptu_incluso = body.iptu_incluso !== undefined ? body.iptu_incluso : oldData.iptu_incluso;
+    const seguro_incendio_incluso = body.seguro_incendio_incluso !== undefined ? body.seguro_incendio_incluso : oldData.seguro_incendio_incluso;
 
     // Relationship ID mapping
     const relMapping: Record<string, number> = {
@@ -333,7 +342,8 @@ export async function PUT(
       'pais_id', 'estado_id', 'cidade_id', 'bairro_id',
       'imbtpoperacao_id', 'imbfinalidade_id', 'imbtpimovel_id', 'statusimovel',
       'status', 'area_total', 'latitude', 'longitude', 'plus_code',
-      'pub_site', 'pub_price', 'relimovel_id', 'prop_id'
+      'pub_site', 'pub_price', 'relimovel_id', 'prop_id',
+      'seguro_incendio', 'condominio_incluso', 'iptu_incluso', 'seguro_incendio_incluso'
     ];
 
     columnsWithDedicatedStorage.forEach(key => delete normalizedCustomFields[key]);
@@ -387,10 +397,14 @@ export async function PUT(
         pub_price = $40,
         relimovel_id = $41,
         prop_id = $42,
+        seguro_incendio = $43,
+        condominio_incluso = $44,
+        iptu_incluso = $45,
+        seguro_incendio_incluso = $46,
         updated_at = NOW(),
-        updated_by = $43,
+        updated_by = $47,
         organization_id = COALESCE(organization_id, '1')
-      WHERE id = $44 AND user_id = $45
+      WHERE id = $48 AND user_id = $49
       RETURNING id
     `, [
       title || oldData.nome || 'Imóvel sem título', 
@@ -435,6 +449,10 @@ export async function PUT(
       pub_price ?? true,
       relimovel_id,
       prop_id,
+      seguro_incendio || 0,
+      condominio_incluso ?? false,
+      iptu_incluso ?? false,
+      seguro_incendio_incluso ?? false,
       userId,
       id,
       userId
