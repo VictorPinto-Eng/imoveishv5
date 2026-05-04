@@ -9,7 +9,11 @@ import FilterModal from './FilterModal'
 
 import CustomSelect from './CustomSelect'
 
-export default function ImovelFilters() {
+interface ImovelFiltersProps {
+    initialFilters?: any
+}
+
+export default function ImovelFilters({ initialFilters }: ImovelFiltersProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -18,20 +22,20 @@ export default function ImovelFilters() {
     const [propertyTypes, setPropertyTypes] = useState<any[]>([])
 
     const [filters, setFilters] = useState({
-        cidade: searchParams.get('cidade') || '',
-        bairro: searchParams.get('bairro') || '',
-        tipo: searchParams.get('tipo') || '',
-        finalidade: searchParams.get('finalidade') || '',
-        minPrice: searchParams.get('minPrice') || '',
-        maxPrice: searchParams.get('maxPrice') || '',
-        operacao: searchParams.get('operacao') || '',
-        dormitorios: searchParams.get('dormitorios') ? Number(searchParams.get('dormitorios')) : undefined,
-        suites: searchParams.get('suites') ? Number(searchParams.get('suites')) : undefined,
-        vagas: searchParams.get('vagas') ? Number(searchParams.get('vagas')) : undefined,
-        banheiros: searchParams.get('banheiros') ? Number(searchParams.get('banheiros')) : undefined,
-        minArea: searchParams.get('minArea') || '',
-        maxArea: searchParams.get('maxArea') || '',
-        status: searchParams.get('status') || 'ativo'
+        cidade: initialFilters?.cidade || searchParams.get('cidade') || '',
+        bairro: initialFilters?.bairro || searchParams.get('bairro') || '',
+        tipo: initialFilters?.tipo || searchParams.get('tipo') || '',
+        finalidade: initialFilters?.finalidade || searchParams.get('finalidade') || '',
+        minPrice: initialFilters?.minPrice || searchParams.get('minPrice') || '',
+        maxPrice: initialFilters?.maxPrice || searchParams.get('maxPrice') || '',
+        operacao: initialFilters?.operacao || searchParams.get('operacao') || '',
+        dormitorios: initialFilters?.dormitorios ?? (searchParams.get('dormitorios') ? Number(searchParams.get('dormitorios')) : undefined),
+        suites: initialFilters?.suites ?? (searchParams.get('suites') ? Number(searchParams.get('suites')) : undefined),
+        vagas: initialFilters?.vagas ?? (searchParams.get('vagas') ? Number(searchParams.get('vagas')) : undefined),
+        banheiros: initialFilters?.banheiros ?? (searchParams.get('banheiros') ? Number(searchParams.get('banheiros')) : undefined),
+        minArea: initialFilters?.minArea || searchParams.get('minArea') || '',
+        maxArea: initialFilters?.maxArea || searchParams.get('maxArea') || '',
+        status: initialFilters?.status || searchParams.get('status') || 'ativo'
     })
 
     useEffect(() => {
