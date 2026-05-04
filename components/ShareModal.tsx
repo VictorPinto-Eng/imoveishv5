@@ -9,11 +9,20 @@ import { useEffect, useState } from 'react';
 interface ShareModalProps {
     isOpen: boolean;
     onClose: () => void;
-    propertyId: string;
-    propertyTitle: string;
+    propertyId?: string;
+    propertyTitle?: string;
+    shareUrl?: string;
+    title?: string;
 }
 
-export default function ShareModal({ isOpen, onClose, propertyId, propertyTitle }: ShareModalProps) {
+export default function ShareModal({ 
+    isOpen, 
+    onClose, 
+    propertyId, 
+    propertyTitle,
+    shareUrl: directShareUrl,
+    title: directTitle
+}: ShareModalProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -28,17 +37,20 @@ export default function ShareModal({ isOpen, onClose, propertyId, propertyTitle 
 
     if (!isOpen || !mounted) return null;
 
-    const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/imovel/${propertyId}`;
-    const encodedUrl = encodeURIComponent(shareUrl);
-    const encodedTitle = encodeURIComponent(`Confira este imóvel: ${propertyTitle}`);
+    // Determine final URL and Title
+    const finalShareUrl = directShareUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/imovel/${propertyId}`;
+    const finalTitle = directTitle || propertyTitle || 'Confira este imóvel';
+
+    const encodedUrl = encodeURIComponent(finalShareUrl);
+    const encodedTitle = encodeURIComponent(`Confira este imóvel: ${finalTitle}`);
 
     const copyToClipboard = async (silent = false) => {
         try {
             if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(shareUrl);
+                await navigator.clipboard.writeText(finalShareUrl);
             } else {
                 const textArea = document.createElement("textarea");
-                textArea.value = shareUrl;
+                textArea.value = finalShareUrl;
                 textArea.style.position = "fixed";
                 textArea.style.left = "-9999px";
                 textArea.style.top = "0";
@@ -69,13 +81,12 @@ export default function ShareModal({ isOpen, onClose, propertyId, propertyTitle 
     const handleInstagramShare = async (e: React.MouseEvent) => {
         e.preventDefault();
         
-        // Mobile: Try native share (Stories/Direct)
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: propertyTitle,
-                    text: `Confira este imóvel: ${propertyTitle}`,
-                    url: shareUrl
+                    title: finalTitle,
+                    text: `Confira este imóvel: ${finalTitle}`,
+                    url: finalShareUrl
                 });
                 return;
             } catch (err) {
@@ -83,7 +94,6 @@ export default function ShareModal({ isOpen, onClose, propertyId, propertyTitle 
             }
         }
 
-        // Desktop or Fallback: Copy link and inform user
         await copyToClipboard(true);
         Swal.fire({
             title: 'Instagram',
@@ -169,7 +179,7 @@ export default function ShareModal({ isOpen, onClose, propertyId, propertyTitle 
                 <div className={styles.copySection}>
                     <p>Ou copie o link direto:</p>
                     <div className={styles.copyBox}>
-                        <input type="text" readOnly value={shareUrl} className={styles.urlInput} />
+                        <input type="text" readOnly value={finalShareUrl} className={styles.urlInput} />
                         <button className={styles.copyBtn} onClick={() => copyToClipboard()}>
                             <Copy size={18} />
                         </button>
