@@ -117,6 +117,7 @@ interface Imovel {
     pub_site?: boolean;
     pub_price?: boolean;
     statusimovel?: number;
+    estado_sigla?: string;
 }
 
 function MeusImoveisContent() {
