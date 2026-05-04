@@ -113,7 +113,7 @@ export default function LocationSearch({ value, defaultValue, onChange, placehol
                 </div>
                 <div className={styles.textContainer}>
                   <div className={styles.label}>{s.label}</div>
-                  <div className={styles.sublabel}>{s.sublabel}</div>
+                  {s.sublabel && <div className={styles.sublabel}>{s.sublabel}</div>}
                 </div>
               </div>
             ))

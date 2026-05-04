@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import SpecialistHelp from '@/components/SpecialistHelp'
 
 export const metadata = { 
     icons: { icon: '/icone_5_navegador.png?v=4' },
@@ -14,7 +15,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="pt-BR" suppressHydrationWarning>
-            <body suppressHydrationWarning>{children}</body>
+            <body suppressHydrationWarning>
+                {children}
+                <SpecialistHelp />
+            </body>
         </html>
     )
 }

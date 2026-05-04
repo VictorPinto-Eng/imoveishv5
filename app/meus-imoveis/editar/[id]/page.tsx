@@ -122,6 +122,7 @@ export default function EditarImovelPage() {
     const [locationRefreshTrigger, setLocationRefreshTrigger] = useState(0);
     const [pendingSavePayload, setPendingSavePayload] = useState<any | null>(null);
     const [isMapOpen, setIsMapOpen] = useState(false);
+    const previousBairroValue = useRef<string>('');
 
     const handleBack = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -150,7 +151,25 @@ export default function EditarImovelPage() {
                 if (imovelData && imovelData.cep) {
                     imovelData.cep = maskCep(imovelData.cep);
                 }
+                
+                // Ensure custom_fields has location names if they exist in DB
+                if (imovelData && !imovelData.custom_fields?.uf && imovelData.uf_nome) {
+                    imovelData.custom_fields = {
+                        ...imovelData.custom_fields,
+                        uf: imovelData.uf_nome,
+                        cidade: imovelData.cidade_nome,
+                        bairro: imovelData.bairro_nome
+                    };
+                }
+
                 setImovel(imovelData);
+                if (imovelData) {
+                    setResolvedIds({
+                        estadoId: imovelData.estado_id || 0,
+                        cidadeId: imovelData.cidade_id || 0,
+                        bairroId: imovelData.bairro_id || 0
+                    });
+                }
             } catch (error) {
                 console.error('Error fetching imovel:', error);
             } finally {
@@ -500,7 +519,14 @@ export default function EditarImovelPage() {
         setShowCepConfirm(false);
         setCepData(null);
         originalCepBeforeTyping.current = null;
-        await verifyLocationSequence();
+        await verifyLocationSequence(null, true);
+    };
+
+    const applyOnlyCep = () => {
+        setShowCepConfirm(false);
+        setCepData(null);
+        lastSearchedCep.current = '';
+        originalCepBeforeTyping.current = null;
     };
 
     const declineCep = () => {
@@ -679,26 +705,41 @@ export default function EditarImovelPage() {
         }
     };
 
-    const verifyLocationSequence = async (overrideImovel?: any) => {
+    const verifyLocationSequence = async (overrideImovel?: any, autoCreate = false) => {
         const targetImovel = overrideImovel || imovel;
         if (!targetImovel) return false;
         try {
             // 1. Check Estado
             const sigla = targetImovel.custom_fields?.uf;
-            if (!sigla) return true; // Fallback or partial data
+            if (!sigla) return true;
 
             const allEstsRes = await fetchWithTimeout('/api/property/estados', {}, 3000);
             const allEsts = await allEstsRes.json();
             const normalizedSigla = sigla.trim().toUpperCase();
-            const matchedEst = allEsts.find((e: any) => e.sigla.trim().toUpperCase() === normalizedSigla);
+            let matchedEst = allEsts.find((e: any) => e.sigla.trim().toUpperCase() === normalizedSigla);
 
+            let estadoId: number;
             if (!matchedEst) {
-                setBairroCreateLabel(sigla);
-                setActiveVerification('estado');
-                setShowBairroCreateModal(true);
-                return false;
+                if (autoCreate) {
+                    const res = await fetch('/api/property/estados', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sigla: normalizedSigla, nome: normalizedSigla })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        estadoId = Number(data.id);
+                        setLocationRefreshTrigger(prev => prev + 1);
+                    } else return false;
+                } else {
+                    setBairroCreateLabel(sigla);
+                    setActiveVerification('estado');
+                    setShowBairroCreateModal(true);
+                    return false;
+                }
+            } else {
+                estadoId = matchedEst.id;
             }
-            const estadoId = matchedEst.id;
             setResolvedIds(prev => ({ ...prev, estadoId }));
 
             // 2. Check Cidade
@@ -708,15 +749,30 @@ export default function EditarImovelPage() {
             const cidRes = await fetchWithTimeout(`/api/property/cidades?estado_id=${estadoId}`, {}, 3000);
             const cities = await cidRes.json();
             const normalizedCid = cidadeNome.trim().toUpperCase();
-            const matchedCid = cities.find((c: any) => c.nome.trim().toUpperCase() === normalizedCid);
+            let matchedCid = cities.find((c: any) => c.nome.trim().toUpperCase() === normalizedCid);
 
+            let cidadeId: number;
             if (!matchedCid) {
-                setBairroCreateLabel(cidadeNome);
-                setActiveVerification('cidade');
-                setShowBairroCreateModal(true);
-                return false;
+                if (autoCreate) {
+                    const res = await fetch('/api/property/cidades', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ descricao: cidadeNome, estado_id: estadoId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        cidadeId = Number(data.id);
+                        setLocationRefreshTrigger(prev => prev + 1);
+                    } else return false;
+                } else {
+                    setBairroCreateLabel(cidadeNome);
+                    setActiveVerification('cidade');
+                    setShowBairroCreateModal(true);
+                    return false;
+                }
+            } else {
+                cidadeId = matchedCid.id;
             }
-            const cidadeId = matchedCid.id;
             setResolvedIds(prev => ({ ...prev, cidadeId }));
 
             // 3. Check Bairro
@@ -724,17 +780,37 @@ export default function EditarImovelPage() {
             if (!bairroNome) return true;
 
             const baiRes = await fetchWithTimeout(`/api/property/bairros?cidade_id=${cidadeId}`, {}, 3000);
-            const bairros = await baiRes.json();
+            const bairrosData = await baiRes.json();
             const normalizedBai = bairroNome.trim().toUpperCase();
-            const matchedBai = bairros.find((b: any) => b.nome.trim().toUpperCase() === normalizedBai);
+            let matchedBai = bairrosData.find((b: any) => b.nome.trim().toUpperCase() === normalizedBai);
 
+            let bairroId: number;
             if (!matchedBai) {
-                setBairroCreateLabel(bairroNome);
-                setActiveVerification('bairro');
-                setShowBairroCreateModal(true);
-                return false;
+                if (autoCreate) {
+                    const res = await fetch('/api/property/bairros', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            descricao: bairroNome,
+                            cidade_id: cidadeId,
+                            estado_id: estadoId
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        bairroId = Number(data.id);
+                        setLocationRefreshTrigger(prev => prev + 1);
+                    } else return false;
+                } else {
+                    setBairroCreateLabel(bairroNome);
+                    setActiveVerification('bairro');
+                    setShowBairroCreateModal(true);
+                    return false;
+                }
+            } else {
+                bairroId = matchedBai.id;
             }
-            setResolvedIds(prev => ({ ...prev, bairroId: matchedBai.id }));
+            setResolvedIds(prev => ({ ...prev, bairroId }));
 
             return true;
         } catch (error) {
@@ -751,20 +827,20 @@ export default function EditarImovelPage() {
                 res = await fetch('/api/property/estados', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sigla: imovel?.custom_fields?.uf, nome: imovel?.custom_fields?.uf })
+                    body: JSON.stringify({ sigla: bairroCreateLabel, nome: bairroCreateLabel })
                 });
             } else if (activeVerification === 'cidade') {
                 res = await fetch('/api/property/cidades', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ descricao: imovel?.custom_fields?.cidade, estado_id: resolvedIds.estadoId })
+                    body: JSON.stringify({ descricao: bairroCreateLabel, estado_id: resolvedIds.estadoId })
                 });
             } else if (activeVerification === 'bairro') {
                 res = await fetch('/api/property/bairros', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        descricao: imovel?.custom_fields?.bairro,
+                        descricao: bairroCreateLabel,
                         cidade_id: resolvedIds.cidadeId,
                         estado_id: resolvedIds.estadoId
                     })
@@ -774,9 +850,16 @@ export default function EditarImovelPage() {
             const data = await res?.json();
             if (data?.success) {
                 const newId = Number(data.id);
-                if (activeVerification === 'estado') setResolvedIds(prev => ({ ...prev, estadoId: newId }));
-                else if (activeVerification === 'cidade') setResolvedIds(prev => ({ ...prev, cidadeId: newId }));
-                else if (activeVerification === 'bairro') setResolvedIds(prev => ({ ...prev, bairroId: newId }));
+                if (activeVerification === 'estado') {
+                    setResolvedIds(prev => ({ ...prev, estadoId: newId }));
+                    setImovel(prev => prev ? ({ ...prev, custom_fields: { ...prev.custom_fields, uf: bairroCreateLabel } }) : null);
+                } else if (activeVerification === 'cidade') {
+                    setResolvedIds(prev => ({ ...prev, cidadeId: newId }));
+                    setImovel(prev => prev ? ({ ...prev, custom_fields: { ...prev.custom_fields, cidade: bairroCreateLabel } }) : null);
+                } else if (activeVerification === 'bairro') {
+                    setResolvedIds(prev => ({ ...prev, bairroId: newId }));
+                    setImovel(prev => prev ? ({ ...prev, custom_fields: { ...prev.custom_fields, bairro: bairroCreateLabel } }) : null);
+                }
 
                 // Force refresh of dropdown lists
                 setLocationRefreshTrigger(prev => prev + 1);
@@ -898,13 +981,39 @@ export default function EditarImovelPage() {
                                 {activeVerification === 'cidade' && 'Cidade não cadastrada'}
                                 {activeVerification === 'bairro' && 'Bairro não cadastrado'}
                             </h3>
-                            <p style={{ color: '#334155', marginBottom: '18px' }}>
-                                O {activeVerification === 'estado' ? 'estado' : activeVerification === 'cidade' ? 'município' : 'bairro'} <strong>{bairroCreateLabel}</strong> não existe em nossa base master.
-                                Nenhum imóvel cadastrado na região. Deseja prosseguir com a inclusão?
+                            <p style={{ color: '#334155', marginBottom: '12px' }}>
+                                Digite o nome do {activeVerification === 'estado' ? 'estado' : activeVerification === 'cidade' ? 'município' : 'bairro'} que deseja incluir na base master:
                             </p>
+                            <input 
+                                type="text"
+                                value={bairroCreateLabel}
+                                onChange={(e) => setBairroCreateLabel(e.target.value.toUpperCase())}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e2e8f0',
+                                    marginBottom: '20px',
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    outline: 'none',
+                                    background: '#f8fafc'
+                                }}
+                                autoFocus
+                                placeholder="Nome da localidade..."
+                            />
                             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                                 <button
-                                    onClick={() => setShowBairroCreateModal(false)}
+                                    onClick={() => {
+                                        setShowBairroCreateModal(false);
+                                        // Restore previous value if cancelling a manual creation
+                                        if (activeVerification === 'bairro' && previousBairroValue.current !== undefined) {
+                                            setImovel(prev => prev ? ({
+                                                ...prev,
+                                                custom_fields: { ...prev.custom_fields, bairro: previousBairroValue.current }
+                                            }) : null);
+                                        }
+                                    }}
                                     style={{
                                         padding: '10px 18px',
                                         borderRadius: '8px',
@@ -1068,10 +1177,15 @@ export default function EditarImovelPage() {
                                     <h3 className={styles.question}>Estado</h3>
                                     <select
                                         value={imovel.custom_fields.uf || ''}
-                                        onChange={(e) => setImovel({
-                                            ...imovel,
-                                            custom_fields: { ...imovel.custom_fields, uf: e.target.value }
-                                        })}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const matched = estados.find(est => est.sigla === val);
+                                            setResolvedIds(prev => ({ ...prev, estadoId: matched?.id || 0, cidadeId: 0, bairroId: 0 }));
+                                            setImovel({
+                                                ...imovel,
+                                                custom_fields: { ...imovel.custom_fields, uf: val, cidade: '', bairro: '' }
+                                            });
+                                        }}
                                         className={styles.select}
                                     >
                                         <option value="">Selecione...</option>
@@ -1086,10 +1200,15 @@ export default function EditarImovelPage() {
                                     <h3 className={styles.question}>Cidade</h3>
                                     <select
                                         value={imovel.custom_fields.cidade || ''}
-                                        onChange={(e) => setImovel({
-                                            ...imovel,
-                                            custom_fields: { ...imovel.custom_fields, cidade: sanitizeLocationName(e.target.value, false) }
-                                        })}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            const matched = cidades.find(cid => cid.nome === val);
+                                            setResolvedIds(prev => ({ ...prev, cidadeId: matched?.id || 0, bairroId: 0 }));
+                                            setImovel({
+                                                ...imovel,
+                                                custom_fields: { ...imovel.custom_fields, cidade: sanitizeLocationName(val, false), bairro: '' }
+                                            });
+                                        }}
                                         className={styles.select}
                                     >
                                         <option value="">Selecione...</option>
@@ -1106,13 +1225,23 @@ export default function EditarImovelPage() {
                                     <h3 className={styles.question}>Bairro</h3>
                                     <select
                                         value={imovel.custom_fields.bairro || ''}
-                                        onChange={(e) => setImovel({
-                                            ...imovel,
-                                            custom_fields: { ...imovel.custom_fields, bairro: sanitizeLocationName(e.target.value, false) }
-                                        })}
+                                        onChange={(e) => {
+                                            if (e.target.value === 'CREATE_NEW') {
+                                                previousBairroValue.current = imovel.custom_fields.bairro || '';
+                                                setBairroCreateLabel('');
+                                                setActiveVerification('bairro');
+                                                setShowBairroCreateModal(true);
+                                                return;
+                                            }
+                                            setImovel({
+                                                ...imovel,
+                                                custom_fields: { ...imovel.custom_fields, bairro: sanitizeLocationName(e.target.value, false) }
+                                            });
+                                        }}
                                         className={styles.select}
                                     >
                                         <option value="">Selecione...</option>
+                                        <option value="CREATE_NEW" style={{ fontWeight: 'bold', color: '#7F34E6' }}>+ CADASTRAR NOVO BAIRRO</option>
                                         {bairros.map(bai => (
                                             <option key={bai.id} value={bai.nome}>{bai.nome}</option>
                                         ))}
@@ -1142,13 +1271,15 @@ export default function EditarImovelPage() {
                                                 <div className={styles.cepConfirmDetails}>
                                                     <span className={styles.cepConfirmStreet}>{(cepData.logradouro || '').split(',')[0].split('-')[0].trim().toUpperCase()}</span>
                                                     <span className={styles.cepConfirmSub}>
-                                                        {(cepData.bairro || '').toUpperCase()}, {(cepData.localidade || '').toUpperCase()} / {(cepData.uf || '').toUpperCase()}
+                                                        {cepData.bairro ? `${cepData.bairro.toUpperCase()}, ` : ''}
+                                                        {(cepData.localidade || '').toUpperCase()} / {(cepData.uf || '').toUpperCase()}
                                                     </span>
                                                     <span className={styles.cepConfirmCep}>CEP: {cepData.cep}</span>
                                                 </div>
                                             </div>
                                             <div className={styles.cepConfirmActions}>
                                                 <button onClick={applyCepData} className={styles.cepConfirmYes}>Atualizar campos</button>
+                                                <button onClick={applyOnlyCep} className={styles.cepConfirmOnly || styles.cepConfirmNo} style={{ background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' }}>Manter apenas CEP</button>
                                                 <button onClick={declineCep} className={styles.cepConfirmNo}>Manter atual</button>
                                             </div>
                                         </div>

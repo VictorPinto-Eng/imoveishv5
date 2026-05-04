@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     }
 
     const insertRes = await query(
-      'INSERT INTO public.apobairro (descricao, cidade_id, estado_id) VALUES ($1, $2, $3) RETURNING id',
+      'INSERT INTO public.apobairro (descricao, cidade_id, estado_id, pais_id) VALUES ($1, $2, $3, 1) RETURNING id',
       [cleanDesc, cidade_id, estado_id || null]
     );
 

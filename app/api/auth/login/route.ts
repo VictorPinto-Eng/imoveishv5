@@ -6,6 +6,7 @@ import { query } from '@/lib/db';
 import { JWT_SECRET } from '@/lib/auth-config';
 
 export async function POST(request: Request) {
+    console.log('[API] Login request received');
     try {
         const { email, password } = await request.json();
 

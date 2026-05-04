@@ -17,6 +17,7 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
     const [categories, setCategories] = useState<any[]>([])
     const [propertyTypes, setPropertyTypes] = useState<any[]>([])
     const [empreendimentos, setEmpreendimentos] = useState<any[]>([])
+    const [statuses, setStatuses] = useState<any[]>([])
 
     useEffect(() => {
         setFilters(initialFilters)
@@ -32,6 +33,11 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
             .then(res => res.json())
             .then(data => setEmpreendimentos(data.empreendimentos || []))
             .catch(() => setEmpreendimentos([]))
+
+        fetch('/api/property/status')
+            .then(res => res.json())
+            .then(data => setStatuses(Array.isArray(data) ? data : []))
+            .catch(() => setStatuses([]))
     }, [])
 
     useEffect(() => {
@@ -140,11 +146,20 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
                                     {categories.map(c => <option key={c.id} value={c.id}>{c.descricao}</option>)}
                                 </select>
                             </div>
+                            {filters.finalidade && (
+                                <div className={styles.field}>
+                                    <label>Tipo</label>
+                                    <select name="tipo" value={filters.tipo} onChange={handleChange}>
+                                        <option value="">Todos</option>
+                                        {propertyTypes.map(t => <option key={t.id} value={t.id}>{t.descricao}</option>)}
+                                    </select>
+                                </div>
+                            )}
                             <div className={styles.field}>
-                                <label>Tipo</label>
-                                <select name="tipo" value={filters.tipo} onChange={handleChange}>
+                                <label>Status</label>
+                                <select name="status" value={filters.status} onChange={handleChange}>
                                     <option value="">Todos</option>
-                                    {propertyTypes.map(t => <option key={t.id} value={t.id}>{t.descricao}</option>)}
+                                    {statuses.map(s => <option key={s.id} value={s.id.toString()}>{s.nome}</option>)}
                                 </select>
                             </div>
                         </div>

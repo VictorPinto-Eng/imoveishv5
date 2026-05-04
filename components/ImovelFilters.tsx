@@ -111,16 +111,18 @@ export default function ImovelFilters({ initialFilters }: ImovelFiltersProps) {
                     />
                 </div>
 
-                <div className={styles.filterGroup}>
-                    <label className={styles.label}>Tipo</label>
-                    <CustomSelect
-                        options={propertyTypes}
-                        value={filters.tipo}
-                        onChange={(val) => handleCustomChange('tipo', val)}
-                        placeholder="Todos"
-                        name="tipo"
-                    />
-                </div>
+                {filters.finalidade && (
+                    <div className={styles.filterGroup}>
+                        <label className={styles.label}>Tipo</label>
+                        <CustomSelect
+                            options={propertyTypes}
+                            value={filters.tipo}
+                            onChange={(val) => handleCustomChange('tipo', val)}
+                            placeholder="Todos"
+                            name="tipo"
+                        />
+                    </div>
+                )}
 
                 <div className={styles.filterGroup}>
                     <label className={styles.label}>Preço Máx.</label>

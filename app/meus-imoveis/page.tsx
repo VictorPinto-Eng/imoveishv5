@@ -116,6 +116,7 @@ interface Imovel {
     plus_code?: string;
     pub_site?: boolean;
     pub_price?: boolean;
+    statusimovel?: number;
 }
 
 function MeusImoveisContent() {
@@ -229,7 +230,7 @@ function MeusImoveisContent() {
         banheiros: undefined,
         minArea: '',
         maxArea: '',
-        status: 'ativo',
+        status: '',
         empreendimento: undefined
     });
     const searchParams = useSearchParams();
@@ -360,6 +361,17 @@ function MeusImoveisContent() {
 
     if (!isAuthenticated) return null;
 
+    const getStatusClass = (status: string) => {
+        const s = status?.toLowerCase() || '';
+        if (s.includes('ativo')) return styles.statusAtivo;
+        if (s.includes('pendente')) return styles.statusPendente;
+        if (s.includes('vendido')) return styles.statusVendido;
+        if (s.includes('alugado')) return styles.statusAlugado;
+        if (s.includes('suspenso')) return styles.statusSuspenso;
+        if (s.includes('destrato')) return styles.statusDestrato;
+        return styles.statusSuspenso;
+    };
+
     return (
         <main className="min-h-screen bg-white pt-[80px]">
             <Header />
@@ -480,6 +492,8 @@ function MeusImoveisContent() {
                                 if (activeFilters.maxArea && (imovel.area_util || 0) > Number(activeFilters.maxArea)) return false;
 
                                 if (activeFilters.empreendimento && imovel.imbempreendimento_id?.toString() !== activeFilters.empreendimento.toString()) return false;
+                                
+                                if (activeFilters.status && imovel.statusimovel?.toString() !== activeFilters.status.toString()) return false;
 
                                 return true;
                             })
@@ -520,16 +534,23 @@ function MeusImoveisContent() {
                                                 )}
                                             </div>
                                             <h3 className={styles.cardCompactTitle}>
-                                                {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
-                                                {imovel.tipo_nome || (imovel.categoria === 'Imovel' ? 'Apartamento' : imovel.categoria)}
+                                                <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
+                                                    {imovel.tipo_nome || (imovel.categoria === 'Imovel' ? 'Apartamento' : imovel.categoria)}
+                                                </div>
+                                                {imovel.status_imovel_nome && (
+                                                    <span className={`${styles.statusBadgeCompact} ${getStatusClass(imovel.status_imovel_nome)}`}>
+                                                        {imovel.status_imovel_nome}
+                                                    </span>
+                                                )}
                                             </h3>
                                             
                                             <div className={styles.cardCompactAddress}>
                                                 {imovel.logradouro ? `${imovel.logradouro}${imovel.numero ? ', ' + imovel.numero : ''}` : 'Localização não informada'}
                                             </div>
                                             <div className={styles.cardCompactAddress}>
-                                                {imovel.custom_fields?.bairro || 'Boa Viagem'}
-                                                {imovel.custom_fields?.cidade ? `, ${imovel.custom_fields.cidade}` : ', Recife'}
+                                                {imovel.bairro_nome || imovel.custom_fields?.bairro || 'Bairro não informado'}
+                                                {(imovel.cidade_nome || imovel.custom_fields?.cidade) ? `, ${imovel.cidade_nome || imovel.custom_fields.cidade}` : ''}
                                             </div>
     
                                             <div className={styles.cardCompactPrice}>
@@ -915,7 +936,7 @@ function MeusImoveisContent() {
                                                 {selectedImovel.logradouro ? `${selectedImovel.logradouro}, ${selectedImovel.numero}` : 'Endereço não informado'}
                                                 {selectedImovel.complemento ? ` - ${selectedImovel.complemento}` : ''}
                                                 <br />
-                                                {selectedImovel.custom_fields?.bairro || '-'}, {selectedImovel.custom_fields?.cidade || '-'} - {selectedImovel.custom_fields?.uf || '-'}
+                                                {selectedImovel.bairro_nome || selectedImovel.custom_fields?.bairro || '-'}, {selectedImovel.cidade_nome || selectedImovel.custom_fields?.cidade || '-'} - {selectedImovel.estado_sigla || selectedImovel.custom_fields?.uf || '-'}
                                                 <br />
                                                 CEP: {selectedImovel.cep || '-'}
                                             </p>

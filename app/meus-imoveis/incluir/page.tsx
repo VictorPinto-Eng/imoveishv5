@@ -1,13 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Square, ArrowLeft, Loader2, Camera, Home as HomeIcon, CheckCircle, Building2, X, Milestone, Info, ChevronRight, MessageCircle, Phone, Sparkles, DollarSign, Ruler, Map, MapPin, Navigation, Map as MapIcon, Maximize2, Plus } from 'lucide-react';
+import { Square, ArrowLeft, Loader2, Camera, Home as HomeIcon, CheckCircle, Building2, X, Milestone, Info, ChevronRight, Sparkles, DollarSign, Ruler, Map, MapPin, Navigation, Map as MapIcon, Maximize2, Plus } from 'lucide-react';
 import styles from './incluir.module.css';
 import Link from 'next/link';
 import { maskCurrencyInput, formatCurrency, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import dynamic from 'next/dynamic';
-import WhatsAppLink from '@/components/WhatsAppLink';
 import SearchableSelect from '@/components/SearchableSelect';
 import Swal from 'sweetalert2';
 
@@ -75,7 +74,6 @@ export default function IncluirImovelPage() {
     const [isMapOpen, setIsMapOpen] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [isIptuHelpModalOpen, setIsIptuHelpModalOpen] = useState(false);
     const [isCondoHelpModalOpen, setIsCondoHelpModalOpen] = useState(false);
     const [showBairroCreateModal, setShowBairroCreateModal] = useState(false);
@@ -1031,17 +1029,6 @@ export default function IncluirImovelPage() {
                                     )}
                                 </div>
 
-                                {formData.address.length > 5 || (searchMode === 'CEP' && formData.cep.length === 8) ? (
-                                    <div className={styles.navigation}>
-                                        <button className={styles.btnPrimary} onClick={handleNext}>
-                                            Continuar
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <p className={styles.hint}>
-                                        Informe o {searchMode.toLowerCase()} para continuar
-                                    </p>
-                                )}
                             </>
                         ) : (
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -1334,17 +1321,28 @@ export default function IncluirImovelPage() {
                             </>
                         )}
 
-                        {isAddressFound && (
-                            <div className={styles.navigation}>
-                                <button
-                                    className={styles.btnPrimary}
-                                    onClick={handleNext}
-                                    disabled={!formData.number || !formData.imbfinalidade_id || !formData.imbtpimovel_id}
-                                >
-                                    Continuar
-                                </button>
-                            </div>
-                        )}
+
+
+                        <div className={styles.navigation} style={{ marginTop: '48px' }}>
+                            <button
+                                className={styles.btnPrimary}
+                                onClick={handleNext}
+                                disabled={
+                                    !isAddressFound || 
+                                    !formData.number || 
+                                    !formData.imbfinalidade_id || 
+                                    !formData.imbtpimovel_id ||
+                                    !formData.relationship
+                                }
+                            >
+                                Continuar
+                            </button>
+                            {(!isAddressFound || !formData.number || !formData.imbfinalidade_id || !formData.imbtpimovel_id || !formData.relationship) && (
+                                <p className={styles.hint} style={{ marginTop: '12px', textAlign: 'center', width: '100%' }}>
+                                    Preencha todos os campos obrigatórios para continuar
+                                </p>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -1857,53 +1855,6 @@ export default function IncluirImovelPage() {
                                         {loading ? <Loader2 className="animate-spin" /> : 'Cadastrar e continuar'}
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Specialist Help Floating Button */}
-                <button
-                    className={styles.floatingHelpBtn}
-                    onClick={() => setIsHelpModalOpen(true)}
-                    title="Ajuda de especialista"
-                >
-                    <MessageCircle size={32} />
-                </button>
-
-                {/* Specialist Help Modal */}
-                {isHelpModalOpen && (
-                    <div className={styles.modalOverlay} onClick={() => setIsHelpModalOpen(false)}>
-                        <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
-                            <div className={styles.modalHeader}>
-                                <h2 className={styles.modalTitle}>Ajuda de especialista</h2>
-                                <button className={styles.modalCloseBtn} onClick={() => setIsHelpModalOpen(false)}>
-                                    <X size={24} />
-                                </button>
-                            </div>
-                            <div className={styles.modalContent}>
-                                <p className={styles.modalText}>
-                                    Temos especialistas à disposição para cadastrar o imóvel junto com você.
-                                </p>
-
-                                <WhatsAppLink 
-                                    messageOrImovel="Olá, preciso de ajuda com o cadastro do meu imóvel na HV5"
-                                    isFullMessage={true}
-                                    className={`${styles.contactBtn} ${styles.contactBtnWhatsApp}`}
-                                    style={{ textDecoration: 'none' }}
-                                >
-                                    <MessageCircle size={20} />
-                                    Conversar por WhatsApp
-                                </WhatsAppLink>
-
-                                <a 
-                                    href="tel:+5581999529391"
-                                    className={`${styles.contactBtn} ${styles.contactBtnPhone}`}
-                                    style={{ textDecoration: 'none' }}
-                                >
-                                    <Phone size={20} />
-                                    Conversar por telefone
-                                </a>
                             </div>
                         </div>
                     </div>

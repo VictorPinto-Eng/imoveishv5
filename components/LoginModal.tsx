@@ -473,7 +473,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 body: JSON.stringify(formData),
             })
 
-            const data = await res.json()
+            // Check if response is JSON before parsing
+            const contentType = res.headers.get('content-type')
+            let data: any
+            
+            if (contentType && contentType.includes('application/json')) {
+                data = await res.json()
+            } else {
+                // If not JSON, it's likely an HTML error page (404/500)
+                const text = await res.text()
+                const snippet = text.substring(0, 50).replace(/[<>]/g, '')
+                console.error('Non-JSON response from API:', text.substring(0, 500))
+                throw new Error(`Erro do Servidor: [${res.status}] ${snippet}... Tente novamente.`)
+            }
 
             if (!res.ok) {
                 if (data.needsActivation) {

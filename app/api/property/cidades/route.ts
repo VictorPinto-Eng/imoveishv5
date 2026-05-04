@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     }
 
     const insertRes = await query(
-      'INSERT INTO public.apocidade (descricao, estado_id) VALUES ($1, $2) RETURNING id',
+      'INSERT INTO public.apocidade (descricao, estado_id, pais_id) VALUES ($1, $2, 1) RETURNING id',
       [cleanDesc, estado_id]
     );
 

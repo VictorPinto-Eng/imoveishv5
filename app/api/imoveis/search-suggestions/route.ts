@@ -58,44 +58,48 @@ export async function GET(req: NextRequest) {
       logradourosPromise
     ]);
 
+    const toTitleCase = (str: string) => {
+      if (!str) return '';
+      return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
     const suggestions = [
       ...citiesRes.rows.map((row: any) => {
-        const label = sanitizeLocationName(row.label);
+        const cityName = toTitleCase(row.label);
         return {
-          id: `city-${label}-${row.uf}`,
-          label: label,
-          sublabel: `Cidade - ${row.uf}`,
+          id: `city-${row.label}-${row.uf}`,
+          label: `${cityName} / ${row.uf}`,
+          sublabel: '', // More clean as requested
           type: 'cidade',
-          city: label,
+          city: row.label,
           uf: row.uf
         };
       }),
       ...neighborhoodsRes.rows.map((row: any) => {
-        const label = sanitizeLocationName(row.label);
-        const city = sanitizeLocationName(row.city);
+        const bairroName = toTitleCase(row.label);
+        const cityName = toTitleCase(row.city);
         return {
-          id: `bairro-${label}-${city}-${row.uf}`,
-          label: label,
-          sublabel: `Bairro, ${city} - ${row.uf}`,
+          id: `bairro-${row.label}-${row.city}-${row.uf}`,
+          label: `${bairroName} / ${cityName}`,
+          sublabel: '',
           type: 'bairro',
-          city: city,
-          neighborhood: label,
+          city: row.city,
+          neighborhood: row.label,
           uf: row.uf
         };
       }),
       ...logradourosRes.rows.map((row: any) => {
         const rawLabel = row.label || '';
         const cleanLabel = rawLabel.split(',')[0].split('-')[0].trim();
-        const label = sanitizeLocationName(cleanLabel);
-        const neighborhood = sanitizeLocationName(row.neighborhood || '');
-        const city = sanitizeLocationName(row.city);
+        const addressName = toTitleCase(cleanLabel);
+        const neighborhood = toTitleCase(row.neighborhood || '');
         return {
-          id: `address-${label}-${neighborhood}-${city}-${row.uf}`,
-          label: label,
-          sublabel: `${neighborhood ? neighborhood + ', ' : ''}${city} - ${row.uf}`,
+          id: `address-${row.label}-${row.neighborhood}-${row.city}-${row.uf}`,
+          label: `${addressName}${neighborhood ? ' / ' + neighborhood : ''}`,
+          sublabel: '',
           type: 'endereco',
-          city: city,
-          neighborhood: neighborhood,
+          city: row.city,
+          neighborhood: row.neighborhood,
           uf: row.uf
         };
       })
