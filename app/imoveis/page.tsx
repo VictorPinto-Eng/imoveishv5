@@ -1,4 +1,3 @@
-
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import ImovelCard from '@/components/ImovelCard'
@@ -36,7 +35,8 @@ export default async function ImoveisPage({
     }
 
     const hasFilters = Object.keys(params).length > 0;
-    const imoveis = hasFilters ? await getImoveis(filters) : [];
+    const result = hasFilters ? await getImoveis(filters) : { imoveis: [], debug: null };
+    const imoveis = result.imoveis;
 
     return (
         <>
@@ -45,7 +45,9 @@ export default async function ImoveisPage({
                 <div className="container">
                     <h1 style={{ marginBottom: '2rem' }}>Encontre seu imóvel</h1>
 
-                    <ImovelFilters />
+                    <ImovelFilters 
+                        initialFilters={filters}
+                    />
 
                     {!hasFilters ? (
                         <div style={{ textAlign: 'center', padding: '6rem 0', color: 'var(--secondary)' }}>
@@ -60,7 +62,7 @@ export default async function ImoveisPage({
                         </div>
                     ) : (
                         <div className="card-grid">
-                            {imoveis.map(imovel => (
+                            {imoveis.map((imovel: any) => (
                                 <ImovelCard key={imovel.id} imovel={imovel} />
                             ))}
                         </div>

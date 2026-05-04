@@ -9,6 +9,7 @@ import Swal from 'sweetalert2'
 import WhatsAppLink from './WhatsAppLink'
 import ContactModal from './ContactModal'
 import LeadCaptureModal from './LeadCaptureModal'
+import ShareModal from './ShareModal'
 import { supabase } from '@/lib/supabaseClient'
 
 interface ImovelCardProps {
@@ -21,6 +22,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [isContactModalOpen, setIsContactModalOpen] = useState(false)
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false)
     const [showPhone, setShowPhone] = useState(false)
     const router = useRouter()
 
@@ -58,22 +60,8 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
     const handleShareClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        const shareUrl = `${window.location.origin}/imovel/${imovel.id}`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                title: 'Link copiado!',
-                icon: 'success',
-            });
-            logActivity('share_link_copied', '400');
-        }).catch(err => {
-            console.error('Failed to copy link:', err);
-        });
+        setIsShareModalOpen(true);
+        logActivity('share_modal_opened', '401');
     };
 
     const logActivity = async (action: string, eventCode: string, origin: string = 'card', details: any = {}) => {
@@ -300,6 +288,13 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
                     propertyId={imovel.id}
                     propertyTitle={nome}
                     origin="card"
+                />
+
+                <ShareModal 
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    propertyId={imovel.id}
+                    propertyTitle={nome}
                 />
       </div>
       {showPhone && (

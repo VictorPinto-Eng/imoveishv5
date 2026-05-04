@@ -1,120 +1,183 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Copy, Check, Share2, MessageCircle, Mail } from 'lucide-react';
-import styles from './share-modal.module.css';
+import { createPortal } from 'react-dom';
+import { X, Copy, Facebook, Mail, MessageCircle, Instagram } from 'lucide-react';
+import styles from './ShareModal.module.css';
+import Swal from 'sweetalert2';
+import { useEffect, useState } from 'react';
 
 interface ShareModalProps {
     isOpen: boolean;
     onClose: () => void;
-    shareUrl: string;
-    title?: string;
+    propertyId: string;
+    propertyTitle: string;
 }
 
-export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareModalProps) {
-    const [copied, setCopied] = useState(false);
-    const modalRef = useRef<HTMLDivElement>(null);
+export default function ShareModal({ isOpen, onClose, propertyId, propertyTitle }: ShareModalProps) {
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        if (copied) {
-            const timer = setTimeout(() => setCopied(false), 2000);
-            return () => clearTimeout(timer);
-        }
-    }, [copied]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        };
-
+        setMounted(true);
         if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
+            document.body.style.overflow = 'hidden';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
+    if (!isOpen || !mounted) return null;
+
+    const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/imovel/${propertyId}`;
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const encodedTitle = encodeURIComponent(`Confira este imóvel: ${propertyTitle}`);
+
+    const copyToClipboard = async (silent = false) => {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(shareUrl);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = shareUrl;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand('copy');
+                textArea.remove();
+            }
+
+            if (!silent) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    title: 'Link copiado!',
+                    icon: 'success',
+                });
+            }
+            return true;
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            return false;
+        }
+    };
+
+    const handleInstagramShare = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        
+        // Mobile: Try native share (Stories/Direct)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: propertyTitle,
+                    text: `Confira este imóvel: ${propertyTitle}`,
+                    url: shareUrl
+                });
+                return;
+            } catch (err) {
+                console.log('Native share canceled or failed');
+            }
         }
 
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isOpen, onClose]);
-
-    if (!isOpen) return null;
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            setCopied(true);
+        // Desktop or Fallback: Copy link and inform user
+        await copyToClipboard(true);
+        Swal.fire({
+            title: 'Instagram',
+            text: 'Link copiado! Agora você pode colá-lo nos seus Stories ou enviar por Direct.',
+            icon: 'info',
+            confirmButtonText: 'Abrir Instagram',
+            showCancelButton: true,
+            cancelButtonText: 'Fechar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open('https://www.instagram.com', '_blank');
+            }
         });
     };
 
-    const shareWhatsApp = () => {
-        const msg = encodeURIComponent(`Veja este imóvel no portal HV5: ${shareUrl}`);
-        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-    };
+    const shareOptions = [
+        {
+            name: 'WhatsApp',
+            icon: <MessageCircle size={24} />,
+            color: '#25D366',
+            url: `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`
+        },
+        {
+            name: 'Instagram',
+            icon: <Instagram size={24} />,
+            color: '#E4405F',
+            onClick: handleInstagramShare
+        },
+        {
+            name: 'Facebook',
+            icon: <Facebook size={24} />,
+            color: '#1877F2',
+            url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
+        },
+        {
+            name: 'E-mail',
+            icon: <Mail size={24} />,
+            color: '#EA4335',
+            url: `mailto:?subject=${encodedTitle}&body=Vi este imóvel no portal e achei interessante: ${encodedUrl}`
+        }
+    ];
 
-    const shareEmail = () => {
-        const subject = encodeURIComponent(`Interesse no imóvel: ${title || 'HV5'}`);
-        const body = encodeURIComponent(`Olá, veja este imóvel no portal HV5:\n\n${shareUrl}`);
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    };
-
-    return (
-        <div className={styles.overlay}>
-            <div className={styles.modal} ref={modalRef}>
+    const modalContent = (
+        <div className={styles.overlay} onClick={onClose}>
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.header}>
-                    <div className={styles.titleArea}>
-                        <Share2 size={20} className={styles.titleIcon} />
-                        <h2 className={styles.title}>Compartilhar</h2>
-                    </div>
+                    <h2>Compartilhar Imóvel</h2>
                     <button className={styles.closeBtn} onClick={onClose}>
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className={styles.content}>
-                    <p className={styles.subtitle}>Compartilhe o link direto deste imóvel</p>
-                    
-                    <div className={styles.inputWrapper}>
-                        <input 
-                            type="text" 
-                            className={styles.input} 
-                            value={shareUrl} 
-                            readOnly 
-                        />
-                        <button 
-                            className={`${styles.copyBtn} ${copied ? styles.copyBtnSuccess : ''}`}
-                            onClick={handleCopy}
-                        >
-                            {copied ? <Check size={18} /> : <Copy size={18} />}
-                            <span>{copied ? 'Copiado!' : 'Copiar'}</span>
-                        </button>
-                    </div>
-
-                    <div className={styles.divider}>
-                        <span>ou compartilhe via</span>
-                    </div>
-
-                    <div className={styles.socialGrid}>
-                        <button className={styles.socialBtn} onClick={shareWhatsApp}>
-                            <div className={`${styles.socialIcon} ${styles.whatsapp}`}>
-                                <MessageCircle size={20} />
-                            </div>
-                            <span>WhatsApp</span>
-                        </button>
-                        <button className={styles.socialBtn} onClick={shareEmail}>
-                            <div className={`${styles.socialIcon} ${styles.email}`}>
-                                <Mail size={20} />
-                            </div>
-                            <span>E-mail</span>
-                        </button>
-                    </div>
+                <div className={styles.optionsGrid}>
+                    {shareOptions.map((option) => (
+                        option.onClick ? (
+                            <button 
+                                key={option.name}
+                                onClick={option.onClick}
+                                className={styles.optionCardBtn}
+                            >
+                                <div className={styles.iconWrapper} style={{ backgroundColor: option.color }}>
+                                    {option.icon}
+                                </div>
+                                <span>{option.name}</span>
+                            </button>
+                        ) : (
+                            <a 
+                                key={option.name}
+                                href={option.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.optionCard}
+                            >
+                                <div className={styles.iconWrapper} style={{ backgroundColor: option.color }}>
+                                    {option.icon}
+                                </div>
+                                <span>{option.name}</span>
+                            </a>
+                        )
+                    ))}
                 </div>
 
-                <div className={styles.footer}>
-                    <button className={styles.cancelBtn} onClick={onClose}>
-                        Fechar
-                    </button>
+                <div className={styles.copySection}>
+                    <p>Ou copie o link direto:</p>
+                    <div className={styles.copyBox}>
+                        <input type="text" readOnly value={shareUrl} className={styles.urlInput} />
+                        <button className={styles.copyBtn} onClick={() => copyToClipboard()}>
+                            <Copy size={18} />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }

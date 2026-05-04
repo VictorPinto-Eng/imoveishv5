@@ -1,4 +1,5 @@
 import { query } from './db'
+import { sanitizeLocationName } from './sanitize-location'
 
 // Types
 export interface ImovelCustomFields {
@@ -165,11 +166,17 @@ const BASE_SELECT = `
     ARRAY(SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC) as all_photos,
     OP.descricao as operacao_nome,
     TP.descricao as tipo_nome,
-    ST.nome as status_imovel_nome
+    ST.nome as status_imovel_nome,
+    CID.descricao as cidade_nome,
+    BAI.descricao as bairro_nome,
+    EST.sigla as uf_nome
   FROM produtos_servicos I
   LEFT JOIN imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
   LEFT JOIN imbtpimovel TP ON I.imbtpimovel_id = TP.id
   LEFT JOIN statimovel ST ON I.statusimovel = ST.id
+  LEFT JOIN apocidade CID ON I.cidade_id = CID.id
+  LEFT JOIN apobairro BAI ON I.bairro_id = BAI.id
+  LEFT JOIN apoestado EST ON I.estado_id = EST.id
 `
 
 export async function getFeaturedImoveis(limit = 6, excludeId?: string) {
@@ -234,12 +241,36 @@ export async function getPriceUpdatedImoveis(limit = 6) {
 
 export async function getImoveis(filters: ImovelFilters = {}) {
   try {
-    let sql = `${BASE_SELECT} WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true`
+    let sql = `
+      SELECT 
+        I.*, 
+        ARRAY(SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC) as all_photos,
+        OP.descricao as operacao_nome,
+        TP.descricao as tipo_nome,
+        ST.nome as status_imovel_nome,
+        CID.descricao as cidade_nome,
+        BAI.descricao as bairro_nome,
+        EST.sigla as uf_nome
+      FROM produtos_servicos I
+      LEFT JOIN public.imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
+      LEFT JOIN public.imbtpimovel TP ON I.imbtpimovel_id = TP.id
+      LEFT JOIN public.statimovel ST ON I.statusimovel = ST.id
+      JOIN public.apocidade CID ON I.cidade_id = CID.id
+      JOIN public.apobairro BAI ON I.bairro_id = BAI.id
+      LEFT JOIN public.apoestado EST ON I.estado_id = EST.id
+      WHERE I.ativo = true AND I.pub_site = true
+    `
     const params: any[] = []
 
-    // Default status filter is 'ativo' UNLESS we are strictly filtering by pub_site or something else
-    // But here the BASE_SELECT already has I.pub_site = true, so we just want to ensure it's not 'excluido'
-    sql += ` AND I.status != 'excluido'`
+    if (filters.cidade) {
+      params.push(`%${filters.cidade}%`)
+      sql += ` AND CID.descricao ILIKE $${params.length}`
+    }
+
+    if (filters.bairro) {
+      params.push(`%${filters.bairro}%`)
+      sql += ` AND BAI.descricao ILIKE $${params.length}`
+    }
 
     if (filters.minPrice) {
       params.push(filters.minPrice)
@@ -285,9 +316,10 @@ export async function getImoveis(filters: ImovelFilters = {}) {
       params.push(filters.maxArea)
       sql += ` AND I.area_util <= $${params.length}`
     }
-    if (filters.status) {
+    // Specific status filter only if explicitly requested and not 'ativo'
+    if (filters.status && filters.status !== 'ativo') {
       params.push(filters.status)
-      sql += ` AND I.status = $${params.length}`
+      sql += ` AND I.status ILIKE $${params.length}`
     }
     if (filters.alto_padrao === 'true') {
       sql += ` AND (I.custom_fields::jsonb->>'alto_padrao')::boolean = true`
@@ -300,15 +332,54 @@ export async function getImoveis(filters: ImovelFilters = {}) {
     const parsed = parseImoveis(res.rows || [])
 
     // Memory filter for city and neighborhood
-    return parsed.filter((imovel) => {
-      const fields = imovel.custom_fields
-      if (filters.cidade && fields.cidade !== filters.cidade) return false
-      if (filters.bairro && fields.bairro !== filters.bairro) return false
-      return true
-    })
+    const filtered = parsed.filter((imovel) => {
+      // Robust city check
+      if (filters.cidade) {
+        const cityFromCustom = imovel.custom_fields?.cidade ? sanitizeLocationName(imovel.custom_fields.cidade) : '';
+        const cityFromName = imovel.cidade_nome ? sanitizeLocationName(imovel.cidade_nome) : '';
+        const cityFromField = imovel.cidade ? sanitizeLocationName(imovel.cidade as string) : '';
+        
+        const searchCity = filters.cidade.toUpperCase().trim();
+        
+        if (!cityFromCustom.includes(searchCity) && 
+            !cityFromName.includes(searchCity) && 
+            !cityFromField.includes(searchCity)) {
+          return false;
+        }
+      }
+
+      // Robust neighborhood check
+      if (filters.bairro) {
+        const neighborhoodFromCustom = imovel.custom_fields?.bairro ? sanitizeLocationName(imovel.custom_fields.bairro) : '';
+        const neighborhoodFromName = imovel.bairro_nome ? sanitizeLocationName(imovel.bairro_nome) : '';
+        const neighborhoodFromField = imovel.bairro ? sanitizeLocationName(imovel.bairro as string) : '';
+        
+        const searchNeighborhood = filters.bairro.toUpperCase().trim();
+        
+        if (!neighborhoodFromCustom.includes(searchNeighborhood) && 
+            !neighborhoodFromName.includes(searchNeighborhood) && 
+            !neighborhoodFromField.includes(searchNeighborhood)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    return {
+      imoveis: filtered,
+      debug: {
+        sql,
+        params,
+        filters,
+        rowCount: res.rowCount,
+        parsedCount: parsed.length,
+        filteredCount: filtered.length
+      }
+    };
   } catch (error) {
-    console.error('Error fetching imoveis:', error)
-    return []
+    console.error('Error fetching imoveis:', error);
+    return { imoveis: [], error, debug: { filters } };
   }
 }
 

@@ -7,41 +7,48 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const q = (searchParams.get('q') || '').toUpperCase().trim();
 
-    // Query for unique Cities
+    // Query for unique Cities from the apocidade table
     const citiesPromise = query(`
       SELECT DISTINCT 
-        custom_fields->>'cidade' as label,
+        c.descricao as label,
         'cidade' as type,
-        custom_fields->>'uf' as uf
-      FROM produtos_servicos
-      WHERE tipo = 'produto' AND categoria = 'Imovel' AND status = 'ativo' AND ativo = true
-      AND (custom_fields->>'cidade') ILIKE $1
+        e.sigla as uf
+      FROM public.apocidade c
+      LEFT JOIN public.apoestado e ON c.estado_id = e.id
+      WHERE c.descricao ILIKE $1
+      AND EXISTS (SELECT 1 FROM produtos_servicos WHERE cidade_id = c.id AND ativo = true)
       LIMIT 5
     `, [`%${q}%`]);
 
-    // Query for unique Neighborhoods
+    // Query for unique Neighborhoods from the apobairro table
     const neighborhoodsPromise = query(`
       SELECT DISTINCT 
-        custom_fields->>'bairro' as label,
-        custom_fields->>'cidade' as city,
+        b.descricao as label,
+        c.descricao as city,
         'bairro' as type,
-        custom_fields->>'uf' as uf
-      FROM produtos_servicos
-      WHERE tipo = 'produto' AND categoria = 'Imovel' AND status = 'ativo' AND ativo = true
-      AND (custom_fields->>'bairro') ILIKE $1
+        e.sigla as uf
+      FROM public.apobairro b
+      JOIN public.apocidade c ON b.cidade_id = c.id
+      LEFT JOIN public.apoestado e ON c.estado_id = e.id
+      WHERE b.descricao ILIKE $1
+      AND EXISTS (SELECT 1 FROM produtos_servicos WHERE bairro_id = b.id AND ativo = true)
       LIMIT 10
     `, [`%${q}%`]);
+
     // Query for unique Addresses (Logradouros)
     const logradourosPromise = query(`
       SELECT DISTINCT 
-        logradouro as label,
-        custom_fields->>'bairro' as neighborhood,
-        custom_fields->>'cidade' as city,
+        I.logradouro as label,
+        BAI.descricao as neighborhood,
+        CID.descricao as city,
         'endereco' as type,
-        custom_fields->>'uf' as uf
-      FROM produtos_servicos
-      WHERE tipo = 'produto' AND categoria = 'Imovel' AND status = 'ativo' AND ativo = true
-      AND logradouro ILIKE $1
+        EST.sigla as uf
+      FROM produtos_servicos I
+      LEFT JOIN public.apocidade CID ON I.cidade_id = CID.id
+      LEFT JOIN public.apobairro BAI ON I.bairro_id = BAI.id
+      LEFT JOIN public.apoestado EST ON I.estado_id = EST.id
+      WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true
+      AND I.logradouro ILIKE $1
       LIMIT 10
     `, [`%${q}%`]);
 
