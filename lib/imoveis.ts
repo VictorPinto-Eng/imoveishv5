@@ -75,6 +75,8 @@ export interface Imovel {
   uf_nome?: string
   cidade_nome?: string
   bairro_nome?: string
+  cidade?: string
+  bairro?: string
 }
 
 export interface ImovelFilters {
