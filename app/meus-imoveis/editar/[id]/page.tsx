@@ -163,13 +163,19 @@ export default function EditarImovelPage() {
 
     const generateAiTitle = async () => {
         if (!imovel) return;
+        
+        // Get the current descriptive names from state or fallback to existing names
+        const currentType = propertyTypesList.find(t => t.id === imovel.imbtpimovel_id)?.descricao || imovel.tipo_nome || 'Imóvel';
+        const currentOperation = operacoes.find(o => o.id === imovel.imbtpoperacao_id)?.descricao || imovel.operacao_nome || 'Venda';
+        const currentCategory = categories.find(c => c.id === imovel.imbfinalidade_id)?.descricao || imovel.custom_fields.finalidade || '';
+
         setAiLoading(true);
         try {
             const res = await fetch('/api/property/generate-title', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    type: imovel.tipo_nome,
+                    type: currentType,
                     rooms: imovel.dormitorios,
                     bathrooms: imovel.banheiros,
                     suites: imovel.suites,
@@ -179,19 +185,39 @@ export default function EditarImovelPage() {
                     areaConstruida: imovel.area_construida,
                     varandas: imovel.varandas,
                     address: imovel.logradouro,
-                    finalidade: imovel.imbfinalidade_id,
-                    objective: imovel.imbtpoperacao_id,
+                    finalidade: currentCategory,
+                    objective: currentOperation,
                     condoFee: imovel.custom_fields.condominio,
                     iptuValue: imovel.custom_fields.iptu,
                     price: imovel.preco_base
                 })
             });
+            
             const data = await res.json();
+            
             if (data.title) {
                 setImovel(prev => prev ? ({ ...prev, nome: data.title.toUpperCase() }) : null);
+                
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Título atualizado pela IA!',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            } else {
+                throw new Error(data.error || 'Não foi possível gerar um título');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error with AI title generation:', error);
+            Swal.fire({
+                title: 'IA Temporariamente Indisponível',
+                text: 'Não conseguimos gerar o título agora. Por favor, tente novamente em instantes.',
+                icon: 'warning',
+                confirmButtonColor: '#7F34E6'
+            });
         } finally {
             setAiLoading(false);
         }
