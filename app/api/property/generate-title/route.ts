@@ -3,28 +3,43 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { buildPropertyTitlePrompt, generatePropertyTitleFallback } from '@/lib/property-title-prompt';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-// Switching to 1.5-flash for better stability and higher free-tier quotas
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Using -latest to ensure the SDK finds the stable version in any API endpoint
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+// High-availability fallback model
+const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
 
 const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 async function generateContentWithRetry(prompt: string, maxRetries = 2) {
     for (let i = 0; i < maxRetries; i++) {
         try {
+            // Attempt with the primary stable model
             const result = await model.generateContent(prompt);
             return result;
         } catch (error: any) {
-            // If it's a rate limit error (429) and we have retries left
+            console.warn(`Primary model attempt ${i+1} failed:`, error.message);
+            
+            // If it's a 404 (model not found) or 429 (quota), try the high-availability 8b model
+            if ((error.status === 404 || error.status === 429) && i === 0) {
+                try {
+                    console.info('Switching to high-availability fallback model (8b)...');
+                    const fbResult = await fallbackModel.generateContent(prompt);
+                    return fbResult;
+                } catch (fbError: any) {
+                    console.error('Fallback model also failed:', fbError.message);
+                }
+            }
+
+            // Standard retry for rate limits
             if (error.status === 429 && i < maxRetries - 1) {
                 const delay = Math.pow(2, i + 1) * 1000;
-                console.warn(`Gemini Rate Limit hit, retrying in ${delay}ms...`);
                 await wait(delay);
                 continue;
             }
             throw error;
         }
     }
-    throw new Error('Max retries exceeded');
+    throw new Error('All AI generation attempts failed');
 }
 
 export async function POST(request: Request) {
