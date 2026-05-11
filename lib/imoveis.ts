@@ -131,6 +131,7 @@ function parseImovel(item: any): Imovel {
     area_util: item.area_util ?? custom_fields.area_util ?? custom_fields.area_total,
     area_total: item.area_terreno ?? custom_fields.area_total ?? item.area_total,
     sala: item.sala || custom_fields.sala,
+    lavabo: item.lavabo || custom_fields.lavabo,
     dimensoes_terreno: item.dimensoes_terreno || custom_fields.dimensoes_terreno,
     cidade: custom_fields.cidade,
     bairro: custom_fields.bairro,

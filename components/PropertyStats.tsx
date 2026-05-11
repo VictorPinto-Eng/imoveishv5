@@ -9,10 +9,11 @@ interface PropertyStatsProps {
     bedrooms?: number;
     suites?: number;
     bathrooms?: number;
+    lavabos?: number;
     parking?: number;
 }
 
-export default function PropertyStats({ area, bedrooms, suites, bathrooms, parking }: PropertyStatsProps) {
+export default function PropertyStats({ area, bedrooms, suites, bathrooms, lavabos, parking }: PropertyStatsProps) {
     return (
         <div className={styles.statsContainer}>
             {area && (
@@ -51,6 +52,16 @@ export default function PropertyStats({ area, bedrooms, suites, bathrooms, parki
                     <div className={styles.texts}>
                         <span className={styles.value}>{bathrooms}</span>
                         <span className={styles.label}>Banheiro</span>
+                    </div>
+                </div>
+            )}
+
+            {lavabos && (
+                <div className={styles.statItem}>
+                    <Bath size={20} className={styles.icon} style={{ opacity: 0.7 }} />
+                    <div className={styles.texts}>
+                        <span className={styles.value}>{lavabos}</span>
+                        <span className={styles.label}>Lavabo</span>
                     </div>
                 </div>
             )}

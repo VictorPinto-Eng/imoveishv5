@@ -129,6 +129,7 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             bedrooms={imovel.dormitorios}
                             suites={imovel.suites}
                             bathrooms={imovel.banheiros}
+                            lavabos={imovel.lavabo}
                             parking={imovel.vagas}
                         />
 

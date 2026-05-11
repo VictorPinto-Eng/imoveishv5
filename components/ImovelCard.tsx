@@ -168,7 +168,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
           </h3>
         </div>
 
-        {!!(imovel.area_util || imovel.dormitorios || imovel.banheiros || imovel.vagas || imovel.suites) && (
+        {!!(imovel.area_util || imovel.dormitorios || imovel.banheiros || imovel.lavabo || imovel.vagas || imovel.suites) && (
           <div className={styles.featuresRow}>
             {!!imovel.area_util && (
               <div className={styles.featureItem} data-tooltip="Área Útil" title="Área Útil">
@@ -205,6 +205,17 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
                   <path d="M3 10h18v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7zM7 21v2M17 21v2M12 2v2M2 10V8a2 2 0 0 1 2-2h2" />
                 </svg>
                 <span>{imovel.banheiros}</span>
+              </div>
+            )}
+            {!!imovel.lavabo && (
+              <div className={styles.featureItem} data-tooltip="Lavabos" title="Lavabos">
+                {/* Sink Icon for Lavabo */}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v4" />
+                  <path d="M12 6a3 3 0 0 1 3 3v1H9V9a3 3 0 0 1 3-3Z" />
+                  <path d="M5 10h14v7a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-7Z" />
+                </svg>
+                <span>{imovel.lavabo}</span>
               </div>
             )}
             {!!imovel.vagas && (
