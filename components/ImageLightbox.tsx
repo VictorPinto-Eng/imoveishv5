@@ -49,7 +49,14 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                         <ChevronLeft size={32} />
                     </button>
 
-                    <div className={styles.imageWrapper}>
+                    <div 
+                        className={styles.imageWrapper} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onNext();
+                        }}
+                        style={{ cursor: 'pointer' }}
+                    >
                         {/* Blurred background layer */}
                         <div 
                             className={styles.blurBg} 
@@ -76,10 +83,18 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                             role="button"
                             tabIndex={0}
                             className={`${styles.thumb} ${idx === currentIndex ? styles.activeThumb : ''}`}
-                            onClick={() => onSelect && onSelect(idx)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onSelect && onSelect(idx);
+                            }}
+                            onPointerDown={(e) => {
+                                e.stopPropagation();
+                                onSelect && onSelect(idx);
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
+                                    e.stopPropagation();
                                     onSelect && onSelect(idx);
                                 }
                             }}
