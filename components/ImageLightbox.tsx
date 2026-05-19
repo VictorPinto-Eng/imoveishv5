@@ -10,9 +10,10 @@ interface ImageLightboxProps {
     onClose: () => void;
     onNext: () => void;
     onPrev: () => void;
+    onSelect?: (index: number) => void;
 }
 
-export default function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }: ImageLightboxProps) {
+export default function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev, onSelect }: ImageLightboxProps) {
     // Prevent body scroll when open
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -73,7 +74,7 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                         <div 
                             key={idx} 
                             className={`${styles.thumb} ${idx === currentIndex ? styles.activeThumb : ''}`}
-                            onClick={() => {/* Implement jump to index if needed */}}
+                            onClick={() => onSelect && onSelect(idx)}
                             style={{ backgroundImage: `url(${img})` }}
                         />
                     ))}
