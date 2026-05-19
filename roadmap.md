@@ -1,8 +1,9 @@
-# 🗺️ Project Roadmap - hv5com
+# 🗺️ Project Roadmap - imoveishv5
 
 Este é o registro central do desenvolvimento do projeto. **Obrigatório atualizar antes de iniciar qualquer nova tarefa.**
 
 ## 🟡 Em Desenvolvimento / Backlog Imediato
+- [x] **UI/UX**: Suporte a gestos touch (swipe) na galeria de fotos do `ImovelCard` para dispositivos móveis (Fim: 18/05/2026)
 - [x] **Feature**: Identificação automática de Código do Imóvel em leads (WhatsApp/E-mail) (Fim: 29/03/2026)
 - [x] **Feature**: Integração com Webhook Externo (webhook.hv5.srv.br) para notificações de leads (Fim: 29/03/2026)
 - [x] **UX/UI**: Feedback visual de sucesso ("Mensagem enviada!") após envio de contato (Fim: 29/03/2026)

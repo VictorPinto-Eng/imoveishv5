@@ -26,6 +26,35 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
     const [showPhone, setShowPhone] = useState(false)
     const router = useRouter()
 
+    // Touch swipe states and handlers for mobile gallery
+    const [touchStartX, setTouchStartX] = useState<number | null>(null)
+    const [touchEndX, setTouchEndX] = useState<number | null>(null)
+    const MIN_SWIPE_DISTANCE = 50
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStartX(e.targetTouches[0].clientX)
+        setTouchEndX(null)
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchEndX(e.targetTouches[0].clientX)
+    }
+
+    const handleTouchEnd = () => {
+        if (!touchStartX || !touchEndX) return
+        const distance = touchStartX - touchEndX
+        const isLeftSwipe = distance > MIN_SWIPE_DISTANCE
+        const isRightSwipe = distance < -MIN_SWIPE_DISTANCE
+
+        if (isLeftSwipe) {
+            // Swipe para a esquerda (próxima foto)
+            setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
+        } else if (isRightSwipe) {
+            // Swipe para a direita (foto anterior)
+            setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
+        }
+    }
+
   // Format price
   const priceFormatted = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -99,7 +128,12 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
 
     return (
         <article className={styles.card} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
-      <div className={styles.imageWrapper}>
+      <div 
+        className={styles.imageWrapper}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <button 
             className={styles.shareBtnFloating} 
             onClick={handleShareClick}
