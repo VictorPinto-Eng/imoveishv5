@@ -73,8 +73,16 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                     {images.map((img, idx) => (
                         <div 
                             key={idx} 
+                            role="button"
+                            tabIndex={0}
                             className={`${styles.thumb} ${idx === currentIndex ? styles.activeThumb : ''}`}
                             onClick={() => onSelect && onSelect(idx)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onSelect && onSelect(idx);
+                                }
+                            }}
                             style={{ backgroundImage: `url(${img})` }}
                         />
                     ))}

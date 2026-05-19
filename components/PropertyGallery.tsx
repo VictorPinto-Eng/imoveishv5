@@ -112,7 +112,7 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                     onClose={() => setIsLightboxOpen(false)}
                     onNext={nextImage}
                     onPrev={prevImage}
-                    onSelect={setCurrentIndex}
+                    onSelect={(index) => setCurrentIndex(index)}
                 />
             )}
         </div>
