@@ -14,7 +14,7 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className={styles.brandColumn}>
                         <Image 
-                            src="/logo_hv5_final.png" 
+                            src="/logo_hv5_1024.png" 
                             alt="HV5" 
                             width={120} 
                             height={44} 

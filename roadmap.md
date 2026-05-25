@@ -29,6 +29,7 @@ Este é o registro central do desenvolvimento do projeto. **Obrigatório atualiz
 - [ ] Implementação de Simulação de Financiamento (🟡 Futuro)
 
 ## 🟢 Concluído
+- [x] Feature: Atualização do logotipo para o novo arquivo 'logo_hv5_1024.png' - *25/05/2026*
 - [x] Release: Publicar aplicação no GitHub - *24/03/2026*
 - [x] Feature: Mostrar CEP no banner de confirmação de endereço (Layout Responsivo) - *23/03/2026*
 - [x] Feature: Normalização de endereço (Sem acentos/Caixa Alta) nos formulários e APIs - *23/03/2026*

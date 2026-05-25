@@ -522,7 +522,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <div className={styles.content}>
                     <div className={styles.header}>
                         <Image
-                            src="/logo_hv5_final.png"
+                            src="/logo_hv5_1024.png"
                             alt="HV5 Logo"
                             width={160}
                             height={60}

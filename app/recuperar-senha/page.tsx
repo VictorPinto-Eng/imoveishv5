@@ -103,7 +103,7 @@ function RecuperarSenhaContent() {
         <div className={styles.container}>
             <div className={styles.card}>
                 <div className={styles.header}>
-                    <Image src="/logo_hv5_final.png" alt="HV5" width={120} height={44} priority />
+                    <Image src="/logo_hv5_1024.png" alt="HV5" width={120} height={44} priority />
                 </div>
                 
                 <h1 className={styles.title}>Nova Senha</h1>
