@@ -974,6 +974,31 @@ function MeusImoveisContent() {
                             </div>
 
                             <div className={styles.detailContent}>
+                                {currentUser && Number(currentUser.id_tipo_usuario) === 1 && !currentUser.creci_status && (
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.5rem',
+                                        padding: '1rem',
+                                        borderRadius: '10px',
+                                        marginBottom: '1.5rem',
+                                        fontSize: '0.9rem',
+                                        lineHeight: '1.4',
+                                        border: currentUser.creci_document_url ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
+                                        backgroundColor: currentUser.creci_document_url ? 'rgba(59, 130, 246, 0.05)' : 'rgba(245, 158, 11, 0.05)',
+                                        color: currentUser.creci_document_url ? '#1e40af' : '#854d0e'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
+                                            <span>{currentUser.creci_document_url ? '⏳ CRECI em Análise' : '⚠️ Homologação Necessária'}</span>
+                                        </div>
+                                        <p style={{ margin: 0 }}>
+                                            {currentUser.creci_document_url 
+                                                ? 'Seu comprovante de CRECI foi recebido e está em análise. O mais breve possível estaremos validando os seus dados para habilitar as chaves de publicação dos seus imóveis!'
+                                                : 'A publicação de imóveis no site está bloqueada pois seu CRECI ainda não foi homologado. Por favor, acesse seu Perfil para enviar o comprovante correspondente.'}
+                                        </p>
+                                    </div>
+                                )}
+
                                 <div className={styles.detailTitleRow}>
                                     <h1 className={styles.detailMainTitle}>
                                         {selectedImovel?.operacao_nome ? `${selectedImovel.operacao_nome} - ` : ''}
