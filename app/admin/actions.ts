@@ -47,7 +47,7 @@ export async function createImovel(formData: FormData) {
         formData.get('tipo_imovel')
     ].filter(Boolean) as string[]
 
-    // Insert imovel using direct DB query instead of Supabase
+
     const insertResult = await query(`INSERT INTO produtos_servicos (nome, tipo, categoria, preco_base, descricao, ativo, status, imagens_urls, tags, custom_fields, cobranca_tipo, estoque_quantidade, tem_estoque, estoque_minimo)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
         [
