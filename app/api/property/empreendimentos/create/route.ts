@@ -6,10 +6,22 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { descricao, bairro_id, cidade_id, estado_id, pais_id, cep } = body;
 
-        // Basic validation
+        // Basic validation - ensure required fields are present and numeric IDs
         if (!descricao || !bairro_id || !cidade_id || !estado_id) {
             return NextResponse.json(
                 { error: 'Os campos de Nome, Estado, Cidade e Bairro são obrigatórios.' },
+                { status: 400 }
+            );
+        }
+
+        // Ensure IDs are numbers (prevent empty strings)
+        const parsedBairroId = Number(bairro_id);
+        const parsedCidadeId = Number(cidade_id);
+        const parsedEstadoId = Number(estado_id); 
+        
+        if (isNaN(parsedBairroId) || isNaN(parsedCidadeId) || isNaN(parsedEstadoId)) {
+            return NextResponse.json(
+                { error: 'IDs de Estado, Cidade e Bairro devem ser números válidos.' },
                 { status: 400 }
             );
         }
@@ -30,12 +42,12 @@ export async function POST(request: Request) {
         `;
 
         const values = [
-            descricao, 
-            bairro_id, 
-            cidade_id, 
-            estado_id, 
-            pais_id || 1, // Defaults to 1 (Brasil) if not provided
-            cep || null
+            descricao,
+            parsedBairroId,
+            parsedCidadeId,
+            parsedEstadoId,
+            pais_id || 1,
+            cep || null,
         ];
         
         const result = await query(insertQuery, values);
@@ -47,7 +59,7 @@ export async function POST(request: Request) {
         });
 
     } catch (error: any) {
-        console.error('Erro na API create empreendimento:', error);
+        console.error('Erro na API create empreendimento:', { body: await request.clone().json(), errorMessage: error.message, stack: error.stack });
         return NextResponse.json(
             { error: 'Erro interno ao salvar no banco de dados. Tente novamente mais tarde.' },
             { status: 500 }
