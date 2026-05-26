@@ -6,10 +6,21 @@
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
+    align-items: center; /* Centraliza verticalmente se couber */
     justify-content: center;
     z-index: 20000; /* Increased to stay on top of header (9999) */
     animation: fadeIn 0.15s ease-out;
+    overflow-y: auto; /* Permite rolar o fundo se o modal for alto */
+    padding: 20px 0;
+}
+
+/* Esconde a barra de rolagem do overlay mas mantém o scroll */
+.overlay::-webkit-scrollbar {
+    display: none;
+}
+.overlay {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .modal {
@@ -21,6 +32,7 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
+    margin: auto; /* Garante centralização quando o conteúdo é maior que a tela */
 }
 
 .header {
