@@ -77,6 +77,12 @@ export interface Imovel {
   bairro_nome?: string
   cidade?: string
   bairro?: string
+  condominio_incluso?: boolean
+  iptu_incluso?: boolean
+  seguro_incendio_incluso?: boolean
+  seguro_incendio?: number
+  vrtotal?: number
+  periodo_loca_id?: number
 }
 
 export interface ImovelFilters {
@@ -108,6 +114,83 @@ function parseImovel(item: any): Imovel {
       custom_fields = {}
     }
   }
+  if (!custom_fields) {
+    custom_fields = {}
+  }
+
+  // Mapear campos de locação ou venda se existirem das tabelas acessórias
+  const hasLocacao = item.loc_preco_base !== null && item.loc_preco_base !== undefined;
+  const hasVenda = item.venda_preco_base !== null && item.venda_preco_base !== undefined;
+  
+  if (hasLocacao) {
+    if (item.loc_preco_base !== null && item.loc_preco_base !== undefined) {
+      item.preco_base = Number(item.loc_preco_base);
+    }
+    if (item.loc_imbfinalidade_id !== null && item.loc_imbfinalidade_id !== undefined) {
+      item.imbfinalidade_id = Number(item.loc_imbfinalidade_id);
+    }
+    if (item.loc_imbtpimovel_id !== null && item.loc_imbtpimovel_id !== undefined) {
+      item.imbtpimovel_id = Number(item.loc_imbtpimovel_id);
+    }
+    if (item.pr_condominio !== null && item.pr_condominio !== undefined) {
+      custom_fields.condominio = Number(item.pr_condominio);
+      custom_fields.valor_condominio = Number(item.pr_condominio);
+    }
+    if (item.pr_iptuanual !== null && item.pr_iptuanual !== undefined) {
+      custom_fields.iptu = Number(item.pr_iptuanual);
+      custom_fields.valor_iptu = Number(item.pr_iptuanual);
+    }
+    if (item.inclusocond !== null && item.inclusocond !== undefined) {
+      item.condominio_incluso = item.inclusocond === '0' || item.inclusocond === 0 || item.inclusocond.toString() === '0';
+    }
+    if (item.inclusoiptu !== null && item.inclusoiptu !== undefined) {
+      item.iptu_incluso = item.inclusoiptu === '0' || item.inclusoiptu === 0 || item.inclusoiptu.toString() === '0';
+    }
+    if (item.inclusoincendio !== null && item.inclusoincendio !== undefined) {
+      item.seguro_incendio_incluso = item.inclusoincendio === '0' || item.inclusoincendio === 0 || item.inclusoincendio.toString() === '0';
+    }
+    if (item.pr_segincendio !== null && item.pr_segincendio !== undefined) {
+      item.seguro_incendio = Number(item.pr_segincendio);
+    }
+    if (item.vrtotal !== null && item.vrtotal !== undefined) {
+      item.vrtotal = Number(item.vrtotal);
+    }
+  } else if (hasVenda) {
+    if (item.venda_preco_base !== null && item.venda_preco_base !== undefined) {
+      item.preco_base = Number(item.venda_preco_base);
+    }
+    if (item.venda_imbfinalidade_id !== null && item.venda_imbfinalidade_id !== undefined) {
+      item.imbfinalidade_id = Number(item.venda_imbfinalidade_id);
+    }
+    if (item.venda_imbtpimovel_id !== null && item.venda_imbtpimovel_id !== undefined) {
+      item.imbtpimovel_id = Number(item.venda_imbtpimovel_id);
+    }
+    if (item.venda_pr_condominio !== null && item.venda_pr_condominio !== undefined) {
+      custom_fields.condominio = Number(item.venda_pr_condominio);
+      custom_fields.valor_condominio = Number(item.venda_pr_condominio);
+    }
+    if (item.venda_pr_iptuanual !== null && item.venda_pr_iptuanual !== undefined) {
+      custom_fields.iptu = Number(item.venda_pr_iptuanual);
+      custom_fields.valor_iptu = Number(item.venda_pr_iptuanual);
+    }
+    if (item.venda_pr_segincendio !== null && item.venda_pr_segincendio !== undefined) {
+      item.seguro_incendio = Number(item.venda_pr_segincendio);
+    }
+    if (item.venda_vrtotal !== null && item.venda_vrtotal !== undefined) {
+      item.vrtotal = Number(item.venda_vrtotal);
+    }
+  } else if (item.imbtpoperacao_id === 2) {
+    // Para imóveis de locação que não possuem registro na tabela acessória, os valores adicionais iniciam zerados
+    item.condominio_incluso = false;
+    item.iptu_incluso = false;
+    item.seguro_incendio_incluso = false;
+    item.seguro_incendio = 0;
+    custom_fields.condominio = 0;
+    custom_fields.valor_condominio = 0;
+    custom_fields.iptu = 0;
+    custom_fields.valor_iptu = 0;
+    item.vrtotal = Number(item.preco_base || 0);
+  }
 
   let imagens_urls: string[] = []
   if (Array.isArray(item.all_photos) && item.all_photos.length > 0) {
@@ -136,7 +219,7 @@ function parseImovel(item: any): Imovel {
     cidade: custom_fields.cidade,
     bairro: custom_fields.bairro,
     is_venda: item.is_venda ?? (item.operacao_nome ? item.operacao_nome.toUpperCase().includes('VENDA') : true),
-    is_locacao: item.is_locacao ?? (item.operacao_nome ? (item.operacao_nome.toUpperCase().includes('LOCAÇÃO') || item.operacao_nome.toUpperCase().includes('ALUGUEL')) : false),
+    is_locacao: item.imbtpoperacao_id === 2 || (item.is_locacao ?? (item.operacao_nome ? (item.operacao_nome.toUpperCase().includes('LOCAÇÃO') || item.operacao_nome.toUpperCase().includes('ALUGUEL')) : false)),
     tipo_imovel_nome: item.tipo_nome || item.tipo_imovel_nome || custom_fields.tipo_imovel || 'Imóvel',
     tipo_nome: item.tipo_nome,
     pub_site: item.pub_site === true || item.pub_site === 'true',
@@ -172,10 +255,33 @@ const BASE_SELECT = `
     ST.nome as status_imovel_nome,
     CID.descricao as cidade_nome,
     BAI.descricao as bairro_nome,
-    EST.sigla as uf_nome
+    EST.sigla as uf_nome,
+    PL.periodo_loca_id,
+    PL.imbfinalidade_id as loc_imbfinalidade_id,
+    PL.imbtpimovel_id as loc_imbtpimovel_id,
+    PL.inclusocond,
+    PL.pr_condominio,
+    PL.inclusoiptu,
+    PL.pr_iptuanual,
+    PL.inclusoincendio,
+    PL.pr_segincendio,
+    PL.vrtotal,
+    PL.preco_base as loc_preco_base,
+    PV.imbfinalidade_id as venda_imbfinalidade_id,
+    PV.imbtpimovel_id as venda_imbtpimovel_id,
+    PV.pr_condominio as venda_pr_condominio,
+    PV.pr_iptuanual as venda_pr_iptuanual,
+    PV.pr_segincendio as venda_pr_segincendio,
+    PV.vrtotal as venda_vrtotal,
+    PV.preco_base as venda_preco_base,
+    COALESCE(PL.preco_base, PV.preco_base, 0) as preco_base,
+    COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) as imbfinalidade_id,
+    COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) as imbtpimovel_id
   FROM produtos_servicos I
   LEFT JOIN imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
-  LEFT JOIN imbtpimovel TP ON I.imbtpimovel_id = TP.id
+  LEFT JOIN public.produto_servicos_loca PL ON I.id = PL.produto_servico_id
+  LEFT JOIN public.produto_servicos_venda PV ON I.id = PV.produto_servico_id
+  LEFT JOIN imbtpimovel TP ON COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) = TP.id
   LEFT JOIN statimovel ST ON I.statusimovel = ST.id
   LEFT JOIN apocidade CID ON I.cidade_id = CID.id
   LEFT JOIN apobairro BAI ON I.bairro_id = BAI.id
@@ -253,10 +359,33 @@ export async function getImoveis(filters: ImovelFilters = {}) {
         ST.nome as status_imovel_nome,
         CID.descricao as cidade_nome,
         BAI.descricao as bairro_nome,
-        EST.sigla as uf_nome
+        EST.sigla as uf_nome,
+        PL.periodo_loca_id,
+        PL.imbfinalidade_id as loc_imbfinalidade_id,
+        PL.imbtpimovel_id as loc_imbtpimovel_id,
+        PL.inclusocond,
+        PL.pr_condominio,
+        PL.inclusoiptu,
+        PL.pr_iptuanual,
+        PL.inclusoincendio,
+        PL.pr_segincendio,
+        PL.vrtotal,
+        PL.preco_base as loc_preco_base,
+        PV.imbfinalidade_id as venda_imbfinalidade_id,
+        PV.imbtpimovel_id as venda_imbtpimovel_id,
+        PV.pr_condominio as venda_pr_condominio,
+        PV.pr_iptuanual as venda_pr_iptuanual,
+        PV.pr_segincendio as venda_pr_segincendio,
+        PV.vrtotal as venda_vrtotal,
+        PV.preco_base as venda_preco_base,
+        COALESCE(PL.preco_base, PV.preco_base, 0) as preco_base,
+        COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) as imbfinalidade_id,
+        COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) as imbtpimovel_id
       FROM produtos_servicos I
       LEFT JOIN public.imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
-      LEFT JOIN public.imbtpimovel TP ON I.imbtpimovel_id = TP.id
+      LEFT JOIN public.produto_servicos_loca PL ON I.id = PL.produto_servico_id
+      LEFT JOIN public.produto_servicos_venda PV ON I.id = PV.produto_servico_id
+      LEFT JOIN public.imbtpimovel TP ON COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) = TP.id
       LEFT JOIN public.statimovel ST ON I.statusimovel = ST.id
       JOIN public.apocidade CID ON I.cidade_id = CID.id
       JOIN public.apobairro BAI ON I.bairro_id = BAI.id
@@ -277,19 +406,19 @@ export async function getImoveis(filters: ImovelFilters = {}) {
 
     if (filters.minPrice) {
       params.push(filters.minPrice)
-      sql += ` AND I.preco_base >= $${params.length}`
+      sql += ` AND COALESCE(PL.preco_base, PV.preco_base, 0) >= $${params.length}`
     }
     if (filters.maxPrice) {
       params.push(filters.maxPrice)
-      sql += ` AND I.preco_base <= $${params.length}`
+      sql += ` AND COALESCE(PL.preco_base, PV.preco_base, 0) <= $${params.length}`
     }
     if (filters.finalidade) {
       params.push(filters.finalidade)
-      sql += ` AND I.imbfinalidade_id = $${params.length}`
+      sql += ` AND COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) = $${params.length}`
     }
     if (filters.tipo) {
       params.push(filters.tipo)
-      sql += ` AND I.imbtpimovel_id = $${params.length}`
+      sql += ` AND COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) = $${params.length}`
     }
     if (filters.operacao) {
       params.push(filters.operacao)
@@ -324,11 +453,12 @@ export async function getImoveis(filters: ImovelFilters = {}) {
       params.push(filters.status)
       sql += ` AND I.status ILIKE $${params.length}`
     }
+    // Custom fields filters (alto_padrao/exclusividade) are disabled since custom_fields was dropped from database
     if (filters.alto_padrao === 'true') {
-      sql += ` AND (I.custom_fields::jsonb->>'alto_padrao')::boolean = true`
+      // noop
     }
     if (filters.exclusividade === 'true') {
-      sql += ` AND (I.custom_fields::jsonb->>'exclusividade')::boolean = true`
+      // noop
     }
 
     const res = await query(sql, params)

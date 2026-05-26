@@ -11,7 +11,7 @@ import {
     ArrowLeft, Loader2, Save, Home,
     Maximize2, Bed, Bath, Car, MapPin,
     FileText, Building2, DollarSign, Sparkles, Ruler,
-    Map as MapIcon, Navigation, Plus, Share2, ShieldCheck
+    Map as MapIcon, Navigation, Plus, Share2, ShieldCheck, Calendar
 } from 'lucide-react';
 import styles from './editar.module.css';
 import { formatCurrency, maskCurrencyInput, parseCurrencyToNumber, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
@@ -90,6 +90,8 @@ interface Imovel {
     condominio_incluso?: boolean;
     iptu_incluso?: boolean;
     seguro_incendio_incluso?: boolean;
+    periodo_loca_id?: number | null;
+    vrtotal?: number | null;
     // Joined field names
     tipo_nome?: string;
     operacao_nome?: string;
@@ -127,6 +129,14 @@ export default function EditarImovelPage() {
     const handleBack = (e: React.MouseEvent) => {
         e.stopPropagation();
         router.push(`/meus-imoveis?id=${id}`);
+    };
+
+    const calculateVrTotal = (currentImovel: Imovel) => {
+        const precoBase = Number(currentImovel.preco_base) || 0;
+        const condo = currentImovel.condominio_incluso ? 0 : (Number(currentImovel.custom_fields?.condominio) || 0);
+        const iptu = currentImovel.iptu_incluso ? 0 : ((Number(currentImovel.custom_fields?.iptu) || 0) / 12);
+        const seguro = currentImovel.seguro_incendio_incluso ? 0 : (Number(currentImovel.seguro_incendio) || 0);
+        return precoBase + condo + iptu + seguro;
     };
 
     useEffect(() => {
@@ -664,6 +674,7 @@ export default function EditarImovelPage() {
                 condominio_incluso: imovel.condominio_incluso,
                 iptu_incluso: imovel.iptu_incluso,
                 seguro_incendio_incluso: imovel.seguro_incendio_incluso,
+                periodo_loca_id: imovel.periodo_loca_id,
                 relationship: imovel.relimovel_id === 1 ? 'Proprietário' : imovel.relimovel_id === 2 ? 'Corretor' : 'Administrador/Outro',
                 pub_facebook: imovel.custom_fields.pub_facebook,
                 pub_instagram: imovel.custom_fields.pub_instagram
@@ -1708,6 +1719,31 @@ export default function EditarImovelPage() {
                             </h2>
                             
                             <div className={styles.valoresPremiumContainer}>
+                                {/* Período de Locação */}
+                                {imovel.imbtpoperacao_id === 2 && (
+                                    <div className={styles.valorCard}>
+                                        <div className={styles.valorLeft}>
+                                            <div className={styles.valorIcon}><Calendar size={24} /></div>
+                                            <div className={styles.valorInfo}>
+                                                <label>Período de Locação</label>
+                                                <select
+                                                    name="periodo_loca_id"
+                                                    value={imovel.periodo_loca_id || 3}
+                                                    className={styles.valorInput}
+                                                    onChange={(e) => setImovel({ ...imovel, periodo_loca_id: parseInt(e.target.value) })}
+                                                    style={{ border: 'none', background: 'transparent', outline: 'none', cursor: 'pointer', paddingRight: '20px' }}
+                                                >
+                                                    <option value={1}>Semanal</option>
+                                                    <option value={2}>Quinzenal</option>
+                                                    <option value={3}>Mensal</option>
+                                                    <option value={4}>Semestral</option>
+                                                    <option value={5}>Anual</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Preço Base */}
                                 <div className={styles.valorCard}>
                                     <div className={styles.valorLeft}>
@@ -1895,6 +1931,29 @@ export default function EditarImovelPage() {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Total de Locação */}
+                                {imovel.imbtpoperacao_id === 2 && (
+                                    <div className={styles.valorCard} style={{ background: '#f5f3ff', borderColor: '#7F34E6', marginTop: '16px' }}>
+                                        <div className={styles.valorLeft}>
+                                            <div className={styles.valorIcon} style={{ background: '#7F34E6', color: '#ffffff' }}><DollarSign size={24} /></div>
+                                            <div className={styles.valorInfo}>
+                                                <label style={{ color: '#7F34E6' }}>Valor Total Aluguel</label>
+                                                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#7F34E6' }}>
+                                                    {formatCurrency(calculateVrTotal(imovel), false, true)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className={styles.valorRight}>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7F34E6' }}>
+                                                {imovel.periodo_loca_id === 1 ? 'SEMANAL' :
+                                                 imovel.periodo_loca_id === 2 ? 'QUINZENAL' :
+                                                 imovel.periodo_loca_id === 4 ? 'SEMESTRAL' :
+                                                 imovel.periodo_loca_id === 5 ? 'ANUAL' : 'MENSAL'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </section>
 

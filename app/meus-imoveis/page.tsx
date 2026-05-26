@@ -118,6 +118,11 @@ interface Imovel {
     pub_price?: boolean;
     statusimovel?: number;
     estado_sigla?: string;
+    condominio_incluso?: boolean;
+    iptu_incluso?: boolean;
+    seguro_incendio_incluso?: boolean;
+    seguro_incendio?: number;
+    vrtotal?: number;
 }
 
 function MeusImoveisContent() {
@@ -919,12 +924,66 @@ function MeusImoveisContent() {
                                     </div>
                                 </div>
 
-                                <div className={styles.priceCard}>
-                                    <div className={styles.priceLabel}>{selectedImovel?.operacao_nome || selectedImovel?.custom_fields?.objetivo || 'Venda'}</div>
-                                    <div className={styles.priceValue}>
-                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedImovel?.preco_base || 0)}
+                                {selectedImovel?.imbtpoperacao_id === 2 || selectedImovel?.operacao_nome?.toLowerCase() === 'locação' || selectedImovel?.custom_fields?.objetivo?.toLowerCase() === 'locação' ? (
+                                    <div className={styles.priceCard}>
+                                        <div className={styles.priceLabel}>Locação</div>
+                                        <div className={styles.priceValue}>
+                                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedImovel?.vrtotal || selectedImovel?.preco_base || 0)}
+                                            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: '#64748b', marginLeft: '4px' }}>/mês</span>
+                                        </div>
+                                        {(() => {
+                                            const baseVal = selectedImovel?.preco_base || 0;
+                                            const condVal = selectedImovel?.custom_fields?.condominio || 0;
+                                            const iptuVal = selectedImovel?.custom_fields?.iptu || 0;
+                                            const seguroVal = selectedImovel?.seguro_incendio || 0;
+
+                                            const formatVal = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+                                            const parts = [];
+                                            parts.push(`Aluguel: ${formatVal(baseVal)}`);
+
+                                            // Coletar itens inclusos no aluguel
+                                            const inclusos = [];
+                                            if (selectedImovel?.condominio_incluso) inclusos.push('Condomínio');
+                                            if (selectedImovel?.iptu_incluso) inclusos.push('IPTU');
+                                            if (selectedImovel?.seguro_incendio_incluso) inclusos.push('Seguro Incêndio');
+
+                                            // Coletar itens adicionais (não inclusos e com valor maior que 0)
+                                            if (!selectedImovel?.condominio_incluso && condVal > 0) {
+                                                parts.push(`Condomínio: ${formatVal(condVal)}`);
+                                            }
+                                            if (!selectedImovel?.iptu_incluso && iptuVal > 0) {
+                                                parts.push(`IPTU: ${formatVal(iptuVal / 12)}/mês`);
+                                            }
+                                            if (!selectedImovel?.seguro_incendio_incluso && seguroVal > 0) {
+                                                parts.push(`Seguro Incêndio: ${formatVal(seguroVal)}`);
+                                            }
+
+                                            // Se houver algum incluso, adicionar na linha
+                                            if (inclusos.length > 0) {
+                                                parts.push(`Inclusos: ${inclusos.join(', ')}`);
+                                            }
+
+                                            return (
+                                                <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#64748b', fontWeight: '500', display: 'flex', flexWrap: 'wrap', gap: '0.25rem 0.6rem', alignItems: 'center' }}>
+                                                    {parts.map((part, index) => (
+                                                        <React.Fragment key={index}>
+                                                            {index > 0 && <span style={{ color: '#cbd5e1' }}>•</span>}
+                                                            <span>{part}</span>
+                                                        </React.Fragment>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className={styles.priceCard}>
+                                        <div className={styles.priceLabel}>{selectedImovel?.operacao_nome || selectedImovel?.custom_fields?.objetivo || 'Venda'}</div>
+                                        <div className={styles.priceValue}>
+                                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedImovel?.preco_base || 0)}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className={styles.sectionDivider} />
 

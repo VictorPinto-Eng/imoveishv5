@@ -23,7 +23,9 @@ export async function POST(req: NextRequest) {
             FROM produtos_servicos p
             JOIN users u ON p.user_id = u.id
             LEFT JOIN imbtpoperacao OP ON p.imbtpoperacao_id = OP.id
-            LEFT JOIN imbtpimovel TP ON p.imbtpimovel_id = TP.id
+            LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id
+            LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id
+            LEFT JOIN imbtpimovel TP ON COALESCE(pl.imbtpimovel_id, pv.imbtpimovel_id) = TP.id
             WHERE p.id = $1
         `, [propertyId]);
 

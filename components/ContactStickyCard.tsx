@@ -10,6 +10,8 @@ interface ContactStickyCardProps {
     price: string;
     condominium?: string;
     iptu?: string;
+    seguroIncendio?: string;
+    vrtotal?: string;
     propertyName: string;
     propertyLocation: string;
     propertyId: string;
@@ -21,6 +23,8 @@ export default function ContactStickyCard({
     price, 
     condominium, 
     iptu, 
+    seguroIncendio,
+    vrtotal,
     propertyName,
     propertyLocation,
     propertyId,
@@ -46,10 +50,43 @@ export default function ContactStickyCard({
                             marginBottom: '1rem'
                         } : {}}
                     >
-                        {pub_price === false ? 'CONSULTAR PREÇO' : price}
+                        {pub_price === false ? 'CONSULTAR PREÇO' : `${price}${isRental ? ' /mês' : ''}`}
                     </span>
                     
-                    {(condominium || iptu) && (
+                    {pub_price !== false && isRental && (
+                        <div className={styles.extraCosts}>
+                            <div className={styles.costItem}>
+                                <span>Aluguel Base</span>
+                                <span>{price}</span>
+                            </div>
+                            {condominium && (
+                                <div className={styles.costItem}>
+                                    <span>Condomínio</span>
+                                    <span>{condominium}</span>
+                                </div>
+                            )}
+                            {iptu && (
+                                <div className={styles.costItem}>
+                                    <span>IPTU (Mensal)</span>
+                                    <span>{iptu}</span>
+                                </div>
+                            )}
+                            {seguroIncendio && (
+                                <div className={styles.costItem}>
+                                    <span>Seguro Incêndio</span>
+                                    <span>{seguroIncendio}</span>
+                                </div>
+                            )}
+                            {vrtotal && (
+                                <div className={`${styles.costItem} ${styles.totalCostItem}`}>
+                                    <span>Total Mensal</span>
+                                    <span>{vrtotal}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {pub_price !== false && !isRental && (condominium || iptu) && (
                         <div className={styles.extraCosts}>
                             {condominium && (
                                 <div className={styles.costItem}>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Square, ArrowLeft, Loader2, Camera, Home as HomeIcon, CheckCircle, Building2, X, Milestone, Info, ChevronRight, Sparkles, DollarSign, Ruler, Map, MapPin, Navigation, Map as MapIcon, Maximize2, Plus } from 'lucide-react';
+import { Square, ArrowLeft, Loader2, Camera, Home as HomeIcon, CheckCircle, Building2, X, Milestone, Info, ChevronRight, Sparkles, DollarSign, Ruler, Map, MapPin, Navigation, Map as MapIcon, Maximize2, Plus, Calendar, ShieldCheck, FileText } from 'lucide-react';
 import styles from './incluir.module.css';
 import Link from 'next/link';
 import { maskCurrencyInput, formatCurrency, completeCurrencyWithZeros, maskIntegerInput, maskCep } from '@/lib/format';
@@ -63,6 +63,11 @@ interface PropertyData {
     pub_facebook: boolean;
     pub_instagram: boolean;
     empreendimento?: number;
+    periodo_loca_id?: number;
+    condominio_incluso?: boolean;
+    iptu_incluso?: boolean;
+    seguro_incendio_incluso?: boolean;
+    seguro_incendio?: string;
 }
 
 export default function IncluirImovelPage() {
@@ -145,7 +150,13 @@ export default function IncluirImovelPage() {
         pub_site: false,
         pub_price: false,
         pub_facebook: false,
-        pub_instagram: false
+        pub_instagram: false,
+        // Rental-specific fields
+        periodo_loca_id: 3, // Padrão: Mensal
+        condominio_incluso: false,
+        iptu_incluso: false,
+        seguro_incendio_incluso: false,
+        seguro_incendio: ''
     });
 
     // Fetch UFs from IBGE
@@ -276,6 +287,20 @@ export default function IncluirImovelPage() {
         fetchTypes();
     }, [formData.finalidade, categories]);
     
+    const parsePrice = (val: string) => {
+        if (!val) return 0;
+        const clean = val.replace(/\./g, '').replace(',', '.');
+        return parseFloat(clean) || 0;
+    };
+
+    const getCalculatedTotal = () => {
+        const precoBase = parsePrice(formData.price);
+        const condoFeeVal = formData.condominio_incluso ? 0 : parsePrice(formData.condoFee);
+        const iptuVal = (formData.hasIptu && !formData.iptu_incluso) ? (parsePrice(formData.iptuValue) / 12) : 0;
+        const seguroVal = formData.seguro_incendio_incluso ? 0 : parsePrice(formData.seguro_incendio || '');
+        return precoBase + condoFeeVal + iptuVal + seguroVal;
+    };
+
     const fetchWithTimeout = async (url: string, options: any = {}, timeout = 5000) => {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), timeout);
@@ -613,8 +638,8 @@ export default function IncluirImovelPage() {
 
     const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        // Decimais: area, area_construida, area_terreno, price, condoFee, iptuValue
-        const isDecimal = ['area', 'area_construida', 'area_terreno', 'price', 'condoFee', 'iptuValue'].includes(name);
+        // Decimais: area, area_construida, area_terreno, price, condoFee, iptuValue, seguro_incendio
+        const isDecimal = ['area', 'area_construida', 'area_terreno', 'price', 'condoFee', 'iptuValue', 'seguro_incendio'].includes(name);
         
         if (isDecimal) {
             setFormData(prev => ({ ...prev, [name]: maskCurrencyInput(value, false) }));
@@ -626,7 +651,7 @@ export default function IncluirImovelPage() {
 
     const handleCurrencyBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        const isDecimal = ['area', 'area_construida', 'area_terreno', 'price', 'condoFee', 'iptuValue'].includes(name);
+        const isDecimal = ['area', 'area_construida', 'area_terreno', 'price', 'condoFee', 'iptuValue', 'seguro_incendio'].includes(name);
         
         if (isDecimal) {
             setFormData(prev => ({ ...prev, [name]: completeCurrencyWithZeros(value, false) }));
@@ -1658,111 +1683,311 @@ export default function IncluirImovelPage() {
                         <h2 className={styles.stepTitle} style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <DollarSign size={24} /> Valores
                         </h2>
-                        <div className={styles.formGroup}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <h3 className={styles.question} style={{ margin: 0 }}>Preço Base ( R$ )</h3>
-                                {!formData.price && <span className={styles.requiredStatus}>obrigatório</span>}
-                            </div>
-                            <div className={styles.currencyInputWrapper}>
-                                <input
-                                    type="text"
-                                    name="price"
-                                    className={`${styles.input} ${styles.priceInput} ${!formData.price ? styles.inputError : ''}`}
-                                    placeholder="0,00"
-                                    value={formData.price}
-                                    onChange={handleCurrencyChange}
-                                    onBlur={handleCurrencyBlur}
-                                    onFocus={(e) => e.target.select()}
-                                    onKeyDown={(e) => handleKeyDown(e, 'condoFee')}
-                                />
-                            </div>
-                        </div>
 
-                        <div className={styles.formGroup} style={{ marginTop: '32px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                <h3 className={styles.question} style={{ margin: 0 }}>Condomínio ( R$ / mês )</h3>
-                                {!formData.condoFee && <span className={styles.requiredStatus}>obrigatório</span>}
-                            </div>
-                            <p className={styles.subQuestion} style={{ fontSize: '14px', marginBottom: '16px' }}>
-                                Não incluir despesas pontuais (aluguel de salão ou churrasqueira, etc.)
-                            </p>
-                            <div className={styles.currencyInputWrapper}>
-                                <input
-                                    type="text"
-                                    name="condoFee"
-                                    className={`${styles.input} ${styles.priceInput} ${!formData.condoFee ? styles.inputError : ''}`}
-                                    placeholder="0,00"
-                                    value={formData.condoFee}
-                                    onChange={handleCurrencyChange}
-                                    onBlur={handleCurrencyBlur}
-                                    onFocus={(e) => e.target.select()}
-                                    onKeyDown={(e) => handleKeyDown(e, formData.hasIptu ? 'iptuValue' : 'next')}
-                                />
-                            </div>
-                            {!formData.condoFee && (
-                                <p className={styles.errorText}>
-                                    <Info size={14} /> Campo obrigatório
-                                </p>
-                            )}
-                            <button
-                                className={styles.helpLink}
-                                onClick={() => setIsCondoHelpModalOpen(true)}
-                                style={{ marginTop: '8px' }}
-                            >
-                                O que incluir nesse valor?
-                            </button>
-                        </div>
-
-                        <div className={styles.formGroup} style={{ marginTop: '32px' }}>
-                            <h3 className={styles.question}>O imóvel paga IPTU?</h3>
-                            <div className={styles.segmentedToggle}>
-                                <button
-                                    className={`${styles.toggleOpt} ${formData.hasIptu ? styles.toggleOptActive : ''}`}
-                                    onClick={() => setFormData(prev => ({ ...prev, hasIptu: true }))}
-                                >
-                                    Sim
-                                </button>
-                                <button
-                                    className={`${styles.toggleOpt} ${!formData.hasIptu ? styles.toggleOptActive : ''}`}
-                                    onClick={() => setFormData(prev => ({ ...prev, hasIptu: false }))}
-                                >
-                                    Não
-                                </button>
-                            </div>
-                        </div>
-
-                        {formData.hasIptu && (
-                            <div className={styles.formGroup} style={{ marginTop: '24px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <h3 className={styles.question} style={{ margin: 0 }}>IPTU ( R$ / total anual )</h3>
-                                    {!formData.iptuValue && <span className={styles.requiredStatus}>obrigatório</span>}
+                        {formData.imbtpoperacao_id === 2 ? (
+                            /* Locação - Layout Premium de Valores */
+                            <div className={styles.valoresPremiumContainer}>
+                                {/* Período de Locação */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><Calendar size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>Período de Locação</label>
+                                            <select
+                                                name="periodo_loca_id"
+                                                className={styles.valorInput}
+                                                value={formData.periodo_loca_id || 3}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, periodo_loca_id: parseInt(e.target.value) }))}
+                                                style={{ border: 'none', background: 'transparent', outline: 'none', cursor: 'pointer', paddingRight: '20px' }}
+                                            >
+                                                <option value={1}>Semanal</option>
+                                                <option value={2}>Quinzenal</option>
+                                                <option value={3}>Mensal</option>
+                                                <option value={4}>Semestral</option>
+                                                <option value={5}>Anual</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className={styles.currencyInputWrapper}>
-                                    <input
-                                        type="text"
-                                        name="iptuValue"
-                                        className={`${styles.input} ${styles.priceInput} ${!formData.iptuValue ? styles.inputError : ''}`}
-                                        placeholder="0,00"
-                                        value={formData.iptuValue}
-                                        onChange={handleCurrencyChange}
-                                        onBlur={handleCurrencyBlur}
-                                        onFocus={(e) => e.target.select()}
-                                        onKeyDown={(e) => handleKeyDown(e, 'next')}
-                                    />
+
+                                {/* Preço Base */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><DollarSign size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>Aluguel Base</label>
+                                            <input
+                                                type="text"
+                                                name="price"
+                                                className={`${styles.valorInput} ${styles.valorInputPrice}`}
+                                                placeholder="0,00"
+                                                value={formData.price}
+                                                onChange={handleCurrencyChange}
+                                                onBlur={handleCurrencyBlur}
+                                                onFocus={(e) => e.target.select()}
+                                                onKeyDown={(e) => handleKeyDown(e, 'condoFee')}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.valorRight}>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>BRL</span>
+                                    </div>
                                 </div>
-                                {!formData.iptuValue && (
-                                    <p className={styles.errorText}>
-                                        <Info size={14} /> Campo obrigatório
-                                    </p>
+
+                                {/* Condomínio */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><Building2 size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>Condomínio</label>
+                                            <input
+                                                type="text"
+                                                name="condoFee"
+                                                className={styles.valorInput}
+                                                placeholder="0,00"
+                                                value={formData.condoFee}
+                                                onChange={handleCurrencyChange}
+                                                onBlur={handleCurrencyBlur}
+                                                onFocus={(e) => e.target.select()}
+                                                onKeyDown={(e) => handleKeyDown(e, 'seguro_incendio')}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.valorRight}>
+                                        <label className={`${styles.toggleLabel} ${formData.condominio_incluso ? styles.toggleActive : ''}`}>
+                                            <span>Incluso</span>
+                                            <div className={styles.switch} style={{ width: '40px', height: '22px' }}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={!!formData.condominio_incluso}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, condominio_incluso: e.target.checked }))}
+                                                />
+                                                <span className={styles.slider}></span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Seguro Incêndio */}
+                                <div className={styles.valorCard}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon}><ShieldCheck size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label>Seguro Incêndio</label>
+                                            <input
+                                                type="text"
+                                                name="seguro_incendio"
+                                                className={styles.valorInput}
+                                                placeholder="0,00"
+                                                value={formData.seguro_incendio}
+                                                onChange={handleCurrencyChange}
+                                                onBlur={handleCurrencyBlur}
+                                                onFocus={(e) => e.target.select()}
+                                                onKeyDown={(e) => handleKeyDown(e, 'next')}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.valorRight}>
+                                        <label className={`${styles.toggleLabel} ${formData.seguro_incendio_incluso ? styles.toggleActive : ''}`}>
+                                            <span>Incluso</span>
+                                            <div className={styles.switch} style={{ width: '40px', height: '22px' }}>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={!!formData.seguro_incendio_incluso}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, seguro_incendio_incluso: e.target.checked }))}
+                                                />
+                                                <span className={styles.slider}></span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* O imóvel paga IPTU? */}
+                                <div className={styles.formGroup} style={{ marginTop: '20px', padding: '0 10px' }}>
+                                    <h3 className={styles.question}>O imóvel paga IPTU?</h3>
+                                    <div className={styles.segmentedToggle}>
+                                        <button
+                                            className={`${styles.toggleOpt} ${formData.hasIptu ? styles.toggleOptActive : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, hasIptu: true }))}
+                                        >
+                                            Sim
+                                        </button>
+                                        <button
+                                            className={`${styles.toggleOpt} ${!formData.hasIptu ? styles.toggleOptActive : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, hasIptu: false }))}
+                                        >
+                                            Não
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* IPTU */}
+                                {formData.hasIptu && (
+                                    <div className={styles.valorCard}>
+                                        <div className={styles.valorLeft}>
+                                            <div className={styles.valorIcon}><FileText size={24} /></div>
+                                            <div className={styles.valorInfo}>
+                                                <label>IPTU Anual</label>
+                                                <input
+                                                    type="text"
+                                                    name="iptuValue"
+                                                    className={styles.valorInput}
+                                                    placeholder="0,00"
+                                                    value={formData.iptuValue}
+                                                    onChange={handleCurrencyChange}
+                                                    onBlur={handleCurrencyBlur}
+                                                    onFocus={(e) => e.target.select()}
+                                                    onKeyDown={(e) => handleKeyDown(e, 'next')}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className={styles.valorRight}>
+                                            <label className={`${styles.toggleLabel} ${formData.iptu_incluso ? styles.toggleActive : ''}`}>
+                                                <span>Incluso</span>
+                                                <div className={styles.switch} style={{ width: '40px', height: '22px' }}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={!!formData.iptu_incluso}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, iptu_incluso: e.target.checked }))}
+                                                    />
+                                                    <span className={styles.slider}></span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
                                 )}
-                                <button
-                                    className={styles.helpLink}
-                                    onClick={() => setIsIptuHelpModalOpen(true)}
-                                    style={{ marginTop: '8px' }}
-                                >
-                                    Não sabe o valor do IPTU?
-                                </button>
+
+                                {/* Total de Locação */}
+                                <div className={styles.valorCard} style={{ background: '#f5f3ff', borderColor: '#7F34E6', marginTop: '16px' }}>
+                                    <div className={styles.valorLeft}>
+                                        <div className={styles.valorIcon} style={{ background: '#7F34E6', color: '#ffffff' }}><DollarSign size={24} /></div>
+                                        <div className={styles.valorInfo}>
+                                            <label style={{ color: '#7F34E6' }}>Valor Total Aluguel</label>
+                                            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#7F34E6' }}>
+                                                {formatCurrency(getCalculatedTotal(), false, true)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className={styles.valorRight}>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#7F34E6' }}>
+                                            {formData.periodo_loca_id === 1 ? 'SEMANAL' :
+                                             formData.periodo_loca_id === 2 ? 'QUINZENAL' :
+                                             formData.periodo_loca_id === 4 ? 'SEMESTRAL' :
+                                             formData.periodo_loca_id === 5 ? 'ANUAL' : 'MENSAL'}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
+                        ) : (
+                            /* Venda / Outros */
+                            <>
+                                <div className={styles.formGroup}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <h3 className={styles.question} style={{ margin: 0 }}>Preço Base ( R$ )</h3>
+                                        {!formData.price && <span className={styles.requiredStatus}>obrigatório</span>}
+                                    </div>
+                                    <div className={styles.currencyInputWrapper}>
+                                        <input
+                                            type="text"
+                                            name="price"
+                                            className={`${styles.input} ${styles.priceInput} ${!formData.price ? styles.inputError : ''}`}
+                                            placeholder="0,00"
+                                            value={formData.price}
+                                            onChange={handleCurrencyChange}
+                                            onBlur={handleCurrencyBlur}
+                                            onFocus={(e) => e.target.select()}
+                                            onKeyDown={(e) => handleKeyDown(e, 'condoFee')}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={styles.formGroup} style={{ marginTop: '32px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                        <h3 className={styles.question} style={{ margin: 0 }}>Condomínio ( R$ / mês )</h3>
+                                        {!formData.condoFee && <span className={styles.requiredStatus}>obrigatório</span>}
+                                    </div>
+                                    <p className={styles.subQuestion} style={{ fontSize: '14px', marginBottom: '16px' }}>
+                                        Não incluir despesas pontuais (aluguel de salão ou churrasqueira, etc.)
+                                    </p>
+                                    <div className={styles.currencyInputWrapper}>
+                                        <input
+                                            type="text"
+                                            name="condoFee"
+                                            className={`${styles.input} ${styles.priceInput} ${!formData.condoFee ? styles.inputError : ''}`}
+                                            placeholder="0,00"
+                                            value={formData.condoFee}
+                                            onChange={handleCurrencyChange}
+                                            onBlur={handleCurrencyBlur}
+                                            onFocus={(e) => e.target.select()}
+                                            onKeyDown={(e) => handleKeyDown(e, formData.hasIptu ? 'iptuValue' : 'next')}
+                                        />
+                                    </div>
+                                    {!formData.condoFee && (
+                                        <p className={styles.errorText}>
+                                            <Info size={14} /> Campo obrigatório
+                                        </p>
+                                    )}
+                                    <button
+                                        className={styles.helpLink}
+                                        onClick={() => setIsCondoHelpModalOpen(true)}
+                                        style={{ marginTop: '8px' }}
+                                    >
+                                        O que incluir nesse valor?
+                                    </button>
+                                </div>
+
+                                <div className={styles.formGroup} style={{ marginTop: '32px' }}>
+                                    <h3 className={styles.question}>O imóvel paga IPTU?</h3>
+                                    <div className={styles.segmentedToggle}>
+                                        <button
+                                            className={`${styles.toggleOpt} ${formData.hasIptu ? styles.toggleOptActive : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, hasIptu: true }))}
+                                        >
+                                            Sim
+                                        </button>
+                                        <button
+                                            className={`${styles.toggleOpt} ${!formData.hasIptu ? styles.toggleOptActive : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, hasIptu: false }))}
+                                        >
+                                            Não
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {formData.hasIptu && (
+                                    <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                            <h3 className={styles.question} style={{ margin: 0 }}>IPTU ( R$ / total anual )</h3>
+                                            {!formData.iptuValue && <span className={styles.requiredStatus}>obrigatório</span>}
+                                        </div>
+                                        <div className={styles.currencyInputWrapper}>
+                                            <input
+                                                type="text"
+                                                name="iptuValue"
+                                                className={`${styles.input} ${styles.priceInput} ${!formData.iptuValue ? styles.inputError : ''}`}
+                                                placeholder="0,00"
+                                                value={formData.iptuValue}
+                                                onChange={handleCurrencyChange}
+                                                onBlur={handleCurrencyBlur}
+                                                onFocus={(e) => e.target.select()}
+                                                onKeyDown={(e) => handleKeyDown(e, 'next')}
+                                            />
+                                        </div>
+                                        {!formData.iptuValue && (
+                                            <p className={styles.errorText}>
+                                                <Info size={14} /> Campo obrigatório
+                                            </p>
+                                        )}
+                                        <button
+                                            className={styles.helpLink}
+                                            onClick={() => setIsIptuHelpModalOpen(true)}
+                                            style={{ marginTop: '8px' }}
+                                        >
+                                            Não sabe o valor do IPTU?
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
 
                         <div className={styles.navigation}>
@@ -1770,7 +1995,7 @@ export default function IncluirImovelPage() {
                             <button
                                 className={styles.btnPrimary}
                                 onClick={handleNext}
-                                disabled={!formData.price || !formData.condoFee || (formData.hasIptu && !formData.iptuValue)}
+                                disabled={!formData.price || (formData.imbtpoperacao_id !== 2 && !formData.condoFee) || (formData.hasIptu && !formData.iptuValue)}
                             >
                                 Continuar
                             </button>

@@ -115,7 +115,7 @@ export default function Header() {
                     <nav className={`${styles.nav} ${styles.desktopNav}`}>
                         <Link href="/imoveis" className={styles.navLink}>
                             <Home size={18} />
-                            <span>Imóveis</span>
+                            <span>Buscar Imóveis</span>
                         </Link>
                         <Link href="/contato" className={styles.navLink}>
                             <MessageSquare size={18} />
@@ -215,7 +215,7 @@ export default function Header() {
 
                     <Link href="/imoveis" className={styles.mobileNavLink} onClick={toggleMenu}>
                         <Home size={20} />
-                        <span>Imóveis</span>
+                        <span>Buscar Imóveis</span>
                     </Link>
 
                     {user && (

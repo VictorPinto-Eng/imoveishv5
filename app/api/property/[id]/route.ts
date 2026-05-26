@@ -28,9 +28,29 @@ export async function GET(
         op.descricao as operacao_nome,
         est.sigla as uf_nome,
         cid.descricao as cidade_nome,
-        bai.descricao as bairro_nome
+        bai.descricao as bairro_nome,
+        pl.periodo_loca_id,
+        pl.imbfinalidade_id as loc_imbfinalidade_id,
+        pl.imbtpimovel_id as loc_imbtpimovel_id,
+        pl.inclusocond,
+        pl.pr_condominio as loc_pr_condominio,
+        pl.inclusoiptu,
+        pl.pr_iptuanual as loc_pr_iptuanual,
+        pl.inclusoincendio,
+        pl.pr_segincendio as loc_pr_segincendio,
+        pl.vrtotal as loc_vrtotal,
+        pl.preco_base as loc_preco_base,
+        pv.imbfinalidade_id as venda_imbfinalidade_id,
+        pv.imbtpimovel_id as venda_imbtpimovel_id,
+        pv.pr_condominio as venda_pr_condominio,
+        pv.pr_iptuanual as venda_pr_iptuanual,
+        pv.pr_segincendio as venda_pr_segincendio,
+        pv.vrtotal as venda_vrtotal,
+        pv.preco_base as venda_preco_base
       FROM produtos_servicos p
-      LEFT JOIN imbtpimovel tp ON p.imbtpimovel_id = tp.id
+      LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id
+      LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id
+      LEFT JOIN imbtpimovel tp ON COALESCE(pl.imbtpimovel_id, pv.imbtpimovel_id) = tp.id
       LEFT JOIN imbtpoperacao op ON p.imbtpoperacao_id = op.id
       LEFT JOIN apoestado est ON p.estado_id = est.id
       LEFT JOIN apocidade cid ON p.cidade_id = cid.id
@@ -56,32 +76,113 @@ export async function GET(
     };
     const relationship = relMapping[res.rows[0].relimovel_id] || 'Administrador/Outro';
 
-    const pub_facebook = res.rows[0].custom_fields?.pub_facebook ?? true;
-    const pub_instagram = res.rows[0].custom_fields?.pub_instagram ?? true;
+    const row = res.rows[0];
+    const pub_facebook = row.custom_fields?.pub_facebook ?? true;
+    const pub_instagram = row.custom_fields?.pub_instagram ?? true;
+
+    // Mapeamento dos valores de locação ou venda das tabelas acessórias
+    const hasLocacao = row.loc_preco_base !== null && row.loc_preco_base !== undefined;
+    const hasVenda = row.venda_preco_base !== null && row.venda_preco_base !== undefined;
+    
+    let preco_base = 0;
+    let imbfinalidade_id = null;
+    let imbtpimovel_id = null;
+    let condominio_incluso = false;
+    let iptu_incluso = false;
+    let seguro_incendio_incluso = false;
+    let seguro_incendio = 0;
+    let vrtotal = 0;
+    
+    const customFields = { ...(row.custom_fields || {}) };
+    
+    if (hasLocacao) {
+      preco_base = Number(row.loc_preco_base);
+      if (row.loc_imbfinalidade_id !== null && row.loc_imbfinalidade_id !== undefined) {
+        imbfinalidade_id = Number(row.loc_imbfinalidade_id);
+      }
+      if (row.loc_imbtpimovel_id !== null && row.loc_imbtpimovel_id !== undefined) {
+        imbtpimovel_id = Number(row.loc_imbtpimovel_id);
+      }
+      condominio_incluso = row.inclusocond !== null ? (row.inclusocond === '0' || row.inclusocond === 0 || row.inclusocond.toString() === '0') : false;
+      iptu_incluso = row.inclusoiptu !== null ? (row.inclusoiptu === '0' || row.inclusoiptu === 0 || row.inclusoiptu.toString() === '0') : false;
+      seguro_incendio_incluso = row.inclusoincendio !== null ? (row.inclusoincendio === '0' || row.inclusoincendio === 0 || row.inclusoincendio.toString() === '0') : false;
+      seguro_incendio = row.loc_pr_segincendio !== null ? Number(row.loc_pr_segincendio) : 0;
+      vrtotal = row.loc_vrtotal !== null ? Number(row.loc_vrtotal) : preco_base;
+      
+      customFields.condominio = row.loc_pr_condominio !== null ? Number(row.loc_pr_condominio) : 0;
+      customFields.iptu = row.loc_pr_iptuanual !== null ? Number(row.loc_pr_iptuanual) : 0;
+    } else if (hasVenda) {
+      preco_base = Number(row.venda_preco_base);
+      if (row.venda_imbfinalidade_id !== null && row.venda_imbfinalidade_id !== undefined) {
+        imbfinalidade_id = Number(row.venda_imbfinalidade_id);
+      }
+      if (row.venda_imbtpimovel_id !== null && row.venda_imbtpimovel_id !== undefined) {
+        imbtpimovel_id = Number(row.venda_imbtpimovel_id);
+      }
+      condominio_incluso = false;
+      iptu_incluso = false;
+      seguro_incendio_incluso = false;
+      seguro_incendio = row.venda_pr_segincendio !== null ? Number(row.venda_pr_segincendio) : 0;
+      vrtotal = row.venda_vrtotal !== null ? Number(row.venda_vrtotal) : preco_base;
+
+      customFields.condominio = row.venda_pr_condominio !== null ? Number(row.venda_pr_condominio) : 0;
+      customFields.iptu = row.venda_pr_iptuanual !== null ? Number(row.venda_pr_iptuanual) : 0;
+    } else if (row.imbtpoperacao_id === 2) {
+      // Se for locação mas sem registro na tabela acessória, iniciar zerado
+      preco_base = 0;
+      imbfinalidade_id = null;
+      imbtpimovel_id = null;
+      condominio_incluso = false;
+      iptu_incluso = false;
+      seguro_incendio_incluso = false;
+      seguro_incendio = 0;
+      vrtotal = 0;
+      
+      customFields.condominio = 0;
+      customFields.iptu = 0;
+    } else {
+      preco_base = 0;
+      imbfinalidade_id = null;
+      imbtpimovel_id = null;
+      condominio_incluso = false;
+      iptu_incluso = false;
+      seguro_incendio_incluso = false;
+      seguro_incendio = 0;
+      vrtotal = 0;
+      
+      customFields.condominio = 0;
+      customFields.iptu = 0;
+    }
 
     return NextResponse.json({ 
         success: true, 
         imovel: {
-            ...res.rows[0],
+            ...row,
+            preco_base,
+            imbfinalidade_id,
+            imbtpimovel_id,
+            custom_fields: customFields,
             relationship,
             pub_facebook,
             pub_instagram,
             // Map singular DB to plural JSON for frontend compatibility
-            dormitorios: res.rows[0].dormitorio,
-            suites: res.rows[0].suite,
-            varandas: res.rows[0].varanda,
-            banheiros: res.rows[0].banheiro,
-            vagas: res.rows[0].vaga,
-            latitude: res.rows[0].latitude || null,
-            longitude: res.rows[0].longitude || null,
-            plus_code: res.rows[0].plus_code || '',
-            pub_site: res.rows[0].pub_site,
-            pub_price: res.rows[0].pub_price,
-            empreendimento: res.rows[0].imbempreendimento_id,
-            seguro_incendio: res.rows[0].seguro_incendio || 0,
-            condominio_incluso: res.rows[0].condominio_incluso || false,
-            iptu_incluso: res.rows[0].iptu_incluso || false,
-            seguro_incendio_incluso: res.rows[0].seguro_incendio_incluso || false,
+            dormitorios: row.dormitorio,
+            suites: row.suite,
+            varandas: row.varanda,
+            banheiros: row.banheiro,
+            vagas: row.vaga,
+            latitude: row.latitude || null,
+            longitude: row.longitude || null,
+            plus_code: row.plus_code || '',
+            pub_site: row.pub_site,
+            pub_price: row.pub_price,
+            empreendimento: row.imbempreendimento_id,
+            seguro_incendio,
+            condominio_incluso,
+            iptu_incluso,
+            seguro_incendio_incluso,
+            vrtotal: row.imbtpoperacao_id === 2 ? vrtotal : null,
+            periodo_loca_id: hasLocacao ? row.periodo_loca_id : (row.imbtpoperacao_id === 2 ? 3 : null),
             photos: photosRes.rows
         } 
     });
@@ -118,12 +219,31 @@ export async function PUT(
         return NextResponse.json({ error: 'Imóvel não encontrado' }, { status: 404 });
     }
 
+    // Buscar dados antigos de locação na tabela acessória, se existirem
+    const oldLocRes = await query(
+      'SELECT * FROM public.produto_servicos_loca WHERE produto_servico_id = $1',
+      [id]
+    );
+    const oldLocData = oldLocRes.rows[0] || {};
+
+    // Buscar dados antigos de venda na tabela acessória, se existirem
+    const oldVendaRes = await query(
+      'SELECT * FROM public.produto_servicos_venda WHERE produto_servico_id = $1',
+      [id]
+    );
+    const oldVendaData = oldVendaRes.rows[0] || {};
+
     const body = await req.json();
     
+    // Fallbacks para campos removidos da tabela principal
+    const oldPrecoBase = oldLocData.preco_base !== undefined ? oldLocData.preco_base : (oldVendaData.preco_base !== undefined ? oldVendaData.preco_base : 0);
+    const oldImbfinalidadeId = oldLocData.imbfinalidade_id !== undefined ? oldLocData.imbfinalidade_id : (oldVendaData.imbfinalidade_id !== undefined ? oldVendaData.imbfinalidade_id : null);
+    const oldImbtpimovelId = oldLocData.imbtpimovel_id !== undefined ? oldLocData.imbtpimovel_id : (oldVendaData.imbtpimovel_id !== undefined ? oldVendaData.imbtpimovel_id : null);
+
     // Partial update support: merge body with oldData
     const title = body.title !== undefined ? body.title : (body.nome !== undefined ? body.nome : oldData.nome);
     const description = body.description !== undefined ? body.description : (body.descricao !== undefined ? body.descricao : oldData.descricao);
-    const price = body.price !== undefined ? body.price : (body.preco_base !== undefined ? body.preco_base : oldData.preco_base);
+    const price = body.price !== undefined ? body.price : (body.preco_base !== undefined ? body.preco_base : oldPrecoBase);
     const status = body.status !== undefined ? body.status : oldData.status;
     const custom_fields_req = body.custom_fields !== undefined ? body.custom_fields : oldData.custom_fields;
     
@@ -167,14 +287,39 @@ export async function PUT(
     const plus_code = body.plus_code !== undefined ? body.plus_code : oldData.plus_code;
     
     const imbtpoperacao_id = body.imbtpoperacao_id !== undefined ? body.imbtpoperacao_id : oldData.imbtpoperacao_id;
-    const imbfinalidade_id = body.imbfinalidade_id !== undefined ? body.imbfinalidade_id : oldData.imbfinalidade_id;
-    const imbtpimovel_id = body.imbtpimovel_id !== undefined ? body.imbtpimovel_id : oldData.imbtpimovel_id;
+    const imbfinalidade_id = body.imbfinalidade_id !== undefined ? body.imbfinalidade_id : oldImbfinalidadeId;
+    const imbtpimovel_id = body.imbtpimovel_id !== undefined ? body.imbtpimovel_id : oldImbtpimovelId;
     const statusimovel = body.statusimovel !== undefined ? body.statusimovel : oldData.statusimovel;
     
-    const seguro_incendio = body.seguro_incendio !== undefined ? body.seguro_incendio : oldData.seguro_incendio;
-    const condominio_incluso = body.condominio_incluso !== undefined ? body.condominio_incluso : oldData.condominio_incluso;
-    const iptu_incluso = body.iptu_incluso !== undefined ? body.iptu_incluso : oldData.iptu_incluso;
-    const seguro_incendio_incluso = body.seguro_incendio_incluso !== undefined ? body.seguro_incendio_incluso : oldData.seguro_incendio_incluso;
+    const seguro_incendio = body.seguro_incendio !== undefined 
+        ? body.seguro_incendio 
+        : (oldLocData.pr_segincendio !== undefined 
+            ? oldLocData.pr_segincendio 
+            : oldData.seguro_incendio);
+
+    const condominio_incluso = body.condominio_incluso !== undefined 
+        ? body.condominio_incluso 
+        : (oldLocData.inclusocond !== undefined 
+            ? (oldLocData.inclusocond === '0' || oldLocData.inclusocond === 0)
+            : (oldData.condominio_incluso || false));
+            
+    const iptu_incluso = body.iptu_incluso !== undefined 
+        ? body.iptu_incluso 
+        : (oldLocData.inclusoiptu !== undefined 
+            ? (oldLocData.inclusoiptu === '0' || oldLocData.inclusoiptu === 0)
+            : (oldData.iptu_incluso || false));
+            
+    const seguro_incendio_incluso = body.seguro_incendio_incluso !== undefined 
+        ? body.seguro_incendio_incluso 
+        : (oldLocData.inclusoincendio !== undefined 
+            ? (oldLocData.inclusoincendio === '0' || oldLocData.inclusoincendio === 0)
+            : (oldData.seguro_incendio_incluso || false));
+
+    const periodo_loca_id = body.periodo_loca_id !== undefined 
+        ? body.periodo_loca_id 
+        : (oldLocData.periodo_loca_id !== undefined 
+            ? oldLocData.periodo_loca_id 
+            : null);
 
     // Relationship ID mapping
     const relMapping: Record<string, number> = {
@@ -348,8 +493,16 @@ export async function PUT(
 
     columnsWithDedicatedStorage.forEach(key => delete normalizedCustomFields[key]);
 
-    normalizedCustomFields.pub_facebook = body.pub_facebook !== undefined ? body.pub_facebook : normalizedCustomFields.pub_facebook;
-    normalizedCustomFields.pub_instagram = body.pub_instagram !== undefined ? body.pub_instagram : normalizedCustomFields.pub_instagram;
+    const pubFacebookVal = body.pub_facebook !== undefined ? body.pub_facebook : (oldData.pub_facebook ?? true);
+    const pubInstagramVal = body.pub_instagram !== undefined ? body.pub_instagram : (oldData.pub_instagram ?? true);
+
+    const condoFeeVal = body.custom_fields?.condominio !== undefined 
+      ? body.custom_fields.condominio 
+      : (oldLocData.pr_condominio !== undefined ? oldLocData.pr_condominio : (oldVendaData.pr_condominio !== undefined ? oldVendaData.pr_condominio : 0));
+      
+    const iptuValueVal = body.custom_fields?.iptu !== undefined 
+      ? body.custom_fields.iptu 
+      : (oldLocData.pr_iptuanual !== undefined ? oldLocData.pr_iptuanual : (oldVendaData.pr_iptuanual !== undefined ? oldVendaData.pr_iptuanual : 0));
 
     // Update query
     const updateRes = await query(`
@@ -357,60 +510,52 @@ export async function PUT(
       SET 
         nome = $1, 
         descricao = $2, 
-        preco_base = $3, 
-        custom_fields = $4,
-        status = $5,
-        logradouro = $6,
-        numero = $7,
-        complemento = $8,
-        quadra_torre_bloco = $9,
-        unidade = $10,
-        andar = $11,
-        cep = $12,
-        pais_id = $13,
-        estado_id = $14,
-        cidade_id = $15,
-        bairro_id = $16,
-        dormitorio = $17, 
-        suite = $18, 
-        varanda = $19, 
-        banheiro = $20, 
-        vaga = $21,
-        areaservico = $22,
-        quartoservico = $23,
-        cozinha = $24,
-        lavabo = $25,
-        area_util = $26,
-        area_construida = $27,
-        area_terreno = $28,
-        imbtpoperacao_id = $29,
-        imbempreendimento_id = $30,
-        imbfinalidade_id = $31,
-        imbtpimovel_id = $32,
-        statusimovel = $33,
-        sala = $34,
-        dimensoes_terreno = $35,
-        latitude = $36,
-        longitude = $37,
-        plus_code = $38,
-        pub_site = $39,
-        pub_price = $40,
-        relimovel_id = $41,
-        prop_id = $42,
-        seguro_incendio = $43,
-        condominio_incluso = $44,
-        iptu_incluso = $45,
-        seguro_incendio_incluso = $46,
+        status = $3,
+        logradouro = $4,
+        numero = $5,
+        complemento = $6,
+        quadra_torre_bloco = $7,
+        unidade = $8,
+        andar = $9,
+        cep = $10,
+        pais_id = $11,
+        estado_id = $12,
+        cidade_id = $13,
+        bairro_id = $14,
+        dormitorio = $15, 
+        suite = $16, 
+        varanda = $17, 
+        banheiro = $18, 
+        vaga = $19,
+        areaservico = $20,
+        quartoservico = $21,
+        cozinha = $22,
+        lavabo = $23,
+        area_util = $24,
+        area_construida = $25,
+        area_terreno = $26,
+        imbtpoperacao_id = $27,
+        imbempreendimento_id = $28,
+        statusimovel = $29,
+        sala = $30,
+        dimensoes_terreno = $31,
+        latitude = $32,
+        longitude = $33,
+        plus_code = $34,
+        pub_site = $35,
+        pub_price = $36,
+        pub_facebook = $37,
+        pub_instagram = $38,
+        relimovel_id = $39,
+        prop_id = $40,
         updated_at = NOW(),
-        updated_by = $47,
+        updated_by = $41,
         organization_id = COALESCE(organization_id, '1')
-      WHERE id = $48 AND user_id = $49
+      WHERE id = $42 AND user_id = $43
       RETURNING id
     `, [
       title || oldData.nome || 'Imóvel sem título', 
       description || '', 
-      precoBase, 
-      JSON.stringify(normalizedCustomFields), 
       status || 'ativo',
       logradouroSanitized || null,
       numeroSanitized || null,
@@ -437,8 +582,6 @@ export async function PUT(
       area_terreno || 0,
       imbtpoperacao_id || null,
       empreendimento || null,
-      imbfinalidade_id || null,
-      imbtpimovel_id || null,
       statusimovel || null,
       sala || 0,
       dimensoes_terreno || null,
@@ -447,12 +590,10 @@ export async function PUT(
       plus_code || '',
       pub_site ?? true,
       pub_price ?? true,
+      pubFacebookVal,
+      pubInstagramVal,
       relimovel_id,
       prop_id,
-      seguro_incendio || 0,
-      condominio_incluso ?? false,
-      iptu_incluso ?? false,
-      seguro_incendio_incluso ?? false,
       userId,
       id,
       userId
@@ -460,6 +601,103 @@ export async function PUT(
 
   if (updateRes.rowCount === 0) {
     return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão para editar' }, { status: 404 });
+  }
+
+  // Se a operação for locação (imbtpoperacao_id === 2), salvar/atualizar na tabela acessória public.produto_servicos_loca
+  if (imbtpoperacao_id === 2) {
+    const prCondominio = parsePriceBR(condoFeeVal);
+    const prIptuanual = parsePriceBR(iptuValueVal);
+    const prSegincendio = parsePriceBR(seguro_incendio);
+    
+    const isCondominioIncluso = condominio_incluso === true;
+    const isIptuIncluso = iptu_incluso === true;
+    const isSeguroIncendioIncluso = seguro_incendio_incluso === true;
+
+    const inclusocond = isCondominioIncluso ? '0' : '1';
+    const inclusoiptu = isIptuIncluso ? '0' : '1';
+    const inclusoincendio = isSeguroIncendioIncluso ? '0' : '1';
+
+    const vrtotal = precoBase + 
+      (isCondominioIncluso ? 0 : prCondominio) + 
+      (isIptuIncluso ? 0 : (prIptuanual / 12)) + 
+      (isSeguroIncendioIncluso ? 0 : prSegincendio);
+
+    const resolvedPeriodoLocaId = Number(periodo_loca_id) || 3;
+
+    await query(`
+      INSERT INTO public.produto_servicos_loca (
+        produto_servico_id, periodo_loca_id, imbfinalidade_id, imbtpimovel_id, preco_base,
+        inclusocond, pr_condominio, inclusoiptu, pr_iptuanual, inclusoincendio, pr_segincendio,
+        vrtotal, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+      ON CONFLICT (produto_servico_id) DO UPDATE SET
+        periodo_loca_id = EXCLUDED.periodo_loca_id,
+        imbfinalidade_id = EXCLUDED.imbfinalidade_id,
+        imbtpimovel_id = EXCLUDED.imbtpimovel_id,
+        preco_base = EXCLUDED.preco_base,
+        inclusocond = EXCLUDED.inclusocond,
+        pr_condominio = EXCLUDED.pr_condominio,
+        inclusoiptu = EXCLUDED.inclusoiptu,
+        pr_iptuanual = EXCLUDED.pr_iptuanual,
+        inclusoincendio = EXCLUDED.inclusoincendio,
+        pr_segincendio = EXCLUDED.pr_segincendio,
+        vrtotal = EXCLUDED.vrtotal,
+        updated_at = NOW()
+    `, [
+      id,
+      resolvedPeriodoLocaId,
+      imbfinalidade_id || null,
+      imbtpimovel_id || null,
+      precoBase,
+      inclusocond,
+      prCondominio,
+      inclusoiptu,
+      prIptuanual,
+      inclusoincendio,
+      prSegincendio,
+      vrtotal
+    ]);
+
+    // Remover da tabela de venda
+    await query('DELETE FROM public.produto_servicos_venda WHERE produto_servico_id = $1', [id]);
+  } else if (imbtpoperacao_id === 1) {
+    // Se a operação for venda (imbtpoperacao_id === 1), salvar/atualizar na tabela acessória public.produto_servicos_venda
+    const prCondominio = parsePriceBR(normalizedCustomFields.condominio);
+    const prIptuanual = parsePriceBR(normalizedCustomFields.iptu);
+    const prSegincendio = parsePriceBR(seguro_incendio);
+    const vrtotal = precoBase;
+
+    await query(`
+      INSERT INTO public.produto_servicos_venda (
+        produto_servico_id, imbfinalidade_id, imbtpimovel_id, preco_base,
+        pr_condominio, pr_iptuanual, pr_segincendio, vrtotal, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      ON CONFLICT (produto_servico_id) DO UPDATE SET
+        imbfinalidade_id = EXCLUDED.imbfinalidade_id,
+        imbtpimovel_id = EXCLUDED.imbtpimovel_id,
+        preco_base = EXCLUDED.preco_base,
+        pr_condominio = EXCLUDED.pr_condominio,
+        pr_iptuanual = EXCLUDED.pr_iptuanual,
+        pr_segincendio = EXCLUDED.pr_segincendio,
+        vrtotal = EXCLUDED.vrtotal,
+        updated_at = NOW()
+    `, [
+      id,
+      imbfinalidade_id || null,
+      imbtpimovel_id || null,
+      precoBase,
+      prCondominio,
+      prIptuanual,
+      prSegincendio,
+      vrtotal
+    ]);
+
+    // Remover da tabela de locação
+    await query('DELETE FROM public.produto_servicos_loca WHERE produto_servico_id = $1', [id]);
+  } else {
+    // Remover de ambas
+    await query('DELETE FROM public.produto_servicos_loca WHERE produto_servico_id = $1', [id]);
+    await query('DELETE FROM public.produto_servicos_venda WHERE produto_servico_id = $1', [id]);
   }
 
   // 2. Generate Diff

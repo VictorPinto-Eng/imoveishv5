@@ -30,7 +30,13 @@ export async function POST(req: NextRequest) {
       latitude, longitude, plus_code,
       imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel,
       empreendimento,
-      pub_site, pub_price
+      pub_site, pub_price,
+      // Rental-specific fields
+      periodo_loca_id,
+      condominio_incluso,
+      iptu_incluso,
+      seguro_incendio_incluso,
+      seguro_incendio
     } = data;
 
   const ufSigla = sanitizeLocationName(String(uf || ''));
@@ -221,16 +227,14 @@ export async function POST(req: NextRequest) {
     // Insert into produtos_servicos
     const insertResult = await query(`
       INSERT INTO produtos_servicos 
-        (nome, preco_base, descricao, status, custom_fields, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, prop_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, imbfinalidade_id, imbtpimovel_id, statusimovel, imbempreendimento_id, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, relimovel_id, tipo, categoria, ativo, tags, organization_id)
+        (nome, descricao, status, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, prop_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, statusimovel, imbempreendimento_id, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, pub_facebook, pub_instagram, relimovel_id, tipo, categoria, ativo, tags, organization_id)
       VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, 'produto', 'Imovel', true, '[]', '1')
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, 'produto', 'Imovel', true, '[]', '1')
       RETURNING id
     `, [
       title || `${type} - ${rooms} quartos`,
-      precoBase,
       description || '',
       status || 'Pendente',
-      JSON.stringify(custom_fields_clean),
       addressSanitized || null,
       numberSanitized || null,
       complementSanitized || null,
@@ -257,8 +261,6 @@ export async function POST(req: NextRequest) {
       parseFloat(area_construida) || 0,
       parseFloat(area_terreno) || 0,
       imbtpoperacao_id || null,
-      imbfinalidade_id || null,
-      imbtpimovel_id || null,
       statusimovel || 2,
       empreendimento || null,
       parseInt(sala) || 0,
@@ -268,10 +270,79 @@ export async function POST(req: NextRequest) {
       plus_code || '',
       pub_site ?? true,
       pub_price ?? true,
+      pub_facebook ?? true,
+      pub_instagram ?? true,
       relimovel_id
     ]);
 
     const produtoId = insertResult.rows[0].id;
+
+    // Se a operação for locação, salvar na tabela acessória public.produto_servicos_loca
+    if (imbtpoperacao_id === 2) {
+      const prCondominio = parsePriceBR(condoFee);
+      const prIptuanual = parsePriceBR(iptuValue);
+      const prSegincendio = parsePriceBR(seguro_incendio);
+      
+      const isCondominioIncluso = condominio_incluso === true;
+      const isIptuIncluso = iptu_incluso === true;
+      const isSeguroIncendioIncluso = seguro_incendio_incluso === true;
+
+      const inclusocond = isCondominioIncluso ? '0' : '1';
+      const inclusoiptu = isIptuIncluso ? '0' : '1';
+      const inclusoincendio = isSeguroIncendioIncluso ? '0' : '1';
+
+      const vrtotal = precoBase + 
+        (isCondominioIncluso ? 0 : prCondominio) + 
+        (isIptuIncluso ? 0 : (prIptuanual / 12)) + 
+        (isSeguroIncendioIncluso ? 0 : prSegincendio);
+
+      const resolvedPeriodoLocaId = Number(periodo_loca_id) || 3; // Padrão: Mensal
+
+      await query(`
+        INSERT INTO public.produto_servicos_loca (
+          produto_servico_id, periodo_loca_id, imbfinalidade_id, imbtpimovel_id, preco_base,
+          inclusocond, pr_condominio, inclusoiptu, pr_iptuanual, inclusoincendio, pr_segincendio,
+          vrtotal
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `, [
+        produtoId,
+        resolvedPeriodoLocaId,
+        imbfinalidade_id || null,
+        imbtpimovel_id || null,
+        precoBase,
+        inclusocond,
+        prCondominio,
+        inclusoiptu,
+        prIptuanual,
+        inclusoincendio,
+        prSegincendio,
+        vrtotal
+      ]);
+    }
+
+    // Se a operação for venda, salvar na tabela acessória public.produto_servicos_venda
+    if (imbtpoperacao_id === 1) {
+      const prCondominio = parsePriceBR(condoFee);
+      const prIptuanual = parsePriceBR(iptuValue);
+      const prSegincendio = parsePriceBR(seguro_incendio);
+      const vrtotal = precoBase;
+
+      await query(`
+        INSERT INTO public.produto_servicos_venda (
+          produto_servico_id, imbfinalidade_id, imbtpimovel_id, preco_base,
+          pr_condominio, pr_iptuanual, pr_segincendio, vrtotal
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `, [
+        produtoId,
+        imbfinalidade_id || null,
+        imbtpimovel_id || null,
+        precoBase,
+        prCondominio,
+        prIptuanual,
+        prSegincendio,
+        vrtotal
+      ]);
+    }
 
     // Log the creation activity
     await recordAuditLog(produtoId, userId, 'CRIACAO', {

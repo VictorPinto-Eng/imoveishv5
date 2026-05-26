@@ -215,7 +215,11 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
               </div>
             )}
             {!!imovel.dormitorios && (
-              <div className={styles.featureItem} data-tooltip="Dormitórios" title="Dormitórios">
+              <div 
+                className={styles.featureItem} 
+                data-tooltip={imovel.dormitorios === 1 ? 'Dormitório' : 'Dormitórios'} 
+                title={imovel.dormitorios === 1 ? 'Dormitório' : 'Dormitórios'}
+              >
                 {/* Modern Bed Icon */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 17h20M2 17v-4c0-1.1.9-2 2-2h16c1.1 0 2 .9 2 2v4M6 11V7c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v4M6 11h12" />
@@ -224,7 +228,11 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
               </div>
             )}
             {!!imovel.suites && (
-              <div className={styles.featureItem} data-tooltip="Suítes" title="Suítes">
+              <div 
+                className={styles.featureItem} 
+                data-tooltip={imovel.suites === 1 ? 'Suíte' : 'Suítes'} 
+                title={imovel.suites === 1 ? 'Suíte' : 'Suítes'}
+              >
                 {/* Modern Suite Icon (Double) */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
                   <path d="M2 17h20M2 17v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4M12 5v6" />
@@ -233,7 +241,11 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
               </div>
             )}
             {!!imovel.banheiros && (
-              <div className={styles.featureItem} data-tooltip="Banheiros" title="Banheiros">
+              <div 
+                className={styles.featureItem} 
+                data-tooltip={imovel.banheiros === 1 ? 'Banheiro' : 'Banheiros'} 
+                title={imovel.banheiros === 1 ? 'Banheiro' : 'Banheiros'}
+              >
                 {/* Clean Bath Icon */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 10h18v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7zM7 21v2M17 21v2M12 2v2M2 10V8a2 2 0 0 1 2-2h2" />
@@ -242,7 +254,11 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
               </div>
             )}
             {!!imovel.lavabo && (
-              <div className={styles.featureItem} data-tooltip="Lavabos" title="Lavabos">
+              <div 
+                className={styles.featureItem} 
+                data-tooltip={imovel.lavabo === 1 ? 'Lavabo' : 'Lavabos'} 
+                title={imovel.lavabo === 1 ? 'Lavabo' : 'Lavabos'}
+              >
                 {/* Sink Icon for Lavabo */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2v4" />
@@ -253,7 +269,11 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
               </div>
             )}
             {!!imovel.vagas && (
-              <div className={styles.featureItem} data-tooltip="Vagas de Garagem" title="Vagas de Garagem">
+              <div 
+                className={styles.featureItem} 
+                data-tooltip={imovel.vagas === 1 ? 'Vaga de Garagem' : 'Vagas de Garagem'} 
+                title={imovel.vagas === 1 ? 'Vaga de Garagem' : 'Vagas de Garagem'}
+              >
                 {/* Modern Parking Icon */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.7 8.2c-.5-1.4-1.8-2.2-3.3-2.2H8.6c-1.5 0-2.8.8-3.3 2.2L2.5 11.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2M5 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2M15 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2" />
@@ -283,6 +303,66 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
           >
             {imovel.pub_price === false ? 'CONSULTAR PREÇO' : `${priceFormatted}${isRental ? '/mês' : ''}`}
           </div>
+
+          {isRental && imovel.pub_price !== false && (
+            <div className={styles.rentalDetails}>
+              {/* INCLUSOS */}
+              {(() => {
+                const inclusos = [];
+                if (imovel.condominio_incluso) inclusos.push('Condomínio');
+                if (imovel.iptu_incluso) inclusos.push('IPTU');
+                if (imovel.seguro_incendio_incluso) inclusos.push('Seguro Incêndio');
+                
+                if (inclusos.length > 0) {
+                  return (
+                    <div className={styles.detailRow}>
+                      <span className={styles.detailLabelIncluso}>Inclusos:</span>
+                      <div className={styles.badgeContainer}>
+                        {inclusos.map(item => (
+                          <span key={item} className={styles.badgeIncluso}>{item}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* PREVISTOS */}
+              {(() => {
+                const previstos = [];
+                const condVal = custom_fields?.condominio || 0;
+                const iptuVal = custom_fields?.iptu || 0;
+                const seguroVal = imovel.seguro_incendio || 0;
+
+                const formatVal = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
+
+                if (!imovel.condominio_incluso && condVal > 0) {
+                  previstos.push(`Cond. (${formatVal(condVal)})`);
+                }
+                if (!imovel.iptu_incluso && iptuVal > 0) {
+                  previstos.push(`IPTU (${formatVal(iptuVal)})`);
+                }
+                if (!imovel.seguro_incendio_incluso && seguroVal > 0) {
+                  previstos.push(`Seguro (${formatVal(seguroVal)})`);
+                }
+
+                if (previstos.length > 0) {
+                  return (
+                    <div className={styles.detailRow}>
+                      <span className={styles.detailLabelPrevisto}>Previsto:</span>
+                      <div className={styles.badgeContainer}>
+                        {previstos.map(item => (
+                          <span key={item} className={styles.badgePrevisto}>{item}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          )}
         </div>
 
         <div className={styles.cardFooter} onClick={(e) => e.stopPropagation()}>

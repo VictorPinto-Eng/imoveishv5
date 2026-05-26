@@ -44,3 +44,9 @@ tmp/
 Thumbs.db
 # Uploads
 public/uploads/*
+
+# TS build info
+*.tsbuildinfo
+
+# Scratch scripts
+scratch/

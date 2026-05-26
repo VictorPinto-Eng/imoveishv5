@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation'
 import PropertyGallery from '@/components/PropertyGallery'
 import PropertyStats from '@/components/PropertyStats'
 import ContactStickyCard from '@/components/ContactStickyCard'
-import AmenitiesTabs from '@/components/AmenitiesTabs'
+
 import ImovelCard from '@/components/ImovelCard'
 import BackButton from '@/components/BackButton'
 import { MapPin, ChevronRight } from 'lucide-react'
@@ -64,19 +64,30 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
         ? {} 
         : imovel.custom_fields || {}
 
-    // Costs
-    const condominioFormatted = cf.valor_condominio 
-        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cf.valor_condominio)
-        : undefined;
-    const iptuFormatted = cf.valor_iptu
-        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cf.valor_iptu)
+    // Costs formatting
+    const condominioFormatted = imovel.condominio_incluso
+        ? 'Incluso'
+        : (cf.valor_condominio 
+            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cf.valor_condominio)
+            : undefined);
+
+    const iptuFormatted = imovel.iptu_incluso
+        ? 'Incluso'
+        : (cf.valor_iptu
+            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cf.valor_iptu / 12)
+            : undefined);
+
+    const seguroIncendioFormatted = imovel.seguro_incendio_incluso
+        ? 'Incluso'
+        : (imovel.seguro_incendio
+            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(imovel.seguro_incendio)
+            : undefined);
+
+    const vrtotalFormatted = imovel.vrtotal
+        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(imovel.vrtotal)
         : undefined;
 
-    let tags: string[] = []
-    try {
-        if (typeof imovel.tags === 'string') tags = JSON.parse(imovel.tags)
-        else if (Array.isArray(imovel.tags)) tags = imovel.tags
-    } catch { }
+
 
     const address = [imovel.logradouro, cf.bairro, cf.cidade].filter(Boolean).join(' - ')
     const locationTitle = [cf.bairro, cf.cidade].filter(Boolean).join(', ')
@@ -138,17 +149,7 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             propertyTitle={imovel.nome} 
                         />
 
-                        <section className={styles.section}>
-                            <h2 className={styles.sectionTitle}>Descrição</h2>
-                            <div className={styles.description}>
-                                {imovel.descricao}
-                            </div>
-                        </section>
 
-                        <section className={styles.section}>
-                            <h2 className={styles.sectionTitle}>Saiba mais sobre este imóvel</h2>
-                            <AmenitiesTabs tags={tags} />
-                        </section>
                         <section className={styles.section}>
                             <h2 className={styles.sectionTitle}>Localização</h2>
                             <SafePropertyMap 
@@ -165,6 +166,8 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             price={priceFormatted}
                             condominium={condominioFormatted}
                             iptu={iptuFormatted}
+                            seguroIncendio={seguroIncendioFormatted}
+                            vrtotal={vrtotalFormatted}
                             propertyName={imovel.nome}
                             propertyLocation={locationTitle}
                             propertyId={id}

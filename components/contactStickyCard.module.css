@@ -31,7 +31,7 @@
     color: #0f172a;
     letter-spacing: -0.025em;
     margin-bottom: 0.5rem;
-    text-align: right;
+    text-align: center;
 }
 
 .formSection {
@@ -195,9 +195,23 @@
 }
 
 .priceValueMasked {
-    text-align: right;
+    text-align: center;
     font-size: 1.25rem;
     color: #e30613;
     width: 100%;
     margin-bottom: 1rem;
+}
+
+.totalCostItem {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #cbd5e1;
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    color: #6366f1 !important; /* Premium indigo color */
+}
+
+.totalCostItem span:last-child {
+    font-weight: 800 !important;
+    color: #6366f1 !important;
 }

@@ -71,6 +71,33 @@ export async function POST(
         );
         const newId = insertRes.rows[0].id;
 
+        // Clone accessory table records (public.produto_servicos_loca or public.produto_servicos_venda)
+        if (dataToClone.imbtpoperacao_id === 2) {
+            const locRes = await query('SELECT * FROM public.produto_servicos_loca WHERE produto_servico_id = $1', [originalId]);
+            if (locRes.rows.length > 0) {
+                const { id: _, produto_servico_id: __, created_at: ___, updated_at: ____, ...locData } = locRes.rows[0];
+                const locKeys = Object.keys(locData);
+                const locValues = Object.values(locData);
+                const locPlaceholders = locKeys.map((_, i) => `$${i + 2}`).join(', ');
+                await query(
+                    `INSERT INTO public.produto_servicos_loca (produto_servico_id, ${locKeys.join(', ')}) VALUES ($1, ${locPlaceholders})`,
+                    [newId, ...locValues]
+                );
+            }
+        } else if (dataToClone.imbtpoperacao_id === 1) {
+            const vendaRes = await query('SELECT * FROM public.produto_servicos_venda WHERE produto_servico_id = $1', [originalId]);
+            if (vendaRes.rows.length > 0) {
+                const { id: _, produto_servico_id: __, created_at: ___, updated_at: ____, ...vendaData } = vendaRes.rows[0];
+                const vendaKeys = Object.keys(vendaData);
+                const vendaValues = Object.values(vendaData);
+                const vendaPlaceholders = vendaKeys.map((_, i) => `$${i + 2}`).join(', ');
+                await query(
+                    `INSERT INTO public.produto_servicos_venda (produto_servico_id, ${vendaKeys.join(', ')}) VALUES ($1, ${vendaPlaceholders})`,
+                    [newId, ...vendaValues]
+                );
+            }
+        }
+
         // 3. Clone Media (DB + Files)
         const mediaRes = await query('SELECT * FROM produtos_servicos_midia WHERE produto_servico_id = $1', [originalId]);
         
