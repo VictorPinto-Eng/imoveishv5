@@ -24,6 +24,7 @@ export default function Header() {
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [user, setUser] = useState<User | null>(null)
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+    const [pendingCount, setPendingCount] = useState<number>(0)
     const dropdownRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -47,6 +48,9 @@ export default function Header() {
                 const data = await res.json();
                 if (data.authenticated) {
                     setUser(data.user);
+                    if (data.user.is_admin) {
+                        fetchPendingCreciCount();
+                    }
                 } else {
                     setUser(null);
                 }
@@ -55,6 +59,20 @@ export default function Header() {
             console.error('Error checking auth:', error);
         }
     }
+
+    const fetchPendingCreciCount = async () => {
+        try {
+            const res = await fetch('/api/admin/stats');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.pendingCreci)) {
+                    setPendingCount(data.pendingCreci.length);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching stats for badge:', error);
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -173,9 +191,27 @@ export default function Header() {
                                                 href="/admin"
                                                 className={styles.dropdownItem}
                                                 onClick={() => setIsDropdownOpen(false)}
+                                                style={{ display: 'flex', alignItems: 'center', width: '100%' }}
                                             >
                                                 <ShieldCheck size={18} />
                                                 <span>Painel Admin</span>
+                                                {pendingCount > 0 && (
+                                                    <span style={{ 
+                                                        backgroundColor: '#ef4444', 
+                                                        color: 'white', 
+                                                        borderRadius: '9999px', 
+                                                        padding: '2px 7px', 
+                                                        fontSize: '11px', 
+                                                        fontWeight: 'bold', 
+                                                        marginLeft: 'auto',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        lineHeight: 1
+                                                    }}>
+                                                        {pendingCount}
+                                                    </span>
+                                                )}
                                             </Link>
                                         )}
                                         <div className={styles.dropdownDivider}></div>
@@ -240,9 +276,31 @@ export default function Header() {
                                 <span>Meus Imóveis</span>
                             </Link>
                             {user.is_admin && (
-                                <Link href="/admin" className={styles.mobileNavLink} onClick={toggleMenu}>
+                                <Link 
+                                    href="/admin" 
+                                    className={styles.mobileNavLink} 
+                                    onClick={toggleMenu}
+                                    style={{ display: 'flex', alignItems: 'center', width: '100%' }}
+                                >
                                     <ShieldCheck size={20} />
                                     <span>Painel Admin</span>
+                                    {pendingCount > 0 && (
+                                        <span style={{ 
+                                            backgroundColor: '#ef4444', 
+                                            color: 'white', 
+                                            borderRadius: '9999px', 
+                                            padding: '2px 7px', 
+                                            fontSize: '11px', 
+                                            fontWeight: 'bold', 
+                                            marginLeft: 'auto',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            lineHeight: 1
+                                        }}>
+                                            {pendingCount}
+                                        </span>
+                                    )}
                                 </Link>
                             )}
                         </>
