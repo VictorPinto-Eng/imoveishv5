@@ -56,9 +56,13 @@ export async function POST(request: Request) {
             );
         }
 
+        // Check if user is admin
+        const adminRes = await query('SELECT EXISTS(SELECT 1 FROM public.admin_users WHERE user_id = $1) as is_admin', [user.id]);
+        const isAdmin = adminRes.rows[0]?.is_admin || false;
+
         // Create JWT
         const token = jwt.sign(
-            { id: user.id, email: user.email, name: user.name },
+            { id: user.id, email: user.email, name: user.name, is_admin: isAdmin },
             JWT_SECRET,
             { expiresIn: '1d' }
         );
@@ -66,7 +70,7 @@ export async function POST(request: Request) {
         // Set cookie (optional, but good for SSR)
         const response = NextResponse.json({
             message: 'Login realizado com sucesso!',
-            user: { id: user.id, name: user.name, email: user.email }
+            user: { id: user.id, name: user.name, email: user.email, is_admin: isAdmin }
         });
 
         response.cookies.set('token', token, {

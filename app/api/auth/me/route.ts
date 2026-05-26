@@ -17,8 +17,9 @@ export async function GET(req: NextRequest) {
 
         const res = await query(
             `SELECT u.id, u.email, u.name, u.social_name, u.avatar_url, u.email_verified, u.id_tipo_usuario, u.phone, 
-                    u.creci_numero, u.creci_apoestado_id, u.creci_tipo, u.creci_status,
-                    tu.nome as tipo_usuario_nome 
+                    u.creci_numero, u.creci_apoestado_id, u.creci_tipo, u.creci_status, u.creci_document_url,
+                    tu.nome as tipo_usuario_nome,
+                    EXISTS(SELECT 1 FROM public.admin_users WHERE user_id = u.id) as is_admin
              FROM users u 
              LEFT JOIN tipo_usuario tu ON u.id_tipo_usuario = tu.id 
              WHERE u.id = $1`,
@@ -46,7 +47,9 @@ export async function GET(req: NextRequest) {
                 creci_numero: user.creci_numero,
                 creci_apoestado_id: user.creci_apoestado_id,
                 creci_tipo: user.creci_tipo,
-                creci_status: user.creci_status
+                creci_status: user.creci_status,
+                creci_document_url: user.creci_document_url,
+                is_admin: user.is_admin
             }
         });
 

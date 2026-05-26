@@ -18,6 +18,7 @@ interface User {
     creci_apoestado_id?: number;
     creci_tipo?: string;
     creci_status?: boolean;
+    creci_document_url?: string;
 }
 
 interface ProfileModalProps {
@@ -37,6 +38,8 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
     const [creciApoestadoId, setCreciApoestadoId] = useState<number | ''>(user?.creci_apoestado_id || '');
     const [creciTipo, setCreciTipo] = useState(user?.creci_tipo || 'Física');
     const [creciStatus, setCreciStatus] = useState<boolean | null>(user?.creci_status ?? null);
+    const [creciDocumentUrl, setCreciDocumentUrl] = useState(user?.creci_document_url || '');
+    const [isUploadingDoc, setIsUploadingDoc] = useState(false);
     const [estados, setEstados] = useState<Array<{ id: number; nome: string; sigla: string }>>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -77,6 +80,7 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                     setCreciApoestadoId(data.user.creci_apoestado_id || '');
                     setCreciTipo(data.user.creci_tipo || 'Física');
                     setCreciStatus(data.user.creci_status ?? null);
+                    setCreciDocumentUrl(data.user.creci_document_url || '');
                     
                     const storedPhone = data.user.phone || '';
                     if (storedPhone.startsWith('55')) {
@@ -99,6 +103,43 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
         }
     };
 
+    const handleUploadDocument = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            setMessage({ type: 'error', text: 'O comprovante deve ter no máximo 5MB.' });
+            return;
+        }
+
+        setIsUploadingDoc(true);
+        setMessage(null);
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/api/user/profile/document', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setCreciDocumentUrl(data.url);
+                setCreciStatus(false); // Pendente de aprovação
+                setMessage({ type: 'success', text: 'Comprovante do CRECI enviado com sucesso! Aguarde homologação.' });
+            } else {
+                setMessage({ type: 'error', text: data.error || 'Erro ao enviar o documento.' });
+            }
+        } catch (error) {
+            console.error('Error uploading document:', error);
+            setMessage({ type: 'error', text: 'Erro de conexão ao enviar documento.' });
+        } finally {
+            setIsUploadingDoc(false);
+        }
+    };
+
     if (!isOpen || !user) return null;
 
     const handleSave = async () => {
@@ -110,6 +151,25 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
         if (!email.includes('@')) {
             setMessage({ type: 'error', text: 'E-mail inválido.' });
             return;
+        }
+
+        if (idTipoUsuario === 1) {
+            if (!creciNumero) {
+                setMessage({ type: 'error', text: 'O número do CRECI é obrigatório para corretores.' });
+                return;
+            }
+            if (!creciApoestadoId) {
+                setMessage({ type: 'error', text: 'A UF de registro do CRECI é obrigatória.' });
+                return;
+            }
+            if (!creciTipo) {
+                setMessage({ type: 'error', text: 'O tipo de inscrição do CRECI é obrigatório.' });
+                return;
+            }
+            if (!creciDocumentUrl) {
+                setMessage({ type: 'error', text: 'É obrigatório fazer o upload do comprovante do CRECI.' });
+                return;
+            }
         }
 
         setIsSaving(true);
@@ -286,6 +346,7 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                 onChange={handlePhoneChange}
                                 placeholder="(81) 99999-9999"
                                 className={styles.phoneInput} 
+                            />
                         </div>
                     </div>
 
@@ -333,10 +394,47 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                     </select>
                                 </div>
                             </div>
+
+                            <div className={styles.formGroup} style={{ marginBottom: 0 }}>
+                                <label className={styles.label}>Comprovante do CRECI (Obrigatório)</label>
+                                {creciDocumentUrl ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <span style={{ fontSize: '1.2rem' }}>📄</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>Comprovante Enviado</span>
+                                                <a href={creciDocumentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#7F34E6', textDecoration: 'underline' }}>
+                                                    Visualizar documento enviado
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <label style={{ cursor: 'pointer', fontSize: '0.8rem', color: '#64748b', textDecoration: 'underline' }}>
+                                            {isUploadingDoc ? 'Enviando...' : 'Alterar'}
+                                            <input type="file" accept="application/pdf,image/*" onChange={handleUploadDocument} style={{ display: 'none' }} />
+                                        </label>
+                                    </div>
+                                ) : (
+                                    <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.25rem', border: '2px dashed #cbd5e1', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'white', transition: 'all 0.2s' }}>
+                                        {isUploadingDoc ? (
+                                            <>
+                                                <Loader2 className="animate-spin" size={24} style={{ color: '#7F34E6' }} />
+                                                <span style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem' }}>Enviando documento...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span style={{ fontSize: '1.5rem' }}>📄</span>
+                                                <span style={{ fontSize: '0.85rem', color: '#7F34E6', fontWeight: 600, marginTop: '0.25rem' }}>Enviar Comprovante (PDF/Imagem)</span>
+                                                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Clique para selecionar (Máx 5MB)</span>
+                                            </>
+                                        )}
+                                        <input type="file" accept="application/pdf,image/*" onChange={handleUploadDocument} style={{ display: 'none' }} />
+                                    </label>
+                                )}
+                            </div>
                             
                             {creciStatus !== null && (
                                 <div style={{ fontSize: '0.8rem', color: creciStatus ? '#10b981' : '#64748b', fontWeight: 600 }}>
-                                    Status do CRECI: {creciStatus ? '✅ Verificado / Ativo' : '⏳ Pendente de Verificação'}
+                                    Status do CRECI: {creciStatus ? '✅ Verificado / Ativo' : '⏳ Aguardando Verificação'}
                                 </div>
                             )}
                         </div>

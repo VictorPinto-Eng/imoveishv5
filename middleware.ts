@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+function decodeJwtPayload(token: string) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -18,10 +36,23 @@ export default function middleware(request: NextRequest) {
 
   console.log(`[Middleware DEBUG] Path: ${pathname}, Token: ${!!token}`);
 
-  // 2. Protege a rota /meus-imoveis e /admin e sub-rotas
-  if (pathname.startsWith('/meus-imoveis') || pathname.startsWith('/admin')) {
+  // 2. Protege a rota /meus-imoveis e sub-rotas
+  if (pathname.startsWith('/meus-imoveis')) {
     if (!token) {
       console.log(`[Middleware DEBUG] Redirecting ${pathname} -> /`);
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  // 3. Protege a rota /admin e sub-rotas (exige ser administrador)
+  if (pathname.startsWith('/admin')) {
+    if (!token) {
+      console.log(`[Middleware DEBUG] Redirecting ${pathname} -> /`);
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    const payload = decodeJwtPayload(token);
+    if (!payload || !payload.is_admin) {
+      console.log(`[Middleware DEBUG] Non-admin access block on ${pathname}. Redirecting -> /`);
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

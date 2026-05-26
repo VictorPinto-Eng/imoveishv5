@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGrid, LogOut, ChevronDown, PlusCircle } from 'lucide-react'
+import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGrid, LogOut, ChevronDown, PlusCircle, ShieldCheck } from 'lucide-react'
 import styles from './header.module.css'
 import LoginModal from './LoginModal'
 import ProfileModal from './ProfileModal'
@@ -15,6 +15,7 @@ interface User {
     email: string;
     avatar_url?: string;
     email_verified: boolean;
+    is_admin?: boolean;
 }
 
 export default function Header() {
@@ -167,6 +168,16 @@ export default function Header() {
                                             <LayoutGrid size={18} />
                                             <span>Meus Imóveis</span>
                                         </Link>
+                                        {user.is_admin && (
+                                            <Link
+                                                href="/admin"
+                                                className={styles.dropdownItem}
+                                                onClick={() => setIsDropdownOpen(false)}
+                                            >
+                                                <ShieldCheck size={18} />
+                                                <span>Painel Admin</span>
+                                            </Link>
+                                        )}
                                         <div className={styles.dropdownDivider}></div>
                                         <button className={`${styles.dropdownItem} ${styles.logoutItem}`} onClick={handleLogout}>
                                             <LogOut size={18} />
@@ -228,6 +239,12 @@ export default function Header() {
                                 <LayoutGrid size={20} />
                                 <span>Meus Imóveis</span>
                             </Link>
+                            {user.is_admin && (
+                                <Link href="/admin" className={styles.mobileNavLink} onClick={toggleMenu}>
+                                    <ShieldCheck size={20} />
+                                    <span>Painel Admin</span>
+                                </Link>
+                            )}
                         </>
                     )}
 

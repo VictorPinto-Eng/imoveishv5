@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         const { social_name, email, id_tipo_usuario, phone, creci_numero, creci_apoestado_id, creci_tipo } = await req.json();
 
         // Check if email is changing
-        const userResult = await query('SELECT email, name FROM users WHERE id = $1', [decoded.id]);
+        const userResult = await query('SELECT email, name, creci_document_url FROM users WHERE id = $1', [decoded.id]);
         const user = userResult.rows[0];
         
         let emailChanged = false;
@@ -31,6 +31,15 @@ export async function POST(req: NextRequest) {
         const valCreciNumero = isCorretor ? (creci_numero || null) : null;
         const valCreciEstadoId = isCorretor ? (Number(creci_apoestado_id) || null) : null;
         const valCreciTipo = isCorretor ? (creci_tipo || null) : null;
+
+        if (isCorretor) {
+            if (!valCreciNumero || !valCreciEstadoId || !valCreciTipo) {
+                return NextResponse.json({ error: 'Todos os campos de CRECI (número, UF e tipo) são obrigatórios para corretores/imobiliárias.' }, { status: 400 });
+            }
+            if (!user.creci_document_url) {
+                return NextResponse.json({ error: 'O upload do comprovante do CRECI é obrigatório para corretores/imobiliárias.' }, { status: 400 });
+            }
+        }
 
         if (email !== user.email) {
             emailChanged = true;

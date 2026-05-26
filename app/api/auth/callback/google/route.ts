@@ -65,9 +65,13 @@ export async function GET(request: Request) {
             user = res.rows[0];
         }
 
+        // Check if user is admin
+        const adminRes = await query('SELECT EXISTS(SELECT 1 FROM public.admin_users WHERE user_id = $1) as is_admin', [user.id]);
+        const isAdmin = adminRes.rows[0]?.is_admin || false;
+
         // 4. Generate JWT
         const token = jwt.sign(
-            { id: user.id, email: user.email, name: user.name },
+            { id: user.id, email: user.email, name: user.name, is_admin: isAdmin },
             JWT_SECRET,
             { expiresIn: '1d' }
         );
