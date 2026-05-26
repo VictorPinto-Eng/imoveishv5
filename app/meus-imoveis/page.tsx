@@ -193,29 +193,48 @@ function MeusImoveisContent() {
         }
     };
 
+    const checkCreciApproval = () => {
+        if (currentUser && Number(currentUser.id_tipo_usuario) === 1 && !currentUser.creci_status) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'CRECI Não Homologado',
+                text: 'Para publicar imóveis no site, seu CRECI precisa ser validado e ativado pelo administrador. Acesse "Meu Perfil" para enviar seu comprovante.',
+                confirmButtonColor: '#7F34E6',
+                confirmButtonText: 'Entendi'
+            });
+            return false;
+        }
+        return true;
+    };
+
     const togglePubSite = () => {
         if (!selectedImovel) return;
+        if (!checkCreciApproval()) return;
         const newValue = !selectedImovel.pub_site;
         updatePropertyField(selectedImovel.id, 'pub_site', newValue);
     };
 
     const togglePubPrice = () => {
         if (!selectedImovel) return;
+        if (!checkCreciApproval()) return;
         const newValue = !selectedImovel.pub_price;
         updatePropertyField(selectedImovel.id, 'pub_price', newValue);
     };
 
     const togglePubFacebook = () => {
         if (!selectedImovel) return;
+        if (!checkCreciApproval()) return;
         const newValue = !selectedImovel.pub_facebook;
         updatePropertyField(selectedImovel.id, 'pub_facebook', newValue);
     };
 
     const togglePubInstagram = () => {
         if (!selectedImovel) return;
+        if (!checkCreciApproval()) return;
         const newValue = !selectedImovel.pub_instagram;
         updatePropertyField(selectedImovel.id, 'pub_instagram', newValue);
     };
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
     const [activities, setActivities] = useState<any[]>([]);
     const [loadingActivities, setLoadingActivities] = useState(false);
@@ -363,6 +382,7 @@ function MeusImoveisContent() {
                     return;
                 }
                 setIsAuthenticated(true);
+                setCurrentUser(authData.user);
                 await fetchMyImoveis(returnId);
             } catch (error) {
                 console.error('Init error:', error);
