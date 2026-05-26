@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { X, Loader2, Eye, EyeOff, User, Phone, Mail, Lock, Check, AlertCircle } from 'lucide-react'
 import styles from './loginModal.module.css'
+import Swal from 'sweetalert2'
 
 interface LoginModalProps {
     isOpen: boolean
@@ -515,6 +516,25 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
             if (viewMode === 'forgot-password') {
                 setSuccess('Se o e-mail estiver cadastrado, você receberá instruções para recuperar sua senha.')
+            } else if (viewMode === 'signup') {
+                // SweetAlert para cadastro bem-sucedido
+                const emailCadastrado = formData.email;
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Cadastro realizado! 🎉',
+                    html: `
+                        <p style="margin:0 0 8px">${data.message || 'Conta criada com sucesso!'}</p>
+                        <p style="font-size:0.875rem;color:#64748b">Verifique seu e-mail e clique no link de ativação antes de fazer login.</p>
+                    `,
+                    confirmButtonText: 'Ir para o login',
+                    confirmButtonColor: '#7F34E6',
+                    allowOutsideClick: false,
+                });
+                // Mudar para login com e-mail já preenchido
+                setViewMode('login');
+                setFormData(prev => ({ ...prev, email: emailCadastrado, password: '', confirmPassword: '' }));
+                setSuccess(null);
+                setError(null);
             } else {
                 setSuccess(data.message || 'Operação realizada com sucesso!')
                 if (viewMode === 'login') {
