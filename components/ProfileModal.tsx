@@ -409,17 +409,13 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                                 <a href={creciDocumentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#7F34E6', textDecoration: 'underline' }}>
                                                     Visualizar documento enviado
                                                 </a>
+                                                {creciStatus ? (
+                                                    <span style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 600 }}>Homologado</span>
+                                                ) : (
+                                                    <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>⏳ Pendente</span>
+                                                )}
                                             </div>
                                         </div>
-                                        {/* Só permite alterar caso não tenha sido verificado ainda. Se verificado, esconde opção de alterar. */}
-                                        {!creciStatus ? (
-                                            <label style={{ cursor: 'pointer', fontSize: '0.8rem', color: '#64748b', textDecoration: 'underline' }}>
-                                                {isUploadingDoc ? 'Enviando...' : 'Alterar'}
-                                                <input type="file" accept="application/pdf,image/*" onChange={handleUploadDocument} style={{ display: 'none' }} />
-                                            </label>
-                                        ) : (
-                                            <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600 }}>Homologado</span>
-                                        )}
                                     </div>
                                 ) : (
                                     <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.25rem', border: '2px dashed #cbd5e1', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'white', transition: 'all 0.2s' }}>
