@@ -62,9 +62,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { descricao, cidade_id, estado_id } = await req.json();
+    console.log(`[DEBUG API Bairros POST] Received: descricao="${descricao}", cidade_id=${cidade_id}, estado_id=${estado_id}`);
+    
     const cleanDesc = sanitizeLocationName(descricao);
+    console.log(`[DEBUG API Bairros POST] Cleaned description: "${cleanDesc}"`);
 
     if (!cleanDesc || !cidade_id) {
+      console.log(`[DEBUG API Bairros POST] Validation failed: cleanDesc="${cleanDesc}", cidade_id=${cidade_id}`);
       return NextResponse.json({ error: 'Descrição e cidade_id são obrigatórios' }, { status: 400 });
     }
 
@@ -75,6 +79,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (checkRes.rows.length > 0) {
+      console.log(`[DEBUG API Bairros POST] Bairro already exists with ID: ${checkRes.rows[0].id}`);
       return NextResponse.json({ 
         success: true, 
         message: 'Bairro já existe', 
@@ -82,11 +87,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    console.log(`[DEBUG API Bairros POST] Executing insert query...`);
     const insertRes = await query(
-      'INSERT INTO public.apobairro (descricao, cidade_id, estado_id, pais_id) VALUES ($1, $2, $3, 1) RETURNING id',
+      'INSERT INTO public.apobairro (descricao, cidade_id, estado_id) VALUES ($1, $2, $3) RETURNING id',
       [cleanDesc, cidade_id, estado_id || null]
     );
 
+    console.log(`[DEBUG API Bairros POST] Inserted successfully with ID: ${insertRes.rows[0].id}`);
     return NextResponse.json({ 
       success: true, 
       message: 'Bairro cadastrado com sucesso', 
@@ -94,7 +101,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Error creating bairro:', error);
+    console.error('[DEBUG API Bairros POST] Error creating bairro:', error);
     return NextResponse.json({ error: 'Erro ao cadastrar bairro' }, { status: 500 });
   }
 }

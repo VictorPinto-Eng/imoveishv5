@@ -331,10 +331,26 @@ function MeusImoveisContent() {
     useEffect(() => {
         const init = async () => {
             try {
+                const modeParam = searchParams.get('mode');
+                const empIdParam = searchParams.get('empId');
+
+                if (modeParam === 'empreendimentos' || modeParam === 'imoveis') {
+                    setListMode(modeParam);
+                }
+
                 // Fetch empreendimentos once
                 fetch('/api/property/empreendimentos')
                     .then(res => res.json())
-                    .then(data => setEmpreendimentos(data.empreendimentos || []))
+                    .then(data => {
+                        const list = data.empreendimentos || [];
+                        setEmpreendimentos(list);
+                        if (empIdParam) {
+                            const targetEmp = list.find((e: any) => e.id.toString() === empIdParam);
+                            if (targetEmp) {
+                                setSelectedEmpreendimento(targetEmp);
+                            }
+                        }
+                    })
                     .catch(err => console.error('Error fetching empreendimentos:', err));
 
                 const returnId = searchParams.get('id');
@@ -668,6 +684,31 @@ function MeusImoveisContent() {
                                         <p style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{selectedEmpreendimento.cep}</p>
                                     </div>
                                 )}
+                            </div>
+
+                            <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+                                <Link 
+                                    href={`/meus-imoveis/empreendimentos/editar/${selectedEmpreendimento.id}`}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '10px 20px',
+                                        background: '#0f172a',
+                                        color: 'white',
+                                        borderRadius: '8px',
+                                        textDecoration: 'none',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        transition: 'background 0.2s',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.background = '#1e293b'}
+                                    onMouseOut={(e) => e.currentTarget.style.background = '#0f172a'}
+                                >
+                                    <Edit2 size={16} />
+                                    Editar Empreendimento
+                                </Link>
                             </div>
 
                         </div>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './empreendimento.module.css';
 import { maskCep } from '@/lib/format';
+import Swal from 'sweetalert2';
 
 interface LocationItem {
     id: number;
@@ -16,6 +17,7 @@ export default function IncluirEmpreendimentoPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [createdId, setCreatedId] = useState<number | null>(null);
     const isCepSearching = useRef(false);
 
     // Form state
@@ -45,59 +47,68 @@ export default function IncluirEmpreendimentoPage() {
             .catch(err => console.error("Erro ao carregar estados:", err));
     }, []);
 
-    useEffect(() => {
-        if (estadoId) {
-            fetch(`/api/property/cidades?estado_id=${estadoId}`)
+    const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        const numVal = val ? Number(val) : '';
+        setEstadoId(numVal);
+        setCidadeId('');
+        setBairroId('');
+        if (numVal) {
+            fetch(`/api/property/cidades?estado_id=${numVal}`)
                 .then(res => res.json())
                 .then(data => {
                     if (Array.isArray(data)) {
                         setCidades(data);
                     } else {
-                        console.error("API did not return an array for cidades:", data);
                         setCidades([]);
                     }
-                    if (!isCepSearching.current) {
-                        setCidadeId('');
-                        setBairroId('');
-                    }
                 })
-                .catch(err => console.error("Erro ao carregar cidades:", err));
+                .catch(err => {
+                    console.error("Erro ao carregar cidades:", err);
+                    setCidades([]);
+                });
         } else {
             setCidades([]);
             setBairros([]);
         }
-    }, [estadoId]);
+    };
 
-    useEffect(() => {
-        if (cidadeId) {
-            fetch(`/api/property/bairros?cidade_id=${cidadeId}`)
+    const handleCidadeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        const numVal = val ? Number(val) : '';
+        setCidadeId(numVal);
+        setBairroId('');
+        if (numVal) {
+            fetch(`/api/property/bairros?cidade_id=${numVal}`)
                 .then(res => res.json())
                 .then(data => {
                     if (Array.isArray(data)) {
                         setBairros(data);
                     } else {
-                        console.error("API did not return an array for bairros:", data);
                         setBairros([]);
                     }
-                    if (!isCepSearching.current) {
-                        setBairroId('');
-                    }
                 })
-                .catch(err => console.error("Erro ao carregar bairros:", err));
+                .catch(err => {
+                    console.error("Erro ao carregar bairros:", err);
+                    setBairros([]);
+                });
         } else {
             setBairros([]);
         }
-    }, [cidadeId]);
+    };
 
     // CEP Auto-completion logic
     useEffect(() => {
         const cleanCep = cep.replace(/\D/g, '');
+        console.log(`[DEBUG CEP] cleanCep: "${cleanCep}"`);
         if (cleanCep.length === 8) {
             setLoading(true);
             isCepSearching.current = true;
+            console.log(`[DEBUG CEP] Triggering ViaCEP fetch for: ${cleanCep}`);
             fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
                 .then(res => res.json())
                 .then(async data => {
+                    console.log(`[DEBUG CEP] ViaCEP response data:`, data);
                     if (data.erro) throw new Error("CEP não encontrado");
                     
                     // 1. Auto-select State
@@ -108,12 +119,14 @@ export default function IncluirEmpreendimentoPage() {
                     );
                     
                     const resolvedEstadoId = estadoEncontrado ? estadoEncontrado.id : '';
+                    console.log(`[DEBUG CEP] Resolved Estado ID: ${resolvedEstadoId} (${estadoEncontrado?.nome})`);
                     
                     if (resolvedEstadoId) {
                         setEstadoId(resolvedEstadoId);
                         
                         // Fetch cities for this state to find the city
                         try {
+                            console.log(`[DEBUG CEP] Fetching cities for estado_id: ${resolvedEstadoId}`);
                             const cidRes = await fetch(`/api/property/cidades?estado_id=${resolvedEstadoId}`);
                             const cidData = await cidRes.json();
                             if (Array.isArray(cidData)) {
@@ -124,9 +137,11 @@ export default function IncluirEmpreendimentoPage() {
                                 
                                 const cidadeEncontrada = cidData.find(c => normalize(c.nome) === normalize(cidadeViaCep));
                                 let resolvedCidadeId = cidadeEncontrada ? cidadeEncontrada.id : '';
+                                console.log(`[DEBUG CEP] Resolved Cidade ID: ${resolvedCidadeId} (${cidadeEncontrada?.nome})`);
                                 
                                 // Auto-register City if not found
                                 if (!resolvedCidadeId && data.localidade) {
+                                    console.log(`[DEBUG CEP] City not found. Auto-registering: ${data.localidade}`);
                                     const createCid = await fetch('/api/property/cidades', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
@@ -134,9 +149,21 @@ export default function IncluirEmpreendimentoPage() {
                                     });
                                     if (createCid.ok) {
                                         const newCid = await createCid.json();
-                                        resolvedCidadeId = newCid.id;
+                                        resolvedCidadeId = Number(newCid.id);
+                                        console.log(`[DEBUG CEP] Auto-registered City ID: ${resolvedCidadeId}`);
+ 
+                                        // Instantly append to cities list to prevent dropdown reset
+                                        const newCityOption = { id: resolvedCidadeId, nome: data.localidade.toUpperCase().trim() };
+                                        setCidades(prev => {
+                                            const exists = prev.some(c => c.id === resolvedCidadeId);
+                                            if (exists) return prev;
+                                            return [...prev, newCityOption].sort((a, b) => a.nome.localeCompare(b.nome));
+                                        });
+ 
                                         const newCidRes = await fetch(`/api/property/cidades?estado_id=${resolvedEstadoId}`);
                                         setCidades(await newCidRes.json());
+                                    } else {
+                                        console.error(`[DEBUG CEP] Failed to register city:`, createCid.status);
                                     }
                                 }
                                 
@@ -144,16 +171,19 @@ export default function IncluirEmpreendimentoPage() {
                                     setCidadeId(resolvedCidadeId);
                                     
                                     // Fetch neighborhoods for this city to find the neighborhood
+                                    console.log(`[DEBUG CEP] Fetching neighborhoods for cidade_id: ${resolvedCidadeId}`);
                                     const baiRes = await fetch(`/api/property/bairros?cidade_id=${resolvedCidadeId}`);
                                     const baiData = await baiRes.json();
                                     if (Array.isArray(baiData)) {
                                         setBairros(baiData);
-                                        const bairroViaCep = data.bairro.toUpperCase();
+                                        const bairroViaCep = (data.bairro || '').toUpperCase();
                                         const bairroEncontrado = baiData.find(b => normalize(b.nome) === normalize(bairroViaCep));
                                         let resolvedBairroId = bairroEncontrado ? bairroEncontrado.id : '';
+                                        console.log(`[DEBUG CEP] Resolved Bairro ID: ${resolvedBairroId} (${bairroEncontrado?.nome})`);
                                         
                                         // Auto-register Neighborhood if not found
                                         if (!resolvedBairroId && data.bairro) {
+                                            console.log(`[DEBUG CEP] Bairro not found. Auto-registering: ${data.bairro}`);
                                             const createBai = await fetch('/api/property/bairros', {
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
@@ -161,9 +191,21 @@ export default function IncluirEmpreendimentoPage() {
                                             });
                                             if (createBai.ok) {
                                                 const newBai = await createBai.json();
-                                                resolvedBairroId = newBai.id;
+                                                resolvedBairroId = Number(newBai.id);
+                                                console.log(`[DEBUG CEP] Auto-registered Bairro ID: ${resolvedBairroId}`);
+ 
+                                                // Instantly append to neighborhoods list to prevent dropdown reset
+                                                const newBairroOption = { id: resolvedBairroId, nome: data.bairro.toUpperCase().trim() };
+                                                setBairros(prev => {
+                                                    const exists = prev.some(b => b.id === resolvedBairroId);
+                                                    if (exists) return prev;
+                                                    return [...prev, newBairroOption].sort((a, b) => a.nome.localeCompare(b.nome));
+                                                });
+ 
                                                 const newBaiRes = await fetch(`/api/property/bairros?cidade_id=${resolvedCidadeId}`);
                                                 setBairros(await newBaiRes.json());
+                                            } else {
+                                                console.error(`[DEBUG CEP] Failed to register neighborhood:`, createBai.status);
                                             }
                                         }
                                         
@@ -174,12 +216,12 @@ export default function IncluirEmpreendimentoPage() {
                                 }
                             }
                         } catch (err) {
-                            console.error("Erro no auto-preenchimento das cidades/bairros:", err);
+                            console.error("[DEBUG CEP] Erro no auto-preenchimento das cidades/bairros:", err);
                         }
                     }
                 })
                 .catch(err => {
-                    console.error("Erro na busca do CEP:", err);
+                    console.error("[DEBUG CEP] Erro na busca do CEP:", err);
                 })
                 .finally(() => {
                     setLoading(false);
@@ -189,7 +231,7 @@ export default function IncluirEmpreendimentoPage() {
         } else {
             isCepSearching.current = false;
         }
-    }, [cep, estados]);
+    }, [cep, estados]);;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -214,6 +256,10 @@ export default function IncluirEmpreendimentoPage() {
                 throw new Error(data.error || 'Erro ao cadastrar empreendimento');
             }
 
+            const data = await res.json();
+            if (data.id) {
+                setCreatedId(Number(data.id));
+            }
             setSuccess(true);
         } catch (error: any) {
             console.error("Submit error:", error);
@@ -229,9 +275,9 @@ export default function IncluirEmpreendimentoPage() {
 
                 <div className={styles.container}>
                 <aside className={styles.sidebar}>
-                    <Link href="/meus-imoveis" className={styles.backBtn}>
+                    <Link href={createdId ? `/meus-imoveis?mode=empreendimentos&empId=${createdId}` : "/meus-imoveis?mode=empreendimentos"} className={styles.backBtn}>
                         <ArrowLeft size={20} />
-                        Voltar para Meus Imóveis
+                        Voltar para Empreendimentos
                     </Link>
                     <div className={styles.logoIcon}>
                         <Building2 size={24} color="#ffffff" />
@@ -263,8 +309,8 @@ export default function IncluirEmpreendimentoPage() {
                             >
                                 Cadastrar Outro
                             </button>
-                            <Link href="/meus-imoveis" className={styles.btnSecondary}>
-                                Ir para Meus Imóveis
+                            <Link href={createdId ? `/meus-imoveis?mode=empreendimentos&empId=${createdId}` : "/meus-imoveis?mode=empreendimentos"} className={styles.btnSecondary}>
+                                Ir para Empreendimentos
                             </Link>
                         </div>
                     </div>
@@ -279,7 +325,7 @@ export default function IncluirEmpreendimentoPage() {
 
             <div className={styles.container}>
             <aside className={styles.sidebar}>
-                <Link href="/meus-imoveis" className={styles.backBtn}>
+                <Link href="/meus-imoveis?mode=empreendimentos" className={styles.backBtn}>
                     <ArrowLeft size={20} />
                     Voltar
                 </Link>
@@ -334,7 +380,7 @@ export default function IncluirEmpreendimentoPage() {
                             <select
                                 className={styles.select}
                                 value={estadoId}
-                                onChange={(e) => setEstadoId(Number(e.target.value))}
+                                onChange={handleEstadoChange}
                                 required
                             >
                                 <option value="">Selecione o estado</option>
@@ -349,7 +395,7 @@ export default function IncluirEmpreendimentoPage() {
                             <select
                                 className={styles.select}
                                 value={cidadeId}
-                                onChange={(e) => setCidadeId(Number(e.target.value))}
+                                onChange={handleCidadeChange}
                                 disabled={!estadoId}
                                 required
                             >
