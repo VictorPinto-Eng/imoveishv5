@@ -225,6 +225,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [needsActivation, setNeedsActivation] = useState(false)
     const [emailExistsError, setEmailExistsError] = useState<string | null>(null);
+    const [confirmEmailError, setConfirmEmailError] = useState<string | null>(null);
     const [showCountryPicker, setShowCountryPicker] = useState(false);
     const [countrySearch, setCountrySearch] = useState('');
     const [passwordRequirements, setPasswordRequirements] = useState({
@@ -239,6 +240,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         name: '',
         social_name: '',
         email: '',
+        confirmEmail: '',
         password: '',
         confirmPassword: '',
         phone: '',
@@ -254,6 +256,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const nameRef = useRef<HTMLInputElement>(null)
     const socialNameRef = useRef<HTMLInputElement>(null)
     const emailRef = useRef<HTMLInputElement>(null)
+    const confirmEmailRef = useRef<HTMLInputElement>(null)
     const passwordRef = useRef<HTMLInputElement>(null)
     const confirmPasswordRef = useRef<HTMLInputElement>(null)
     const phoneRef = useRef<HTMLInputElement>(null)
@@ -284,6 +287,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             setError(null)
             setNeedsActivation(false)
             setEmailExistsError(null);
+            setConfirmEmailError(null);
         }
     }, [isOpen, viewMode])
 
@@ -305,6 +309,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setError(null)
         setSuccess(null)
         setNeedsActivation(false)
+        setConfirmEmailError(null)
         setFormData(prev => ({
             ...prev,
             password: '',
@@ -365,6 +370,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         // Limpa erro específico de e-mail ao digitar
         if (name === 'email') {
             setEmailExistsError(null);
+            if (formData.confirmEmail && value !== formData.confirmEmail) {
+                setConfirmEmailError('Os e-mails não coincidem.');
+            } else {
+                setConfirmEmailError(null);
+            }
+        }
+        if (name === 'confirmEmail') {
+            if (formData.email && value !== formData.email) {
+                setConfirmEmailError('Os e-mails não coincidem.');
+            } else {
+                setConfirmEmailError(null);
+            }
         }
     }
 
@@ -460,6 +477,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             const allMet = Object.values(passwordRequirements).every(v => v);
             if (!allMet) {
                 setError('A senha deve atender a todos os requisitos de segurança.');
+                setLoading(false);
+                return;
+            }
+
+            if (formData.email.trim().toLowerCase() !== formData.confirmEmail.trim().toLowerCase()) {
+                setError('Os e-mails informados não coincidem.');
                 setLoading(false);
                 return;
             }
@@ -762,7 +785,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     value={formData.email}
                                     onChange={handleChange}
                                     onBlur={handleEmailBlur}
-                                    onKeyDown={(e) => viewMode !== 'forgot-password' ? handleKeyDown(e, passwordRef) : undefined}
+                                    onKeyDown={(e) => {
+                                        if (viewMode === 'signup') {
+                                            handleKeyDown(e, confirmEmailRef);
+                                        } else if (viewMode !== 'forgot-password') {
+                                            handleKeyDown(e, passwordRef);
+                                        }
+                                    }}
                                 />
                                 <Mail className={styles.fieldIcon} size={20} strokeWidth={2.5} />
                                 {emailExistsError && (
@@ -778,6 +807,35 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     </span>
                                 )}
                             </div>
+
+                            {viewMode === 'signup' && (
+                                <div className={styles.inputWrapper}>
+                                    <input 
+                                        ref={confirmEmailRef}
+                                        type="email" 
+                                        name="confirmEmail"
+                                        placeholder="Confirme seu e-mail" 
+                                        className={`${styles.input} ${confirmEmailError ? styles.inputError : ''}`} 
+                                        required
+                                        value={formData.confirmEmail}
+                                        onChange={handleChange}
+                                        onKeyDown={(e) => handleKeyDown(e, passwordRef)}
+                                    />
+                                    <Mail className={styles.fieldIcon} size={20} strokeWidth={2.5} />
+                                    {confirmEmailError && (
+                                        <span style={{ 
+                                            color: '#ef4444', 
+                                            fontSize: '0.75rem', 
+                                            marginTop: '4px', 
+                                            display: 'block',
+                                            marginLeft: '3rem',
+                                            fontWeight: '500'
+                                        }}>
+                                            {confirmEmailError}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
 
                             {viewMode !== 'forgot-password' && (
                                 <div className={styles.inputWrapper}>

@@ -1,5 +1,5 @@
 
-import { NextResponse, after } from 'next/server';
+import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import crypto from 'crypto';
@@ -61,16 +61,13 @@ export async function POST(request: Request) {
             [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 2, valCreciNumero, valCreciEstadoId, valCreciTipo]
         );
 
-        // OPTIMIZATION: Send email asynchronously AFTER responding to the user
-        // This makes the registration feel instant
-        after(async () => {
-            try {
-                await sendActivationEmail(email, name, verificationToken);
-                console.log(`Activation email sent successfully to ${email}`);
-            } catch (emailError) {
-                console.error('Background email sending failed:', emailError);
-            }
-        });
+        // Send email asynchronously and log status
+        try {
+            await sendActivationEmail(email, name, verificationToken);
+            console.log(`Activation email sent successfully to ${email}`);
+        } catch (emailError) {
+            console.error('Email sending failed:', emailError);
+        }
 
         return NextResponse.json({ 
             message: 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.' 
