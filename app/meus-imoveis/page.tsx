@@ -195,10 +195,13 @@ function MeusImoveisContent() {
 
     const checkCreciApproval = () => {
         if (currentUser && Number(currentUser.id_tipo_usuario) === 1 && !currentUser.creci_status) {
+            const hasSentDoc = !!currentUser.creci_document_url;
             Swal.fire({
-                icon: 'warning',
-                title: 'CRECI Não Homologado',
-                text: 'Para publicar imóveis no site, seu CRECI precisa ser validado e ativado pelo administrador. Acesse "Meu Perfil" para enviar seu comprovante.',
+                icon: hasSentDoc ? 'info' : 'warning',
+                title: hasSentDoc ? 'CRECI em Análise ⏳' : 'CRECI Não Homologado',
+                text: hasSentDoc 
+                    ? 'Seu comprovante de CRECI foi enviado e está em análise. O mais breve possível estaremos validando os seus dados para liberar as publicações!'
+                    : 'Para publicar imóveis no site, seu CRECI precisa ser validado e ativado pelo administrador. Acesse "Meu Perfil" para enviar seu comprovante.',
                 confirmButtonColor: '#7F34E6',
                 confirmButtonText: 'Entendi'
             });

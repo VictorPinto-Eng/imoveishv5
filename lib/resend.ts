@@ -120,3 +120,54 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
     return { success: false, error };
   }
 }
+
+export async function sendCreciStatusEmail(email: string, name: string, approved: boolean) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
+  const loginLink = `${appUrl}`;
+
+  const subject = approved 
+    ? 'Parabéns! Seu CRECI foi homologado no portal HV5' 
+    : 'Atenção: Houve um problema com a validação do seu CRECI - HV5';
+
+  const htmlContent = approved 
+    ? `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h1 style="color: #10b981; text-align: center;">CRECI Homologado! 🎉</h1>
+        <p>Olá, <strong>${name}</strong>!</p>
+        <p>Temos o prazer de informar que o seu comprovante de CRECI foi revisado e <strong>aprovado com sucesso</strong> pela nossa equipe!</p>
+        <p>Agora o seu perfil de Corretor está 100% ativo e a publicação dos seus imóveis no site já está liberada.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${loginLink}" style="background-color: #7F34E6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Ir para a HV5</a>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #999; text-align: center;">HV5 - Conectando você ao próximo negócio.</p>
+      </div>
+    `
+    : `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h1 style="color: #ef4444; text-align: center;">Documento de CRECI Recusado ⚠️</h1>
+        <p>Olá, <strong>${name}</strong>!</p>
+        <p>Durante a nossa verificação interna, identificamos um problema com o comprovante de CRECI que você anexou ao seu perfil.</p>
+        <p>Por favor, acesse o seu perfil, verifique as informações preenchidas (número, UF) e realize o upload de um comprovante válido (imagem ou PDF contendo os dados legíveis do seu registro ativo).</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${loginLink}" style="background-color: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Acessar Meu Perfil</a>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #999; text-align: center;">HV5 - Conectando você ao próximo negócio.</p>
+      </div>
+    `;
+
+  try {
+    const data = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'souhv5@gmail.com',
+      to: email,
+      subject: subject,
+      html: htmlContent,
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending CRECI status email:', error);
+    return { success: false, error };
+  }
+}
