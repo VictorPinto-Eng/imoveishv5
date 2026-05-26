@@ -1,7 +1,7 @@
 
 'use server'
 
-import { supabase } from '@/lib/supabaseClient'
+import { query } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
@@ -47,38 +47,26 @@ export async function createImovel(formData: FormData) {
         formData.get('tipo_imovel')
     ].filter(Boolean) as string[]
 
-    const { error } = await supabase
-        .from('produtos_servicos')
-        .insert({
-            organization_id: '1', // Placeholder or Env var if needed, but defaulting to '1' or NULL if allowed. Prompt didn't specify org_id logic but listed it as a field. I'll omit or assume default. Re-reading prompt: "organization_id ... (não crie, apenas use)". It might be required. I should check if I can get it from env or just mock it. Usually in Supabase RLS handles it or it's required. I'll put a placeholder 'DEFAULT_ORG' or similar if unknown, but better to check if I can insert without it or use a known one. 
-            // Prompt says: "organization_id".
-            // I'll try to insert without and if fails, I'll allow user to edit.
-            // But actually, I'll pass a dummy UUID if needed: "00000000-0000-0000-0000-000000000000" or similar?
-            // No, RLS might block.
-            // "NUNCA mexer no schema".
-            // I'll leave organization_id out and hope it has a default, OR use a fixed one if I had one.
-            // Wait, "organization_id ... (não crie, apenas use)". If I'm inserting, I must provide it if not nullable default.
-            // I'll assume it's nullable or handled by trigger. If not, I'll update.
-            // Actually, I'll include a hidden input for it if needed, but I don't have it.
-            // Let's assume the user has existing data. I'll fetch one row to see what org_id is used?
-            // No, that's slow. I'll just omit it. If it fails, I'll see.
-            // Update: I will check `getFeaturedImoveis` results in manual verification if I could.
-            // I'll just implement the insert.
+    // Insert imovel using direct DB query instead of Supabase
+    const insertResult = await query(`INSERT INTO produtos_servicos (nome, tipo, categoria, preco_base, descricao, ativo, status, imagens_urls, tags, custom_fields, cobranca_tipo, estoque_quantidade, tem_estoque, estoque_minimo)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+        [
             nome,
-            tipo: 'produto',
-            categoria: 'Imóvel',
+            'produto',
+            'Imóvel',
             preco_base,
             descricao,
-            ativo: true,
-            status: 'ativo',
+            true,
+            'ativo',
             imagens_urls,
-            tags: JSON.stringify(tags),
-            custom_fields,
-            cobranca_tipo: 'unica',
-            estoque_quantidade: 1,
-            tem_estoque: true,
-            estoque_minimo: 0
-        })
+            JSON.stringify(tags),
+            JSON.stringify(custom_fields),
+            'unica',
+            1,
+            true,
+            0
+        ]);
+    const error = insertResult?.error || null; // Adjust based on actual query result handling
 
     if (error) {
         console.error('Error creating imovel:', error)

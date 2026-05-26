@@ -10,7 +10,7 @@ import WhatsAppLink from './WhatsAppLink'
 import ContactModal from './ContactModal'
 import LeadCaptureModal from './LeadCaptureModal'
 import ShareModal from './ShareModal'
-import { supabase } from '@/lib/supabaseClient'
+
 
 interface ImovelCardProps {
   imovel: Imovel
@@ -115,7 +115,10 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
         e.stopPropagation();
         
         // Check authentication
-        const { data: { session } } = await supabase.auth.getSession();
+        // Use auth endpoint to get session
+        const res = await fetch('/api/auth/me');
+        const authData = await res.json();
+        const session = authData?.authenticated ? authData.user : null;
         
         if (session) {
             setShowPhone(true);

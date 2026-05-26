@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { recordAuditLog } from '@/lib/analytics-service';
-import { supabase } from '@/lib/supabaseClient';
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,9 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Get current user session if any
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id ? 0 : null; // Mapping string UUID to number ID if needed
+    const userId = null;
 
     // Extract IP from headers
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || '';

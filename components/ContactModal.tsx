@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Mail } from 'lucide-react'
-import { supabase } from '@/lib/supabaseClient'
+
 import { maskPhone } from '@/lib/format'
 import styles from './ContactModal.module.css'
 
@@ -68,15 +68,6 @@ export default function ContactModal({
             initialData.email = user.email || ''
             initialData.name = user.name || user.social_name || ''
             initialData.phone = user.phone || ''
-          } else {
-            // Fallback to Supabase just in case
-            const { data: authData } = await supabase.auth.getUser()
-            if (authData.user) {
-              const u = authData.user
-              initialData.email = u.email || ''
-              initialData.name = u.user_metadata?.full_name || u.user_metadata?.first_name || ''
-              initialData.phone = u.user_metadata?.phone || ''
-            }
           }
 
           setFormData(initialData)
