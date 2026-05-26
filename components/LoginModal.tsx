@@ -244,7 +244,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         country_code: '+55',
         idTipoUsuario: 2, // 1: Corretor/Imobiliária, 2: Proprietário
         creci_numero: '',
-        creci_tipo: 'Física',
+        creci_tipo: 'F',
         creci_apoestado_id: '' as number | '',
     })
 
@@ -632,8 +632,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                                     value={formData.creci_tipo}
                                                     onChange={e => setFormData(prev => ({ ...prev, creci_tipo: e.target.value }))}
                                                 >
-                                                    <option value="Física">Física (F)</option>
-                                                    <option value="Jurídica">Jurídica (J)</option>
+                                                    <option value="F">Física (F)</option>
+                                                    <option value="J">Jurídica (J)</option>
                                                 </select>
                                             </div>
                                         </div>
