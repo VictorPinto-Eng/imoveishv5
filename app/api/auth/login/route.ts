@@ -28,6 +28,19 @@ export async function POST(request: Request) {
 
         const user = res.rows[0];
 
+        // Check if email is verified first (or verify password and then handle verification)
+        // For usability in this app, we can check email verification first or handle it if they exist
+        if (user.email_verified === false) {
+            return NextResponse.json(
+                { 
+                    error: 'Por favor, verifique seu e-mail para ativar sua conta.',
+                    needsActivation: true,
+                    email: email
+                },
+                { status: 403 }
+            );
+        }
+
         // Check password
         if (!user.password_hash) {
             return NextResponse.json(
@@ -41,18 +54,6 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 { error: 'E-mail ou senha inválidos.' },
                 { status: 401 }
-            );
-        }
-
-        // Check if email is verified
-        if (user.email_verified === false) {
-            return NextResponse.json(
-                { 
-                    error: 'Por favor, verifique seu e-mail para ativar sua conta.',
-                    needsActivation: true,
-                    email: email
-                },
-                { status: 403 }
             );
         }
 
