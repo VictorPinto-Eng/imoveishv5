@@ -361,7 +361,8 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                     value={creciNumero} 
                                     onChange={(e) => setCreciNumero(e.target.value)}
                                     placeholder="Número do registro (ex: 12345)"
-                                    className={styles.input} 
+                                    className={creciDocumentUrl ? styles.inputDisabled : styles.input} 
+                                    disabled={!!creciDocumentUrl}
                                 />
                             </div>
 
@@ -371,8 +372,9 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                     <select 
                                         value={creciApoestadoId} 
                                         onChange={(e) => setCreciApoestadoId(e.target.value ? Number(e.target.value) : '')}
-                                        className={styles.input}
-                                        style={{ height: '45px', padding: '0 0.75rem', backgroundColor: 'white' }}
+                                        className={creciDocumentUrl ? styles.inputDisabled : styles.input}
+                                        style={{ height: '45px', padding: '0 0.75rem', backgroundColor: creciDocumentUrl ? '#f1f5f9' : 'white' }}
+                                        disabled={!!creciDocumentUrl}
                                     >
                                         <option value="">Selecione a UF</option>
                                         {estados.map(est => (
@@ -386,8 +388,9 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                     <select 
                                         value={creciTipo} 
                                         onChange={(e) => setCreciTipo(e.target.value)}
-                                        className={styles.input}
-                                        style={{ height: '45px', padding: '0 0.75rem', backgroundColor: 'white' }}
+                                        className={creciDocumentUrl ? styles.inputDisabled : styles.input}
+                                        style={{ height: '45px', padding: '0 0.75rem', backgroundColor: creciDocumentUrl ? '#f1f5f9' : 'white' }}
+                                        disabled={!!creciDocumentUrl}
                                     >
                                         <option value="Física">Física (F)</option>
                                         <option value="Jurídica">Jurídica (J)</option>
@@ -408,10 +411,15 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                                 </a>
                                             </div>
                                         </div>
-                                        <label style={{ cursor: 'pointer', fontSize: '0.8rem', color: '#64748b', textDecoration: 'underline' }}>
-                                            {isUploadingDoc ? 'Enviando...' : 'Alterar'}
-                                            <input type="file" accept="application/pdf,image/*" onChange={handleUploadDocument} style={{ display: 'none' }} />
-                                        </label>
+                                        {/* Só permite alterar caso não tenha sido verificado ainda. Se verificado, esconde opção de alterar. */}
+                                        {!creciStatus ? (
+                                            <label style={{ cursor: 'pointer', fontSize: '0.8rem', color: '#64748b', textDecoration: 'underline' }}>
+                                                {isUploadingDoc ? 'Enviando...' : 'Alterar'}
+                                                <input type="file" accept="application/pdf,image/*" onChange={handleUploadDocument} style={{ display: 'none' }} />
+                                            </label>
+                                        ) : (
+                                            <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600 }}>Homologado</span>
+                                        )}
                                     </div>
                                 ) : (
                                     <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.25rem', border: '2px dashed #cbd5e1', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'white', transition: 'all 0.2s' }}>
