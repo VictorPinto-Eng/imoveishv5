@@ -242,8 +242,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         confirmPassword: '',
         phone: '',
         country_code: '+55',
-        idTipoUsuario: 2 // 1: Corretor/Imobiliária, 2: Proprietário
+        idTipoUsuario: 2, // 1: Corretor/Imobiliária, 2: Proprietário
+        creci_numero: '',
+        creci_tipo: 'Física',
+        creci_apoestado_id: '' as number | '',
     })
+
+    const [estados, setEstados] = useState<Array<{ id: number; nome: string; sigla: string }>>([])
 
     const nameRef = useRef<HTMLInputElement>(null)
     const socialNameRef = useRef<HTMLInputElement>(null)
@@ -256,6 +261,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden'
+            // Fetch estados for CRECI when opening in signup mode
+            if (viewMode === 'signup' && estados.length === 0) {
+                fetch('/api/property/estados')
+                    .then(r => r.ok ? r.json() : [])
+                    .then(data => { if (Array.isArray(data)) setEstados(data); })
+                    .catch(() => {});
+            }
             // Focus email if in login mode, else focus name
             setTimeout(() => {
                 if (viewMode === 'login' || viewMode === 'forgot-password') {
@@ -408,6 +420,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
     const handleUserTypeChange = (id: number) => {
         setFormData({ ...formData, idTipoUsuario: id })
+        // Fetch estados if not loaded yet
+        if (id === 1 && estados.length === 0) {
+            fetch('/api/property/estados')
+                .then(r => r.ok ? r.json() : [])
+                .then(data => { if (Array.isArray(data)) setEstados(data); })
+                .catch(() => {});
+        }
     }
 
     const handleResendEmail = async () => {
@@ -576,6 +595,54 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                         Corretor(a) / Imobiliária
                                     </button>
                                 </div>
+
+                                {/* CRECI fields — visible only when Corretor is selected */}
+                                {formData.idTipoUsuario === 1 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', backgroundColor: 'rgba(127,52,230,0.06)', borderRadius: '10px', border: '1px solid rgba(127,52,230,0.2)', marginTop: '0.5rem' }}>
+                                        <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: '#7F34E6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dados do CRECI</p>
+
+                                        <div className={styles.inputWrapper}>
+                                            <input
+                                                type="text"
+                                                placeholder="Número do CRECI (ex: 12345)"
+                                                className={styles.input}
+                                                value={formData.creci_numero}
+                                                onChange={e => setFormData(prev => ({ ...prev, creci_numero: e.target.value }))}
+                                            />
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <div className={styles.inputWrapper} style={{ flex: 1 }}>
+                                                <select
+                                                    className={styles.input}
+                                                    style={{ height: '48px', padding: '0 0.75rem', backgroundColor: 'white', cursor: 'pointer' }}
+                                                    value={formData.creci_apoestado_id}
+                                                    onChange={e => setFormData(prev => ({ ...prev, creci_apoestado_id: e.target.value ? Number(e.target.value) : '' }))}
+                                                >
+                                                    <option value="">UF do CRECI</option>
+                                                    {estados.map(est => (
+                                                        <option key={est.id} value={est.id}>{est.sigla}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className={styles.inputWrapper} style={{ flex: 1 }}>
+                                                <select
+                                                    className={styles.input}
+                                                    style={{ height: '48px', padding: '0 0.75rem', backgroundColor: 'white', cursor: 'pointer' }}
+                                                    value={formData.creci_tipo}
+                                                    onChange={e => setFormData(prev => ({ ...prev, creci_tipo: e.target.value }))}
+                                                >
+                                                    <option value="Física">Física (F)</option>
+                                                    <option value="Jurídica">Jurídica (J)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                                            ⚠️ Você poderá enviar o comprovante do CRECI após o cadastro, no seu perfil.
+                                        </p>
+                                    </div>
+                                )}
                             </>
                         )}
                         <div className={styles.formGroup}>

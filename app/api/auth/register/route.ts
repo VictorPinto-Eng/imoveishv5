@@ -7,7 +7,12 @@ import { sendActivationEmail } from '@/lib/resend';
 
 export async function POST(request: Request) {
     try {
-        const { name, social_name, email, phone, password, confirmPassword, idTipoUsuario } = await request.json();
+        const { name, social_name, email, phone, password, confirmPassword, idTipoUsuario, creci_numero, creci_apoestado_id, creci_tipo } = await request.json();
+
+        const isCorretor = Number(idTipoUsuario) === 1;
+        const valCreciNumero = isCorretor ? (creci_numero || null) : null;
+        const valCreciEstadoId = isCorretor ? (Number(creci_apoestado_id) || null) : null;
+        const valCreciTipo = isCorretor ? (creci_tipo || null) : null;
 
         if (!email || !password || !name) {
             return NextResponse.json(
@@ -52,8 +57,8 @@ export async function POST(request: Request) {
 
         // Insert user (email_verified defaults to FALSE)
         await query(
-            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, id_tipo_usuario) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 2]
+            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, id_tipo_usuario, creci_numero, creci_apoestado_id, creci_tipo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+            [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 2, valCreciNumero, valCreciEstadoId, valCreciTipo]
         );
 
         // OPTIMIZATION: Send email asynchronously AFTER responding to the user

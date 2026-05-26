@@ -102,6 +102,7 @@ export default function IncluirImovelPage() {
     const [propertyStatuses, setPropertyStatuses] = useState<{ id: number; nome: string }[]>([]);
     const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
 
+
     const [formData, setFormData] = useState<PropertyData>({
         address: '',
         cep: '',
@@ -168,6 +169,8 @@ export default function IncluirImovelPage() {
             document.body.style.paddingTop = originalPadding;
         };
     }, []);
+
+
 
     useEffect(() => {
         const fetchUfs = async () => {
@@ -1261,6 +1264,8 @@ export default function IncluirImovelPage() {
                                 ))}
                             </div>
                         </div>
+
+
 
                         {/* Map Section - Parity with hv5soft */}
                         {/* Map Section - Parity with hv5soft */}
