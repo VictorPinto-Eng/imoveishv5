@@ -433,8 +433,15 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                             </div>
                             
                             {creciStatus !== null && (
-                                <div style={{ fontSize: '0.8rem', color: creciStatus ? '#10b981' : '#64748b', fontWeight: 600 }}>
-                                    Status do CRECI: {creciStatus ? '✅ Verificado / Ativo' : '⏳ Aguardando Verificação'}
+                                <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                                    Status do CRECI:{' '}
+                                    {!creciDocumentUrl ? (
+                                        <span style={{ color: '#ef4444' }}>❌ Não Enviado</span>
+                                    ) : creciStatus ? (
+                                        <span style={{ color: '#10b981' }}>✅ Verificado / Ativo</span>
+                                    ) : (
+                                        <span style={{ color: '#64748b' }}>⏳ Aguardando Verificação</span>
+                                    )}
                                 </div>
                             )}
                         </div>
