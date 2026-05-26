@@ -540,22 +540,41 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             if (viewMode === 'forgot-password') {
                 setSuccess('Se o e-mail estiver cadastrado, você receberá instruções para recuperar sua senha.')
             } else if (viewMode === 'signup') {
-                // SweetAlert para cadastro bem-sucedido
                 const emailCadastrado = formData.email;
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Cadastro realizado! 🎉',
-                    html: `
-                        <p style="margin:0 0 8px">${data.message || 'Conta criada com sucesso!'}</p>
-                        <p style="font-size:0.875rem;color:#64748b">Verifique seu e-mail e clique no link de ativação antes de fazer login.</p>
-                    `,
-                    confirmButtonText: 'Ir para o login',
-                    confirmButtonColor: '#7F34E6',
-                    allowOutsideClick: false,
-                });
-                // Mudar para login com e-mail já preenchido
+                
+                // Limpa os campos de senha/confirmação
+                setFormData(prev => ({ ...prev, password: '', confirmPassword: '', confirmEmail: '' }));
                 setViewMode('login');
-                setFormData(prev => ({ ...prev, email: emailCadastrado, password: '', confirmPassword: '' }));
+
+                // Fecha o modal antes de disparar o SweetAlert para evitar sobreposição
+                onClose();
+
+                // Dispara o alerta após o fechamento do modal
+                setTimeout(async () => {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Cadastro realizado! 🎉',
+                        html: `
+                            <p style="margin:0 0 8px">${data.message || 'Conta criada com sucesso!'}</p>
+                            <p style="font-size:0.875rem;color:#64748b">Verifique seu e-mail e clique no link de ativação antes de fazer login.</p>
+                        `,
+                        confirmButtonText: 'Ir para o login',
+                        confirmButtonColor: '#7F34E6',
+                        allowOutsideClick: false,
+                    });
+
+                    // Modifica o estado do formulário para preencher o e-mail no login
+                    setFormData(prev => ({ ...prev, email: emailCadastrado }));
+                    
+                    // Como o modal foi fechado, e o usuário confirmou que quer ir para o login,
+                    // nós podemos simular o clique para reabrir o modal já no modo login.
+                    // Para isso, encontramos o botão "Entrar" no Header e clicamos nele.
+                    const loginBtn = document.querySelector('button[class*="loginButtonPill"]') as HTMLButtonElement;
+                    if (loginBtn) {
+                        loginBtn.click();
+                    }
+                }, 150);
+
                 setSuccess(null);
                 setError(null);
             } else {
