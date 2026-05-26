@@ -48,30 +48,29 @@ export async function createImovel(formData: FormData) {
     ].filter(Boolean) as string[]
 
 
-    const insertResult = await query(`INSERT INTO produtos_servicos (nome, tipo, categoria, preco_base, descricao, ativo, status, imagens_urls, tags, custom_fields, cobranca_tipo, estoque_quantidade, tem_estoque, estoque_minimo)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
-        [
-            nome,
-            'produto',
-            'Imóvel',
-            preco_base,
-            descricao,
-            true,
-            'ativo',
-            imagens_urls,
-            JSON.stringify(tags),
-            JSON.stringify(custom_fields),
-            'unica',
-            1,
-            true,
-            0
-        ]);
-    const error = insertResult?.error || null; // Adjust based on actual query result handling
-
-    if (error) {
-        console.error('Error creating imovel:', error)
-        // In a real app we'd return error state
-        throw new Error('Failed to create imovel')
+    let insertResult;
+    try {
+        insertResult = await query(`INSERT INTO produtos_servicos (nome, tipo, categoria, preco_base, descricao, ativo, status, imagens_urls, tags, custom_fields, cobranca_tipo, estoque_quantidade, tem_estoque, estoque_minimo)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+            [
+                nome,
+                'produto',
+                'Imóvel',
+                preco_base,
+                descricao,
+                true,
+                'ativo',
+                imagens_urls,
+                JSON.stringify(tags),
+                JSON.stringify(custom_fields),
+                'unica',
+                1,
+                true,
+                0
+            ]);
+    } catch (error) {
+        console.error('Error creating imovel:', error);
+        throw new Error('Failed to create imovel');
     }
 
     redirect('/imoveis')
