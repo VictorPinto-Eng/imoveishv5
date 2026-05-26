@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         }
 
         const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
-        const { social_name, email, id_tipo_usuario, phone } = await req.json();
+        const { social_name, email, id_tipo_usuario, phone, creci_numero, creci_apoestado_id, creci_tipo } = await req.json();
 
         // Check if email is changing
         const userResult = await query('SELECT email, name FROM users WHERE id = $1', [decoded.id]);
@@ -27,14 +27,22 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'O e-mail é obrigatório' }, { status: 400 });
         }
 
+        const isCorretor = Number(id_tipo_usuario) === 1;
+        const valCreciNumero = isCorretor ? (creci_numero || null) : null;
+        const valCreciEstadoId = isCorretor ? (Number(creci_apoestado_id) || null) : null;
+        const valCreciTipo = isCorretor ? (creci_tipo || null) : null;
+
         if (email !== user.email) {
             emailChanged = true;
             const newToken = crypto.randomBytes(32).toString('hex');
             
             // Update database first
             await query(
-                'UPDATE users SET social_name = $1, email = $2, email_verified = false, verification_token = $3, id_tipo_usuario = $4, phone = $5 WHERE id = $6',
-                [social_name || '', email, newToken, id_tipo_usuario || 2, phone || null, decoded.id]
+                `UPDATE users 
+                 SET social_name = $1, email = $2, email_verified = false, verification_token = $3, 
+                     id_tipo_usuario = $4, phone = $5, creci_numero = $6, creci_apoestado_id = $7, creci_tipo = $8 
+                 WHERE id = $9`,
+                [social_name || '', email, newToken, id_tipo_usuario || 2, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, decoded.id]
             );
 
             // OPTIMIZATION: Send email in background AFTER response
@@ -49,8 +57,10 @@ export async function POST(req: NextRequest) {
             verificationMessage = ' Por favor, verifique seu novo e-mail para ativá-lo.';
         } else {
             await query(
-                'UPDATE users SET social_name = $1, id_tipo_usuario = $2, phone = $3 WHERE id = $4',
-                [social_name || '', id_tipo_usuario || 2, phone || null, decoded.id]
+                `UPDATE users 
+                 SET social_name = $1, id_tipo_usuario = $2, phone = $3, creci_numero = $4, creci_apoestado_id = $5, creci_tipo = $6 
+                 WHERE id = $7`,
+                [social_name || '', id_tipo_usuario || 2, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, decoded.id]
             );
         }
 

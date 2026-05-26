@@ -14,6 +14,10 @@ interface User {
     id_tipo_usuario?: number;
     user_type_name?: string;
     phone?: string;
+    creci_numero?: string;
+    creci_apoestado_id?: number;
+    creci_tipo?: string;
+    creci_status?: boolean;
 }
 
 interface ProfileModalProps {
@@ -29,6 +33,11 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
     const [phone, setPhone] = useState(user?.phone || '');
     const [countryCode, setCountryCode] = useState('55');
     const [idTipoUsuario, setIdTipoUsuario] = useState<number>(user?.id_tipo_usuario || 2);
+    const [creciNumero, setCreciNumero] = useState(user?.creci_numero || '');
+    const [creciApoestadoId, setCreciApoestadoId] = useState<number | ''>(user?.creci_apoestado_id || '');
+    const [creciTipo, setCreciTipo] = useState(user?.creci_tipo || 'Física');
+    const [creciStatus, setCreciStatus] = useState<boolean | null>(user?.creci_status ?? null);
+    const [estados, setEstados] = useState<Array<{ id: number; nome: string; sigla: string }>>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [emailVerified, setEmailVerified] = useState(user?.email_verified || false);
@@ -37,8 +46,21 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
     useEffect(() => {
         if (isOpen) {
             refreshUserData();
+            fetchEstados();
         }
     }, [isOpen]);
+
+    const fetchEstados = async () => {
+        try {
+            const res = await fetch('/api/property/estados');
+            if (res.ok) {
+                const data = await res.json();
+                setEstados(data);
+            }
+        } catch (error) {
+            console.error('Error fetching estados:', error);
+        }
+    };
 
     const refreshUserData = async () => {
         setIsRefreshing(true);
@@ -51,6 +73,10 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                     setEmail(data.user.email || '');
                     setEmailVerified(data.user.email_verified);
                     setIdTipoUsuario(data.user.id_tipo_usuario || 2);
+                    setCreciNumero(data.user.creci_numero || '');
+                    setCreciApoestadoId(data.user.creci_apoestado_id || '');
+                    setCreciTipo(data.user.creci_tipo || 'Física');
+                    setCreciStatus(data.user.creci_status ?? null);
                     
                     const storedPhone = data.user.phone || '';
                     if (storedPhone.startsWith('55')) {
@@ -96,6 +122,9 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                     social_name: socialName,
                     email: email,
                     id_tipo_usuario: idTipoUsuario,
+                    creci_numero: idTipoUsuario === 1 ? creciNumero : null,
+                    creci_apoestado_id: idTipoUsuario === 1 ? (Number(creciApoestadoId) || null) : null,
+                    creci_tipo: idTipoUsuario === 1 ? creciTipo : null,
                     phone: (() => {
                         if (!phone) return null;
                         const cleaned = phone.replace(/\D/g, '');
@@ -257,9 +286,61 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                                 onChange={handlePhoneChange}
                                 placeholder="(81) 99999-9999"
                                 className={styles.phoneInput} 
-                            />
                         </div>
                     </div>
+
+                    {idTipoUsuario === 1 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1', marginBottom: '1.5rem' }}>
+                            <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#475569' }}>Dados do CRECI</h4>
+                            
+                            <div className={styles.formGroup} style={{ marginBottom: '0.25rem' }}>
+                                <label className={styles.label}>Número do CRECI</label>
+                                <input 
+                                    type="text" 
+                                    value={creciNumero} 
+                                    onChange={(e) => setCreciNumero(e.target.value)}
+                                    placeholder="Número do registro (ex: 12345)"
+                                    className={styles.input} 
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                                    <label className={styles.label}>UF de Registro</label>
+                                    <select 
+                                        value={creciApoestadoId} 
+                                        onChange={(e) => setCreciApoestadoId(e.target.value ? Number(e.target.value) : '')}
+                                        className={styles.input}
+                                        style={{ height: '45px', padding: '0 0.75rem', backgroundColor: 'white' }}
+                                    >
+                                        <option value="">Selecione a UF</option>
+                                        {estados.map(est => (
+                                            <option key={est.id} value={est.id}>{est.sigla}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                                    <label className={styles.label}>Tipo de Inscrição</label>
+                                    <select 
+                                        value={creciTipo} 
+                                        onChange={(e) => setCreciTipo(e.target.value)}
+                                        className={styles.input}
+                                        style={{ height: '45px', padding: '0 0.75rem', backgroundColor: 'white' }}
+                                    >
+                                        <option value="Física">Física (F)</option>
+                                        <option value="Jurídica">Jurídica (J)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            {creciStatus !== null && (
+                                <div style={{ fontSize: '0.8rem', color: creciStatus ? '#10b981' : '#64748b', fontWeight: 600 }}>
+                                    Status do CRECI: {creciStatus ? '✅ Verificado / Ativo' : '⏳ Pendente de Verificação'}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className={styles.formGroup}>
                         <label className={styles.label}>
