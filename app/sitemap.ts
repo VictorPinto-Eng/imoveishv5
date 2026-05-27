@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next'
 import { query } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
+
 async function getAllImovelIds(): Promise<{ id: string; updated_at?: string }[]> {
   try {
     const res = await query(
