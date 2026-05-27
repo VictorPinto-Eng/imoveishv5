@@ -7,6 +7,7 @@ import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGri
 import styles from './header.module.css'
 import LoginModal from './LoginModal'
 import ProfileModal from './ProfileModal'
+import Swal from 'sweetalert2'
 
 interface User {
     id: number;
@@ -39,6 +40,30 @@ export default function Header() {
 
     useEffect(() => {
         checkAuth();
+        
+        // Verifica se a conta acabou de ser ativada pela URL
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('activated') === 'true') {
+                // Remove o parâmetro da URL de forma amigável
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+
+                // Dispara o SweetAlert2 informando o sucesso
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'E-mail Ativado! 🎉',
+                        text: 'Sua conta foi validada e ativada com sucesso. Você já pode fazer login no ecossistema HV5.',
+                        confirmButtonColor: '#7F34E6',
+                        confirmButtonText: 'Fazer Login'
+                    }).then(() => {
+                        // Abre o modal de login automaticamente
+                        openModal();
+                    });
+                }, 300);
+            }
+        }
     }, []);
 
     const checkAuth = async () => {
