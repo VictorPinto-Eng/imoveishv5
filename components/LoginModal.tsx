@@ -357,6 +357,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         if (phoneNumberLength < 7) {
             return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
         }
+        // Se tiver até 10 dígitos (ex: 8134215588), é telefone fixo: (81) 3421-5588
+        if (phoneNumberLength <= 10) {
+            return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 6)}-${phoneNumber.slice(6, 10)}`;
+        }
+        // Se tiver 11 ou mais dígitos, é celular: (81) 99952-9391
         return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
     };
 
