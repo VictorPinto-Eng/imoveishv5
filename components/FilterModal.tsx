@@ -80,8 +80,12 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
             banheiros: undefined,
             minArea: '',
             maxArea: '',
-            status: 'ativo',
-            empreendimento: undefined
+            status: initialFilters.status || '',
+            empreendimento: undefined,
+            cidade: '',
+            bairro: '',
+            alto_padrao: undefined,
+            exclusividade: undefined
         })
     }
 

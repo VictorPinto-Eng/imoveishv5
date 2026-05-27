@@ -34,8 +34,7 @@ export default async function ImoveisPage({
         exclusividade: params.exclusividade as string
     }
 
-    const hasFilters = Object.keys(params).length > 0;
-    const result = hasFilters ? await getImoveis(filters) : { imoveis: [], debug: null };
+    const result = await getImoveis(filters);
     const imoveis = result.imoveis;
 
     return (
@@ -49,13 +48,7 @@ export default async function ImoveisPage({
                         initialFilters={filters}
                     />
 
-                    {!hasFilters ? (
-                        <div style={{ textAlign: 'center', padding: '6rem 0', color: 'var(--secondary)' }}>
-                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
-                            <h3>Utilize os filtros acima para iniciar sua busca.</h3>
-                            <p>Selecione uma localização ou tipo de imóvel para ver as opções disponíveis.</p>
-                        </div>
-                    ) : imoveis.length === 0 ? (
+                    {imoveis.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--secondary)' }}>
                             <h3>Nenhum imóvel encontrado com esses filtros.</h3>
                             <p>Tente ajustar sua busca.</p>
