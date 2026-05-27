@@ -39,6 +39,6 @@
 @media (max-width: 640px) {
     .statsContainer {
         gap: 1.5rem;
-        justify-content: space-between;
+        justify-content: flex-start;
     }
 }
