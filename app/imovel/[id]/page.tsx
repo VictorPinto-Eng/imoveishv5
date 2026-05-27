@@ -92,8 +92,46 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
     const address = [imovel.logradouro, cf.bairro, cf.cidade].filter(Boolean).join(' - ')
     const locationTitle = [cf.bairro, cf.cidade].filter(Boolean).join(', ')
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'RealEstateListing',
+        name: imovel.nome,
+        description: imovel.descricao || `${imovel.tipo_imovel_nome} ${imovel.operacao_nome ? `para ${imovel.operacao_nome}` : ''} em ${cf.bairro || ''}, ${cf.cidade || 'Pernambuco'}`,
+        url: `${baseUrl}/imovel/${id}`,
+        image: imovel.imagens_urls?.[0] || imovel.foto_capa || undefined,
+        price: imovel.pub_price !== false ? imovel.preco_base : undefined,
+        priceCurrency: 'BRL',
+        address: {
+            '@type': 'PostalAddress',
+            streetAddress: imovel.logradouro || undefined,
+            addressLocality: imovel.cidade_nome || cf.cidade || undefined,
+            addressRegion: imovel.uf_nome || 'PE',
+            addressCountry: 'BR',
+            postalCode: imovel.cep || undefined,
+        },
+        numberOfRooms: imovel.dormitorios || undefined,
+        numberOfBathroomsTotal: imovel.banheiros || undefined,
+        floorSize: imovel.area_util ? {
+            '@type': 'QuantitativeValue',
+            value: imovel.area_util,
+            unitCode: 'MTK',
+        } : undefined,
+        offers: {
+            '@type': 'Offer',
+            price: imovel.pub_price !== false ? imovel.preco_base : undefined,
+            priceCurrency: 'BRL',
+            availability: 'https://schema.org/InStock',
+        },
+    }
+
     return (
         <div className={styles.pageWrapper}>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             <Header />
             <AnalyticsTracker produto_servico_id={Number(id)} event_name="view_property" />
             

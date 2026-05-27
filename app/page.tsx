@@ -5,6 +5,15 @@ import HomeBenefits from '@/components/home/HomeBenefits'
 import HomeFeatured from '@/components/home/HomeFeatured'
 import { getFeaturedImoveis, getRecentImoveis, getPriceUpdatedImoveis } from '@/lib/imoveis'
 import { Imovel } from '@/lib/imoveis'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'HV5 Imóveis | Compra, Venda e Aluguel em Pernambuco',
+  description: 'Encontre o imóvel dos seus sonhos em Pernambuco. Apartamentos, casas, terrenos e imóveis comerciais para comprar ou alugar. Consulte nossos corretores!',
+  alternates: {
+    canonical: '/',
+  },
+}
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
