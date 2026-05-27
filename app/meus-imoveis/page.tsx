@@ -406,6 +406,42 @@ function MeusImoveisContent() {
 
     if (!isAuthenticated) return null;
 
+    const filteredImoveis = imoveis.filter(imovel => {
+        // 1. Search Term Filter
+        if (searchTerm) {
+            const search = searchTerm.toLowerCase();
+            const matchesSearch = 
+                imovel.id.toString().includes(search) ||
+                imovel.nome.toLowerCase().includes(search) ||
+                imovel.logradouro?.toLowerCase().includes(search) ||
+                imovel.custom_fields?.bairro?.toLowerCase().includes(search) ||
+                imovel.tipo_nome?.toLowerCase().includes(search) ||
+                imovel.operacao_nome?.toLowerCase().includes(search);
+            if (!matchesSearch) return false;
+        }
+
+        // 2. Advanced Filters
+        if (activeFilters.operacao && imovel.imbtpoperacao_id?.toString() !== activeFilters.operacao) return false;
+        if (activeFilters.finalidade && imovel.categoria !== activeFilters.finalidade) return false;
+        
+        if (activeFilters.minPrice && imovel.preco_base < Number(activeFilters.minPrice)) return false;
+        if (activeFilters.maxPrice && imovel.preco_base > Number(activeFilters.maxPrice)) return false;
+        
+        if (activeFilters.dormitorios && (imovel.dormitorios || 0) < activeFilters.dormitorios) return false;
+        if (activeFilters.vagas && (imovel.vagas || 0) < activeFilters.vagas) return false;
+        if (activeFilters.banheiros && (imovel.banheiros || 0) < activeFilters.banheiros) return false;
+        if (activeFilters.suites && (imovel.suites || 0) < activeFilters.suites) return false;
+        
+        if (activeFilters.minArea && (imovel.area_util || 0) < Number(activeFilters.minArea)) return false;
+        if (activeFilters.maxArea && (imovel.area_util || 0) > Number(activeFilters.maxArea)) return false;
+
+        if (activeFilters.empreendimento && imovel.imbempreendimento_id?.toString() !== activeFilters.empreendimento.toString()) return false;
+        
+        if (activeFilters.status && imovel.statusimovel?.toString() !== activeFilters.status.toString()) return false;
+
+        return true;
+    });
+
     const getStatusClass = (status: string) => {
         const s = status?.toLowerCase() || '';
         if (s.includes('ativo')) return styles.statusAtivo;
@@ -499,50 +535,14 @@ function MeusImoveisContent() {
 
                     <div className={styles.propertyCountBar}>
                         {listMode === 'imoveis'
-                            ? `${imoveis.length} ${imoveis.length === 1 ? 'imóvel' : 'imóveis'}`
+                            ? `${filteredImoveis.length} ${filteredImoveis.length === 1 ? 'imóvel' : 'imóveis'}`
                             : `${empreendimentos.length} ${empreendimentos.length === 1 ? 'empreendimento' : 'empreendimentos'}`
                         }
                     </div>
 
                     {listMode === 'imoveis' && (
                     <div className={styles.propertyList}>
-                        {imoveis
-                            .filter(imovel => {
-                                // 1. Search Term Filter
-                                if (searchTerm) {
-                                    const search = searchTerm.toLowerCase();
-                                    const matchesSearch = 
-                                        imovel.id.toString().includes(search) ||
-                                        imovel.nome.toLowerCase().includes(search) ||
-                                        imovel.logradouro?.toLowerCase().includes(search) ||
-                                        imovel.custom_fields?.bairro?.toLowerCase().includes(search) ||
-                                        imovel.tipo_nome?.toLowerCase().includes(search) ||
-                                        imovel.operacao_nome?.toLowerCase().includes(search);
-                                    if (!matchesSearch) return false;
-                                }
-
-                                // 2. Advanced Filters
-                                if (activeFilters.operacao && imovel.imbtpoperacao_id?.toString() !== activeFilters.operacao) return false;
-                                if (activeFilters.finalidade && imovel.categoria !== activeFilters.finalidade) return false;
-                                
-                                if (activeFilters.minPrice && imovel.preco_base < Number(activeFilters.minPrice)) return false;
-                                if (activeFilters.maxPrice && imovel.preco_base > Number(activeFilters.maxPrice)) return false;
-                                
-                                if (activeFilters.dormitorios && (imovel.dormitorios || 0) < activeFilters.dormitorios) return false;
-                                if (activeFilters.vagas && (imovel.vagas || 0) < activeFilters.vagas) return false;
-                                if (activeFilters.banheiros && (imovel.banheiros || 0) < activeFilters.banheiros) return false;
-                                if (activeFilters.suites && (imovel.suites || 0) < activeFilters.suites) return false;
-                                
-                                if (activeFilters.minArea && (imovel.area_util || 0) < Number(activeFilters.minArea)) return false;
-                                if (activeFilters.maxArea && (imovel.area_util || 0) > Number(activeFilters.maxArea)) return false;
-
-                                if (activeFilters.empreendimento && imovel.imbempreendimento_id?.toString() !== activeFilters.empreendimento.toString()) return false;
-                                
-                                if (activeFilters.status && imovel.statusimovel?.toString() !== activeFilters.status.toString()) return false;
-
-                                return true;
-                            })
-                            .map((imovel) => {
+                        {filteredImoveis.map((imovel) => {
                                 const cf = imovel.custom_fields || {};
                                 const isActive = selectedImovel?.id === imovel.id;
                                 return (
