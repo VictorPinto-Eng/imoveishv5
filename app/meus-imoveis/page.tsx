@@ -1303,15 +1303,6 @@ function MeusImoveisContent() {
                                                 </div>
                                             </div>
                                             <div className={styles.divulgacaoRow}>
-                                                <span className={styles.divulgacaoLabel}>Publicar no Facebook</span>
-                                                <div 
-                                                    className={`${styles.premiumSwitch} ${selectedImovel.pub_facebook ? styles.premiumSwitchActive : ''}`}
-                                                    onClick={togglePubFacebook}
-                                                >
-                                                    <div className={styles.premiumSwitchIndicator}></div>
-                                                </div>
-                                            </div>
-                                            <div className={styles.divulgacaoRow}>
                                                 <span className={styles.divulgacaoLabel}>Publicar no Instagram</span>
                                                 <div 
                                                     className={`${styles.premiumSwitch} ${selectedImovel.pub_instagram ? styles.premiumSwitchActive : ''}`}
