@@ -1980,36 +1980,7 @@ export default function EditarImovelPage() {
                                 </div>
                             </div>
 
-                            <div className={styles.divulgacaoRow}>
-                                <span className={styles.divulgacaoLabel}>Publicar no Site (Página Inicial)</span>
-                                <div 
-                                    className={`${styles.premiumSwitch} ${imovel.pub_site ? styles.premiumSwitchActive : ''}`}
-                                    onClick={() => setImovel({ ...imovel, pub_site: !imovel.pub_site })}
-                                >
-                                    <div className={styles.premiumSwitchIndicator}></div>
-                                </div>
-                            </div>
-                            <div className={styles.divulgacaoRow}>
-                                <span className={styles.divulgacaoLabel}>Exibir preço no site</span>
-                                <div 
-                                    className={`${styles.premiumSwitch} ${imovel.pub_price ? styles.premiumSwitchActive : ''}`}
-                                    onClick={() => setImovel({ ...imovel, pub_price: !imovel.pub_price })}
-                                >
-                                    <div className={styles.premiumSwitchIndicator}></div>
-                                </div>
-                            </div>
-                            <div className={styles.divulgacaoRow}>
-                                <span className={styles.divulgacaoLabel}>Publicar no Facebook</span>
-                                <div 
-                                    className={`${styles.premiumSwitch} ${imovel.custom_fields.pub_facebook ? styles.premiumSwitchActive : ''}`}
-                                    onClick={() => setImovel({ 
-                                        ...imovel, 
-                                        custom_fields: { ...imovel.custom_fields, pub_facebook: !imovel.custom_fields.pub_facebook } 
-                                    })}
-                                >
-                                    <div className={styles.premiumSwitchIndicator}></div>
-                                </div>
-                            </div>
+
 
                              <div className={styles.formGroupFullWidth}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
