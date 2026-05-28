@@ -66,6 +66,11 @@ export async function POST(
 
     const isRental = imovel.imbtpoperacao_id === 2;
 
+    let imageUrl = imovel.foto_capa || null;
+    if (imageUrl && imageUrl.startsWith('/')) {
+      imageUrl = `${baseUrl}${imageUrl}`;
+    }
+
     const payload = {
       id: imovel.id,
       title: imovel.nome,
@@ -80,7 +85,7 @@ export async function POST(
       parking: imovel.vagas,
       location: [imovel.bairro_nome, imovel.cidade_nome, imovel.estado_sigla].filter(Boolean).join(' - '),
       url: `${baseUrl}/imovel/${imovel.id}`,
-      imageUrl: imovel.foto_capa || null
+      imageUrl: imageUrl
     };
 
     console.log('[n8n Publish] Dispatching payload to:', n8nWebhookUrl, payload);
