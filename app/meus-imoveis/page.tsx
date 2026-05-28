@@ -231,11 +231,51 @@ function MeusImoveisContent() {
         updatePropertyField(selectedImovel.id, 'pub_facebook', newValue);
     };
 
-    const togglePubInstagram = () => {
+    const togglePubInstagram = async () => {
         if (!selectedImovel) return;
         if (!checkCreciApproval()) return;
         const newValue = !selectedImovel.pub_instagram;
-        updatePropertyField(selectedImovel.id, 'pub_instagram', newValue);
+        await updatePropertyField(selectedImovel.id, 'pub_instagram', newValue);
+
+        if (newValue === true) {
+            try {
+                Swal.fire({
+                    title: 'Publicando...',
+                    text: 'Enviando imóvel para o n8n publicar no Instagram.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                const res = await fetch(`/api/property/${selectedImovel.id}/publish`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    Swal.fire({
+                        title: 'Sucesso!',
+                        text: 'Imóvel enviado com sucesso para publicação no Instagram!',
+                        icon: 'success',
+                        confirmButtonColor: '#7F34E6'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Erro!',
+                        text: data.error || 'Erro ao enviar para o n8n.',
+                        icon: 'error',
+                        confirmButtonColor: '#7F34E6'
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    title: 'Erro!',
+                    text: 'Erro de conexão ao enviar para o n8n.',
+                    icon: 'error',
+                    confirmButtonColor: '#7F34E6'
+                });
+            }
+        }
     };
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string; total_unidades?: number }[]>([]);
