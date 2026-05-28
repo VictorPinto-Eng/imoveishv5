@@ -9,7 +9,7 @@ import {
     Home, Plus, Loader2, FileText, Edit2, Trash2, 
     Menu, HelpCircle, Search, MapPin, SlidersHorizontal,
     Image as ImageIcon, PlusCircle, Frown, ChevronDown,
-    ArrowLeft, ArrowRight, MoreVertical, Copy, MessageCircle, Mail, Send, Share2,
+    ArrowLeft, ArrowRight, MoreVertical, Copy, MessageCircle, Mail, Send, Share2, Instagram,
     FolderPlus, CheckSquare, Grip, X, Check, Users, MessageSquare, Building2
 } from 'lucide-react';
 import Link from 'next/link';
@@ -875,6 +875,55 @@ function MeusImoveisContent() {
                                                     <button className={styles.dropdownItem} onClick={(e) => { e.stopPropagation(); alert('Solicitando revisão...'); }}>
                                                         <Send size={16} />
                                                         <span>Solicitar revisão ao proprietário</span>
+                                                    </button>
+                                                    <button 
+                                                        className={styles.dropdownItem} 
+                                                        onClick={async (e) => { 
+                                                            e.stopPropagation(); 
+                                                            if (selectedImovel) {
+                                                                try {
+                                                                    Swal.fire({
+                                                                        title: 'Publicando...',
+                                                                        text: 'Enviando imóvel para o n8n publicar no Instagram.',
+                                                                        allowOutsideClick: false,
+                                                                        didOpen: () => {
+                                                                            Swal.showLoading();
+                                                                        }
+                                                                    });
+                                                                    const res = await fetch(`/api/property/${selectedImovel.id}/publish`, {
+                                                                        method: 'POST'
+                                                                    });
+                                                                    const data = await res.json();
+                                                                    if (res.ok && data.success) {
+                                                                        Swal.fire({
+                                                                            title: 'Sucesso!',
+                                                                            text: 'Imóvel enviado com sucesso para publicação no Instagram!',
+                                                                            icon: 'success',
+                                                                            confirmButtonColor: '#7F34E6'
+                                                                        });
+                                                                    } else {
+                                                                        Swal.fire({
+                                                                            title: 'Erro!',
+                                                                            text: data.error || 'Erro ao enviar para o n8n.',
+                                                                            icon: 'error',
+                                                                            confirmButtonColor: '#7F34E6'
+                                                                        });
+                                                                    }
+                                                                } catch (err) {
+                                                                    console.error(err);
+                                                                    Swal.fire({
+                                                                        title: 'Erro!',
+                                                                        text: 'Erro de conexão ao enviar para o n8n.',
+                                                                        icon: 'error',
+                                                                        confirmButtonColor: '#7F34E6'
+                                                                    });
+                                                                }
+                                                                setShowActions(false);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Instagram size={16} />
+                                                        <span>Publicar no Instagram</span>
                                                     </button>
                                                     
                                                     <div className={styles.dropdownDivider} />
