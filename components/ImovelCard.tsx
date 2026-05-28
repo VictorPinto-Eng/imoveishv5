@@ -210,7 +210,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
             {!!imovel.area_util && (
               <div className={styles.featureItem} data-tooltip="Área Útil" title="Área Útil">
                 {/* Custom Area Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 3v18h18" />
                   <rect x="7" y="3" width="14" height="14" rx="2" strokeDasharray="2 2" />
                 </svg>
@@ -224,7 +224,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
                 title={imovel.dormitorios === 1 ? 'Dormitório' : 'Dormitórios'}
               >
                 {/* Modern Bed Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 17h20M2 17v-4c0-1.1.9-2 2-2h16c1.1 0 2 .9 2 2v4M6 11V7c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v4M6 11h12" />
                 </svg>
                 <span>{imovel.dormitorios}</span>
@@ -237,7 +237,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
                 title={imovel.suites === 1 ? 'Suíte' : 'Suítes'}
               >
                 {/* Modern Suite Icon (Double) */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
                   <path d="M2 17h20M2 17v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4M12 5v6" />
                 </svg>
                 <span>{imovel.suites}</span>
@@ -250,7 +250,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
                 title={imovel.banheiros === 1 ? 'Banheiro' : 'Banheiros'}
               >
                 {/* Clean Bath Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 10h18v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7zM7 21v2M17 21v2M12 2v2M2 10V8a2 2 0 0 1 2-2h2" />
                 </svg>
                 <span>{imovel.banheiros}</span>
@@ -263,7 +263,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
                 title={imovel.lavabo === 1 ? 'Lavabo' : 'Lavabos'}
               >
                 {/* Sink Icon for Lavabo */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2v4" />
                   <path d="M12 6a3 3 0 0 1 3 3v1H9V9a3 3 0 0 1 3-3Z" />
                   <path d="M5 10h14v7a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-7Z" />
@@ -278,7 +278,7 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
                 title={imovel.vagas === 1 ? 'Vaga de Garagem' : 'Vagas de Garagem'}
               >
                 {/* Modern Parking Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.7 8.2c-.5-1.4-1.8-2.2-3.3-2.2H8.6c-1.5 0-2.8.8-3.3 2.2L2.5 11.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2M5 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2M15 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2" />
                 </svg>
                 <span>{imovel.vagas}</span>
