@@ -2010,18 +2010,6 @@ export default function EditarImovelPage() {
                                     <div className={styles.premiumSwitchIndicator}></div>
                                 </div>
                             </div>
-                            <div className={styles.divulgacaoRow}>
-                                <span className={styles.divulgacaoLabel}>Publicar no Instagram</span>
-                                <div 
-                                    className={`${styles.premiumSwitch} ${imovel.custom_fields.pub_instagram ? styles.premiumSwitchActive : ''}`}
-                                    onClick={() => setImovel({ 
-                                        ...imovel, 
-                                        custom_fields: { ...imovel.custom_fields, pub_instagram: !imovel.custom_fields.pub_instagram } 
-                                    })}
-                                >
-                                    <div className={styles.premiumSwitchIndicator}></div>
-                                </div>
-                            </div>
 
                              <div className={styles.formGroupFullWidth}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
