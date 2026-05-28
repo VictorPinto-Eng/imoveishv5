@@ -156,9 +156,16 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                                     {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
                                     {imovel.tipo_imovel_nome}
                                 </span>
-                                <span className={styles.statusBadge}>
-                                    {(imovel.status_imovel_nome || imovel.status || '').toUpperCase()}
-                                </span>
+                                {(() => {
+                                    const statusText = imovel.status_imovel_nome || imovel.status || '';
+                                    const isAvailable = ['disponível', 'disponivel', 'ativo', 'ativa'].includes(statusText.toLowerCase());
+                                    if (!statusText || isAvailable) return null;
+                                    return (
+                                        <span className={styles.statusBadge}>
+                                            {statusText.toUpperCase()}
+                                        </span>
+                                    );
+                                })()}
                             </div>
                             <h1 className={styles.title}>{imovel.nome}</h1>
                             <div className={styles.address}>
