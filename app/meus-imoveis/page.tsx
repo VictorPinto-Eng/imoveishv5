@@ -238,7 +238,7 @@ function MeusImoveisContent() {
         updatePropertyField(selectedImovel.id, 'pub_instagram', newValue);
     };
     const [currentUser, setCurrentUser] = useState<any>(null);
-    const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
+    const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string; total_unidades?: number }[]>([]);
     const [activities, setActivities] = useState<any[]>([]);
     const [loadingActivities, setLoadingActivities] = useState(false);
     
@@ -610,7 +610,7 @@ function MeusImoveisContent() {
 
                     {/* EMPREENDIMENTOS LIST */}
                     {listMode === 'empreendimentos' && (
-                        <div className={styles.propertyList}>
+                        <div className={`${styles.propertyList} ${styles.propertyListEmp}`}>
                             {empreendimentos.length === 0 ? (
                                 <div style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8' }}>
                                     <Building2 size={40} strokeWidth={1} style={{ margin: '0 auto 12px' }} />
@@ -621,23 +621,24 @@ function MeusImoveisContent() {
                                 empreendimentos.map((emp: any) => (
                                     <div
                                         key={emp.id}
-                                        className={`${styles.cardCompact} ${selectedEmpreendimento?.id === emp.id ? styles.cardCompactActive : ''}`}
+                                        className={`${styles.cardCompactEmp} ${selectedEmpreendimento?.id === emp.id ? styles.cardCompactEmpActive : ''}`}
                                         onClick={() => setSelectedEmpreendimento(emp)}
                                     >
-                                        <div className={styles.cardCompactImage}>
-                                            <div className={styles.cardCompactPlaceholder} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Building2 size={24} color="#94a3b8" />
+                                        <div className={styles.cardCompactEmpIcon}>
+                                            <Building2 size={18} />
+                                        </div>
+                                        <div className={styles.cardCompactEmpContent}>
+                                            <span className={styles.cardCompactEmpId}>Cód {emp.id}</span>
+                                            <h3 className={styles.cardCompactEmpTitle}>{emp.descricao}</h3>
+                                            <div className={styles.cardCompactEmpAddress}>
+                                                {emp.bairro_nome ? `${emp.bairro_nome}, ` : ''}{emp.cidade_nome || ''}{emp.estado_sigla ? ` - ${emp.estado_sigla}` : ''}
                                             </div>
                                         </div>
-                                        <div className={styles.cardCompactContent}>
-                                            <div className={styles.cardCompactId}>Cód {emp.id}</div>
-                                            <h3 className={styles.cardCompactTitle}>{emp.descricao}</h3>
-                                            <div className={styles.cardCompactAddress}>
-                                                {emp.bairro_nome ? `${emp.bairro_nome}, ` : ''}{emp.cidade_nome || ''}
-                                            </div>
-                                            {emp.estado_sigla && (
-                                                <div className={styles.cardCompactAddress}>{emp.estado_sigla}</div>
-                                            )}
+                                        <div className={styles.cardCompactEmpUnitsCol}>
+                                            <span className={styles.cardCompactEmpUnitsCount}>{emp.total_unidades || 0}</span>
+                                            <span className={styles.cardCompactEmpUnitsLabel}>
+                                                {emp.total_unidades === 1 ? 'unidade' : 'unidades'}
+                                            </span>
                                         </div>
                                     </div>
                                 ))

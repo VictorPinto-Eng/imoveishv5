@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
         b.descricao AS bairro_nome,
         c.descricao AS cidade_nome,
         est.nome AS estado_nome,
-        est.sigla AS estado_sigla
+        est.sigla AS estado_sigla,
+        (SELECT COUNT(*)::int FROM public.produtos_servicos p WHERE p.imbempreendimento_id = e.id AND p.ativo = true) AS total_unidades
       FROM public.imbempreendimento e
       LEFT JOIN public.apobairro b ON b.id = e.bairro_id
       LEFT JOIN public.apocidade c ON c.id = e.cidade_id
@@ -24,3 +25,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao buscar empreendimentos' }, { status: 500 });
   }
 }
+
