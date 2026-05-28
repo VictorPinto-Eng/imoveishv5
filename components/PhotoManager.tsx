@@ -59,6 +59,18 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         }
     }, [imovelId]);
 
+    useEffect(() => {
+        const preventDefaultGlobal = (e: DragEvent) => {
+            e.preventDefault();
+        };
+        window.addEventListener('dragover', preventDefaultGlobal);
+        window.addEventListener('drop', preventDefaultGlobal);
+        return () => {
+            window.removeEventListener('dragover', preventDefaultGlobal);
+            window.removeEventListener('drop', preventDefaultGlobal);
+        };
+    }, []);
+
     const convertToWebP = (file: File): Promise<Blob> => {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -285,7 +297,11 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
     };
 
     return (
-        <div className={styles.manager}>
+        <div 
+            className={styles.manager}
+            onDragOver={handleGlobalDragOver}
+            onDrop={handleFileDrop}
+        >
             <input 
                 type="file" 
                 ref={fileInputRef} 
