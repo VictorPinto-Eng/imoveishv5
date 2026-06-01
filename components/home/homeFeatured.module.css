@@ -1,6 +1,10 @@
 /* Featured Section */
 .featuredSection {
-  padding: 6rem 0;
+  padding: 4rem 0;
+}
+
+.featuredSection + .featuredSection {
+  padding-top: 0;
 }
 
 .featuredHeader {
