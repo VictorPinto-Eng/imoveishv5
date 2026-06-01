@@ -8,6 +8,7 @@ export interface ImovelSection {
   title: string
   subtitle: string
   imoveis: Imovel[]
+  link?: string
 }
 
 interface HomeFeaturedProps {
@@ -38,7 +39,7 @@ export default function HomeFeatured({ sections }: HomeFeaturedProps) {
                 <h2 className={styles.featuredTitle}>{section.title}</h2>
                 <p className={styles.featuredSubtitle}>{section.subtitle}</p>
               </div>
-              <Link href="/imoveis" className={`btn ${styles.viewAllButton}`}>
+              <Link href={section.link || "/imoveis"} className={`btn ${styles.viewAllButton}`}>
                 Ver todos &rarr;
               </Link>
             </div>

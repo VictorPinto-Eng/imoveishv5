@@ -47,6 +47,7 @@ export default async function Home() {
       title: 'Imóveis para Locação',
       subtitle: 'Encontre as melhores opções de aluguel para você e sua família',
       imoveis: locacaoImoveis,
+      link: '/imoveis?operacao=2'
     })
   }
 
@@ -56,6 +57,7 @@ export default async function Home() {
       title: 'Imóveis para Venda',
       subtitle: 'Encontre excelentes oportunidades para comprar o seu imóvel',
       imoveis: vendaImoveis,
+      link: '/imoveis?operacao=1'
     })
   }
 

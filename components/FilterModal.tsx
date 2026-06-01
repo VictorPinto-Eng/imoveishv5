@@ -127,8 +127,7 @@ export default function FilterModal({ isOpen, onClose, onApply, initialFilters }
                     <div className={styles.tabs}>
                         {[
                             { id: '1', label: 'VENDA' },
-                            { id: '2', label: 'LOCAÇÃO' },
-                            { id: '3', label: 'TEMPORADA' }
+                            { id: '2', label: 'LOCAÇÃO' }
                         ].map(tab => (
                             <button 
                                 key={tab.id}
