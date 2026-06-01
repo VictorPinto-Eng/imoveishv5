@@ -39,6 +39,14 @@ export async function GET(req: NextRequest) {
       ORDER BY u.updated_at ASC
     `);
 
+    // 2.5. Pending CPF list
+    const pendingCpfRes = await query(`
+      SELECT u.id, u.name, u.email, u.phone, u.cpf_cnpj, u.data_nascimento
+      FROM users u
+      WHERE u.cpf_cnpj IS NOT NULL AND (u.cpf_validated = false OR u.cpf_validated IS NULL)
+      ORDER BY u.updated_at ASC
+    `);
+
     // 3. Recent Properties list
     const recentPropertiesRes = await query(`
       SELECT p.id, p.nome, p.status, p.created_at, op.descricao as operacao_nome, tp.descricao as tipo_nome,
@@ -68,6 +76,7 @@ export async function GET(req: NextRequest) {
         totalViews: Number(viewsCountRes.rows[0]?.count || 0),
       },
       pendingCreci: pendingCreciRes.rows,
+      pendingCpf: pendingCpfRes.rows,
       recentProperties: recentPropertiesRes.rows
     });
   } catch (error: any) {

@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGrid, LogOut, ChevronDown, PlusCircle, ShieldCheck } from 'lucide-react'
+import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGrid, LogOut, ChevronDown, PlusCircle, ShieldCheck, Heart } from 'lucide-react'
 import styles from './header.module.css'
 import LoginModal from './LoginModal'
 import ProfileModal from './ProfileModal'
+import AnunciarModal from './AnunciarModal'
 import Swal from 'sweetalert2'
 
 interface User {
@@ -17,16 +18,23 @@ interface User {
     avatar_url?: string;
     email_verified: boolean;
     is_admin?: boolean;
+    cpf_validated?: boolean;
+    roles?: Array<{ id: number; nome: string }>;
 }
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
+    const [isAnunciarOpen, setIsAnunciarOpen] = useState(false)
     const [user, setUser] = useState<User | null>(null)
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [pendingCount, setPendingCount] = useState<number>(0)
     const dropdownRef = useRef<HTMLDivElement>(null)
+
+    const userRoles = user?.roles || [];
+    const hasAdvertiserRole = userRoles.some((r: any) => Number(r.id) === 2 || Number(r.id) === 3);
+    const showMeusImoveis = !!user?.is_admin || (hasAdvertiserRole && !!user?.cpf_validated);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -41,7 +49,7 @@ export default function Header() {
     useEffect(() => {
         checkAuth();
         
-        // Verifica se a conta acabou de ser ativada pela URL
+        // Verifica se a conta acabou de ser ativada pela URL ou se foi desativada
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
             if (params.get('activated') === 'true') {
@@ -60,6 +68,20 @@ export default function Header() {
                     }).then(() => {
                         // Abre o modal de login automaticamente
                         openModal();
+                    });
+                }, 300);
+            } else if (params.get('error') === 'account_deactivated') {
+                // Remove o parâmetro da URL de forma amigável
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+
+                // Dispara o SweetAlert2 informando a conta desativada
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Acesso Bloqueado ⚠️',
+                        text: 'Sua conta está desativada. Entre em contato com o suporte para mais informações.',
+                        confirmButtonColor: '#7F34E6',
                     });
                 }, 300);
             }
@@ -126,6 +148,37 @@ export default function Header() {
         setIsMenuOpen(false)
     }
 
+    const handleAnunciarClick = () => {
+        if (!user) {
+            openModal();
+            return;
+        }
+
+        const userRoles = (user as any).roles || [];
+        const hasAdvertiserRole = userRoles.some((r: any) => Number(r.id) === 2 || Number(r.id) === 3);
+
+        if (hasAdvertiserRole) {
+            const isProp = userRoles.some((r: any) => Number(r.id) === 2);
+            const isCpfValidated = (user as any).cpf_validated;
+
+            if (isProp && !isCpfValidated) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Validação de CPF Pendente ⚠️',
+                    text: 'Como proprietário, você precisa validar seu CPF antes de começar a anunciar seus imóveis.',
+                    confirmButtonColor: '#7F34E6',
+                    confirmButtonText: 'Validar CPF Agora'
+                }).then(() => {
+                    window.location.href = '/meu-perfil';
+                });
+                return;
+            }
+            window.location.href = '/meus-imoveis/incluir';
+        } else {
+            setIsAnunciarOpen(true);
+        }
+    };
+
     const getDisplayName = (user: User) => {
         return user.social_name || user.name;
     }
@@ -177,6 +230,10 @@ export default function Header() {
 
                     {/* Desktop Actions */}
                     <div className={`${styles.actions} ${styles.desktopActions}`}>
+                        <button onClick={handleAnunciarClick} className={styles.navLink} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', marginRight: '0.5rem' }}>
+                            <PlusCircle size={18} />
+                            <span>Anunciar</span>
+                        </button>
                         {user ? (
                             <div className={styles.userMenuContainer} ref={dropdownRef}>
                                 <button
@@ -196,20 +253,31 @@ export default function Header() {
 
                                 {isDropdownOpen && (
                                     <div className={styles.dropdown}>
-                                        <button
-                                            className={styles.dropdownItem}
-                                            onClick={openProfile}
-                                        >
-                                            <UserCircle2 size={18} />
-                                            <span>Meu Perfil</span>
-                                        </button>
                                         <Link
-                                            href="/meus-imoveis"
+                                            href="/meu-perfil"
                                             className={styles.dropdownItem}
                                             onClick={() => setIsDropdownOpen(false)}
                                         >
-                                            <LayoutGrid size={18} />
-                                            <span>Meus Imóveis</span>
+                                            <UserCircle2 size={18} />
+                                            <span>Meu Perfil</span>
+                                        </Link>
+                                        {showMeusImoveis && (
+                                            <Link
+                                                href="/meus-imoveis"
+                                                className={styles.dropdownItem}
+                                                onClick={() => setIsDropdownOpen(false)}
+                                            >
+                                                <LayoutGrid size={18} />
+                                                <span>Meus Imóveis</span>
+                                            </Link>
+                                        )}
+                                        <Link
+                                            href="/meus-favoritos"
+                                            className={styles.dropdownItem}
+                                            onClick={() => setIsDropdownOpen(false)}
+                                        >
+                                            <Heart size={18} />
+                                            <span>Meus Favoritos</span>
                                         </Link>
                                         {user.is_admin && (
                                             <Link
@@ -290,15 +358,33 @@ export default function Header() {
                         <span>Buscar Imóveis</span>
                     </Link>
 
+                    <button
+                        className={styles.mobileNavLink}
+                        onClick={() => {
+                            toggleMenu();
+                            handleAnunciarClick();
+                        }}
+                        style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none' }}
+                    >
+                        <PlusCircle size={20} />
+                        <span>Anunciar</span>
+                    </button>
+
                     {user && (
                         <>
-                            <button className={styles.mobileNavLink} onClick={openProfile}>
+                            <Link href="/meu-perfil" className={styles.mobileNavLink} onClick={toggleMenu}>
                                 <UserCircle2 size={20} />
                                 <span>Meu Perfil</span>
-                            </button>
-                            <Link href="/meus-imoveis" className={styles.mobileNavLink} onClick={toggleMenu}>
-                                <LayoutGrid size={20} />
-                                <span>Meus Imóveis</span>
+                            </Link>
+                            {showMeusImoveis && (
+                                <Link href="/meus-imoveis" className={styles.mobileNavLink} onClick={toggleMenu}>
+                                    <LayoutGrid size={20} />
+                                    <span>Meus Imóveis</span>
+                                </Link>
+                            )}
+                            <Link href="/meus-favoritos" className={styles.mobileNavLink} onClick={toggleMenu}>
+                                <Heart size={20} />
+                                <span>Meus Favoritos</span>
                             </Link>
                             {user.is_admin && (
                                 <Link 
@@ -364,14 +450,16 @@ export default function Header() {
                 checkAuth(); // Refresh auth status after modal closes
             }} />
 
-            <ProfileModal
-                isOpen={isProfileOpen}
+            <AnunciarModal
+                isOpen={isAnunciarOpen}
                 onClose={() => {
-                    setIsProfileOpen(false);
-                    checkAuth(); // Refresh in case name/social name changed
+                    setIsAnunciarOpen(false);
                 }}
                 user={user}
-                onLogout={handleLogout}
+                onSuccess={() => {
+                    checkAuth(); // Refresh after upgrade
+                    window.location.href = '/meus-imoveis/incluir';
+                }}
             />
         </>
     )

@@ -4,6 +4,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Building2, CheckCircle, Loader2, Square } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const PhotoManager = dynamic(() => import('@/components/PhotoManager'), { 
+    ssr: false,
+    loading: () => (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem', gap: '1rem' }}>
+            <Loader2 className="animate-spin text-blue-600" size={40} />
+        </div>
+    )
+});
 import styles from '@/app/meus-imoveis/empreendimentos/incluir/empreendimento.module.css';
 import { maskCep } from '@/lib/format';
 import Swal from 'sweetalert2';
@@ -20,6 +30,7 @@ export default function EditarEmpreendimentoPage() {
 
     const [loading, setLoading] = useState(true);
     const [success, setSuccess] = useState(false);
+    const [isReordering, setIsReordering] = useState(false);
     const isCepSearching = useRef(false);
     const isInitialLoad = useRef(true);
 
@@ -478,6 +489,32 @@ export default function EditarEmpreendimentoPage() {
                             </form>
                         )}
                     </div>
+
+                    {!isInitialLoad.current && id && (
+                        <div className={styles.formContainer} style={{ marginTop: '2rem' }}>
+                            <div className={styles.formHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
+                                <div>
+                                    <h2 className={styles.formTitle}>Fotos do Empreendimento</h2>
+                                    <p className={styles.formSubtitle}>Gerencie as fotos da fachada e áreas comuns do empreendimento.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className={isReordering ? styles.btnPrimary : styles.btnSecondary}
+                                    style={{ padding: '8px 16px', fontSize: '0.875rem', borderRadius: '8px', cursor: 'pointer', margin: 0, width: 'auto' }}
+                                    onClick={() => setIsReordering(!isReordering)}
+                                >
+                                    {isReordering ? "Concluir Reordenação" : "Reordenar Fotos"}
+                                </button>
+                            </div>
+                            
+                            <PhotoManager
+                                imovelId={Number(id)}
+                                initialPhotos={[]}
+                                isReordering={isReordering}
+                                apiPath={`/api/property/empreendimentos/${id}/photos`}
+                            />
+                        </div>
+                    )}
                 </main>
             </div>
         </>

@@ -28,6 +28,14 @@ export async function POST(request: Request) {
 
         const user = res.rows[0];
 
+        // Check if user is active
+        if (user.ativo === false) {
+            return NextResponse.json(
+                { error: 'Sua conta está desativada. Entre em contato com o suporte.' },
+                { status: 403 }
+            );
+        }
+
         // Check if email is verified first (or verify password and then handle verification)
         // For usability in this app, we can check email verification first or handle it if they exist
         if (user.email_verified === false) {

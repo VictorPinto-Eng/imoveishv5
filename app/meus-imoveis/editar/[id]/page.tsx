@@ -76,6 +76,7 @@ interface Imovel {
     imbtpimovel_id?: number;
     statusimovel?: number;
     empreendimento?: number;
+    imbtipoanuncio_id?: number;
     estado_id?: number;
     cidade_id?: number;
     bairro_id?: number;
@@ -668,6 +669,7 @@ export default function EditarImovelPage() {
                 imbtpimovel_id: imovel.imbtpimovel_id,
                 empreendimento: imovel.empreendimento,
                 statusimovel: imovel.statusimovel,
+                imbtipoanuncio_id: imovel.imbtipoanuncio_id || 1,
                 pub_site: imovel.pub_site,
                 pub_price: imovel.pub_price,
                 seguro_incendio: imovel.seguro_incendio,
@@ -1383,7 +1385,7 @@ export default function EditarImovelPage() {
                                 Imóvel
                             </h2>
                             <div className={styles.featGrid}>
-                                <div className={styles.formGroupFullWidth}>
+                                <div className={styles.formGroup}>
                                     <label>Tipo de Operação</label>
                                     <select
                                         value={imovel.imbtpoperacao_id || ''}
@@ -1402,6 +1404,23 @@ export default function EditarImovelPage() {
                                         {operacoes.map(op => (
                                             <option key={op.id} value={op.id}>{op.descricao}</option>
                                         ))}
+                                    </select>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Tipo de Anúncio</label>
+                                    <select
+                                        value={imovel.imbtipoanuncio_id || 1}
+                                        onChange={(e) => {
+                                            const id = parseInt(e.target.value);
+                                            setImovel({
+                                                ...imovel,
+                                                imbtipoanuncio_id: id
+                                            });
+                                        }}
+                                        className={styles.select}
+                                    >
+                                        <option value={1}>Unidade Individual</option>
+                                        <option value={2}>Empreendimento</option>
                                     </select>
                                 </div>
                             </div>

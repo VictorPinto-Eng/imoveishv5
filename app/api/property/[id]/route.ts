@@ -165,6 +165,7 @@ export async function GET(
             relationship,
             pub_facebook,
             pub_instagram,
+            imbtipoanuncio_id: row.imbtipoanuncio_id !== null ? Number(row.imbtipoanuncio_id) : 1,
             // Map singular DB to plural JSON for frontend compatibility
             dormitorios: row.dormitorio,
             suites: row.suite,
@@ -290,6 +291,7 @@ export async function PUT(
     const imbfinalidade_id = body.imbfinalidade_id !== undefined ? body.imbfinalidade_id : oldImbfinalidadeId;
     const imbtpimovel_id = body.imbtpimovel_id !== undefined ? body.imbtpimovel_id : oldImbtpimovelId;
     const statusimovel = body.statusimovel !== undefined ? body.statusimovel : oldData.statusimovel;
+    const imbtipoanuncio_id = body.imbtipoanuncio_id !== undefined ? body.imbtipoanuncio_id : oldData.imbtipoanuncio_id;
     
     const seguro_incendio = body.seguro_incendio !== undefined 
         ? body.seguro_incendio 
@@ -548,6 +550,7 @@ export async function PUT(
         pub_instagram = $38,
         relimovel_id = $39,
         prop_id = $40,
+        imbtipoanuncio_id = $44,
         updated_at = NOW(),
         updated_by = $41,
         organization_id = COALESCE(organization_id, '1')
@@ -596,7 +599,8 @@ export async function PUT(
       prop_id,
       userId,
       id,
-      userId
+      userId,
+      imbtipoanuncio_id || 1
     ]);
 
   if (updateRes.rowCount === 0) {

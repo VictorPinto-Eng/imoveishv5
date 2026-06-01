@@ -63,6 +63,7 @@ interface PropertyData {
     pub_facebook: boolean;
     pub_instagram: boolean;
     empreendimento?: number;
+    imbtipoanuncio_id?: number;
     periodo_loca_id?: number;
     condominio_incluso?: boolean;
     iptu_incluso?: boolean;
@@ -148,6 +149,7 @@ export default function IncluirImovelPage() {
         imbtpimovel_id: undefined,
         statusimovel: 2, // Default to Pendente (ID 2)
         empreendimento: undefined,
+        imbtipoanuncio_id: 1, // Default to Unidade Individual
         pub_site: false,
         pub_price: false,
         pub_facebook: false,
@@ -1232,6 +1234,28 @@ export default function IncluirImovelPage() {
                                                 <option key={tp.id} value={tp.id}>{tp.descricao}</option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                        <p className={styles.subQuestion} style={{ marginBottom: '8px' }}>Tipo de Anúncio</p>
+                                        <div className={styles.pillGroup} style={{ marginTop: 0, marginBottom: '24px' }}>
+                                            {[
+                                                { id: 1, label: 'Unidade Individual' },
+                                                { id: 2, label: 'Empreendimento' }
+                                            ].map(t => (
+                                                <button
+                                                    key={t.id}
+                                                    type="button"
+                                                    className={`${styles.pillButton} ${formData.imbtipoanuncio_id === t.id ? styles.pillButtonActive : ''}`}
+                                                    onClick={() => setFormData(prev => ({ 
+                                                        ...prev, 
+                                                        imbtipoanuncio_id: t.id 
+                                                    }))}
+                                                >
+                                                    {t.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     {/* Status removed as requested - forced to Pendente by default */}

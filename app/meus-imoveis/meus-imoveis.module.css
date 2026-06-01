@@ -473,6 +473,20 @@
   background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
 }
 
+.detailHeaderEmp {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 1.5rem auto;
+  aspect-ratio: 16 / 9;
+  min-height: 200px;
+  max-height: 300px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #4b5563 0%, #1f2937 100%);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
 .detailImageArea {
   position: absolute;
   top: 0;
@@ -911,7 +925,7 @@
   z-index: 11000; /* Higher than site header which is 10000 */
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.3s ease-out;
+  animation: slideUp 0.3s ease-out forwards;
 }
 
 @keyframes slideUp {

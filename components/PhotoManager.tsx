@@ -21,9 +21,11 @@ interface PhotoManagerProps {
     initialPhotos: Photo[];
     onUpdate?: () => void;
     isReordering?: boolean;
+    apiPath?: string;
 }
 
-export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReordering }: PhotoManagerProps) {
+export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReordering, apiPath }: PhotoManagerProps) {
+    const basePath = apiPath || `/api/property/${imovelId}/photos`;
     const [photos, setPhotos] = useState<Photo[]>(initialPhotos || []);
     const [uploading, setUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(initialPhotos.length === 0);
@@ -35,8 +37,8 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
 
     const loadPhotos = async () => {
         try {
-            console.log(`Carregando fotos para o imovelId: ${imovelId}`);
-            const res = await fetch(`/api/property/${imovelId}/photos`);
+            console.log(`Carregando fotos do caminho: ${basePath}`);
+            const res = await fetch(basePath);
             const data = await res.json();
             if (data.success) {
                 console.log('Fotos carregadas do banco:', data.photos);
@@ -137,8 +139,8 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                 const formData = new FormData();
                 formData.append('file', fileToUpload, fileName);
 
-                console.log(`Enviando para a API: /api/property/${imovelId}/photos`);
-                const res = await fetch(`/api/property/${imovelId}/photos`, {
+                console.log(`Enviando para a API: ${basePath}`);
+                const res = await fetch(basePath, {
                     method: 'POST',
                     body: formData,
                 });
@@ -233,7 +235,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         e.stopPropagation();
         if (!confirm('Tem certeza que deseja excluir esta foto?')) return;
         try {
-            const res = await fetch(`/api/property/${imovelId}/photos?photoId=${photoId}`, {
+            const res = await fetch(`${basePath}?photoId=${photoId}`, {
                 method: 'DELETE'
             });
             if (res.ok) await loadPhotos();
@@ -245,7 +247,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
     const handleSetPrincipal = async (e: React.MouseEvent, photoId: number) => {
         e.stopPropagation();
         try {
-            const res = await fetch(`/api/property/${imovelId}/photos`, {
+            const res = await fetch(basePath, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ photoId, setPrincipal: true })
@@ -285,7 +287,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
         
         try {
             const items = photos.map((p, i) => ({ id: p.id, ordem_exibicao: i }));
-            const res = await fetch(`/api/property/${imovelId}/photos`, {
+            const res = await fetch(basePath, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items })
@@ -452,7 +454,7 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
                     photo={selectedPhoto}
                     onClose={() => setSelectedPhoto(null)}
                     onSave={async (data: { legenda: string; categoria: string; privada: boolean }) => {
-                        const res = await fetch(`/api/property/${imovelId}/photos`, {
+                        const res = await fetch(basePath, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ photoId: selectedPhoto.id, ...data })

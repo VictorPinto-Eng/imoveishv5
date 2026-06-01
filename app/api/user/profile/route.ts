@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         }
 
         const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
-        const { social_name, email, id_tipo_usuario, phone, creci_numero, creci_apoestado_id, creci_tipo } = await req.json();
+        const { social_name, email, id_tipo_usuario, roles, phone, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento } = await req.json();
 
         // Check if email is changing
         const userResult = await query('SELECT email, name, creci_document_url FROM users WHERE id = $1', [decoded.id]);
@@ -27,12 +27,31 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'O e-mail é obrigatório' }, { status: 400 });
         }
 
-        const isCorretor = Number(id_tipo_usuario) === 1;
+        const rolesToSave: number[] = Array.isArray(roles) ? roles.map(Number) : [Number(id_tipo_usuario || 1)];
+        const isProprietario = rolesToSave.includes(2);
+        const isCorretor = rolesToSave.includes(3);
+        const mainRoleId = Math.max(...rolesToSave);
+        
         const valCreciNumero = isCorretor ? (creci_numero || null) : null;
         const valCreciEstadoId = isCorretor ? (Number(creci_apoestado_id) || null) : null;
         const valCreciTipo = isCorretor ? (creci_tipo || null) : null;
 
+        if (isProprietario) {
+            if (!cpf_cnpj) {
+                return NextResponse.json({ error: 'O CPF/CNPJ é obrigatório para proprietários.' }, { status: 400 });
+            }
+            if (!data_nascimento) {
+                return NextResponse.json({ error: 'A data de nascimento é obrigatória para proprietários.' }, { status: 400 });
+            }
+        }
+
         if (isCorretor) {
+            if (!cpf_cnpj) {
+                return NextResponse.json({ error: 'O CPF é obrigatório para corretores.' }, { status: 400 });
+            }
+            if (!data_nascimento) {
+                return NextResponse.json({ error: 'A data de nascimento é obrigatória para corretores.' }, { status: 400 });
+            }
             if (!valCreciNumero || !valCreciEstadoId || !valCreciTipo) {
                 return NextResponse.json({ error: 'Todos os campos de CRECI (número, UF e tipo) são obrigatórios para corretores/imobiliárias.' }, { status: 400 });
             }
@@ -42,6 +61,12 @@ export async function POST(req: NextRequest) {
         }
 
         if (email !== user.email) {
+            // Validar se o novo e-mail já está cadastrado/em uso por outro usuário
+            const emailExists = await query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, decoded.id]);
+            if (emailExists.rowCount > 0) {
+                return NextResponse.json({ error: 'Este e-mail já está sendo utilizado por outra conta.' }, { status: 400 });
+            }
+
             emailChanged = true;
             const newToken = crypto.randomBytes(32).toString('hex');
             
@@ -49,9 +74,10 @@ export async function POST(req: NextRequest) {
             await query(
                 `UPDATE users 
                  SET social_name = $1, email = $2, email_verified = false, verification_token = $3, 
-                     id_tipo_usuario = $4, phone = $5, creci_numero = $6, creci_apoestado_id = $7, creci_tipo = $8 
-                 WHERE id = $9`,
-                [social_name || '', email, newToken, id_tipo_usuario || 2, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, decoded.id]
+                     id_tipo_usuario = $4, phone = $5, creci_numero = $6, creci_apoestado_id = $7, creci_tipo = $8,
+                     cpf_cnpj = $9, data_nascimento = $10
+                 WHERE id = $11`,
+                [social_name || '', email, newToken, mainRoleId, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null, decoded.id]
             );
 
             // OPTIMIZATION: Send email in background AFTER response
@@ -67,17 +93,35 @@ export async function POST(req: NextRequest) {
         } else {
             await query(
                 `UPDATE users 
-                 SET social_name = $1, id_tipo_usuario = $2, phone = $3, creci_numero = $4, creci_apoestado_id = $5, creci_tipo = $6 
-                 WHERE id = $7`,
-                [social_name || '', id_tipo_usuario || 2, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, decoded.id]
+                 SET social_name = $1, id_tipo_usuario = $2, phone = $3, creci_numero = $4, creci_apoestado_id = $5, creci_tipo = $6,
+                     cpf_cnpj = $7, data_nascimento = $8
+                 WHERE id = $9`,
+                [social_name || '', mainRoleId, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null, decoded.id]
             );
         }
 
-        return NextResponse.json({
+        // Sync user_roles
+        await query('DELETE FROM public.user_roles WHERE user_id = $1', [decoded.id]);
+        for (const roleId of rolesToSave) {
+            await query(
+                `INSERT INTO public.user_roles (user_id, role_id) 
+                 VALUES ($1, $2) 
+                 ON CONFLICT DO NOTHING`,
+                [decoded.id, roleId]
+            );
+        }
+
+        const response = NextResponse.json({
             success: true,
             message: `Perfil atualizado com sucesso!${verificationMessage}`,
             emailChanged
         });
+
+        if (emailChanged) {
+            response.cookies.set('token', '', { expires: new Date(0), path: '/' });
+        }
+
+        return response;
 
     } catch (error) {
         console.error('Error updating profile:', error);

@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { 
-  Users, Building2, MessageSquare, Eye, FileText, Check, X, Loader2, AlertCircle 
+import {
+  Users, Building2, MessageSquare, Eye, FileText, Check, X, Loader2, AlertCircle, ExternalLink
 } from 'lucide-react';
 import styles from './admin.module.css';
 import Swal from 'sweetalert2';
@@ -35,6 +35,15 @@ interface PendingCreci {
   state_sigla: string;
 }
 
+interface PendingCpf {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  cpf_cnpj: string;
+  data_nascimento: string;
+}
+
 interface RecentProperty {
   id: number;
   nome: string;
@@ -50,6 +59,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
   const [pendingCreci, setPendingCreci] = useState<PendingCreci[]>([]);
+  const [pendingCpf, setPendingCpf] = useState<PendingCpf[]>([]);
   const [recentProperties, setRecentProperties] = useState<RecentProperty[]>([]);
 
   useEffect(() => {
@@ -69,6 +79,7 @@ export default function AdminPage() {
         if (data.success) {
           setStats(data.stats);
           setPendingCreci(data.pendingCreci);
+          setPendingCpf(data.pendingCpf || []);
           setRecentProperties(data.recentProperties);
         }
       }
@@ -83,7 +94,7 @@ export default function AdminPage() {
     const isApprove = action === 'approve';
     const confirmResult = await Swal.fire({
       title: isApprove ? 'Aprovar CRECI?' : 'Rejeitar Comprovante?',
-      text: isApprove 
+      text: isApprove
         ? `Você está aprovando e homologando o cadastro do corretor ${brokerName}.`
         : `O documento do corretor ${brokerName} será removido e ele precisará reenviar.`,
       icon: isApprove ? 'question' : 'warning',
@@ -123,6 +134,107 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error processing CRECI action:', err);
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Erro de conexão.',
+        icon: 'error'
+      });
+    }
+  };
+
+  const handleCpfAction = async (userId: number, userName: string, action: 'approve' | 'reject') => {
+    const isApprove = action === 'approve';
+
+    // --- Fluxo de APROVAÇÃO: pede o nome da Receita Federal antes de confirmar ---
+    if (isApprove) {
+      const inputResult = await Swal.fire({
+        title: 'Aprovar CPF/CNPJ',
+        html: `
+          <p style="margin-bottom:12px">Você está homologando o CPF/CNPJ de <strong>${userName}</strong>.</p>
+          <p style="font-size:0.875rem;color:#64748b;margin-bottom:4px">
+            📋 Cole abaixo o nome completo conforme consta na <strong>Receita Federal</strong>:
+          </p>`,
+        input: 'text',
+        inputPlaceholder: 'Ex: JOAO DA SILVA',
+        inputAttributes: { autocomplete: 'off', style: 'text-transform:uppercase; letter-spacing:0.04em;' },
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Homologar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: (value: string) => {
+          if (!value || !value.trim()) {
+            Swal.showValidationMessage('⚠️ O nome da Receita Federal é obrigatório para homologar.');
+          }
+          return value?.trim().toUpperCase();
+        }
+      });
+
+      if (!inputResult.isConfirmed) return;
+
+      try {
+        const res = await fetch('/api/admin/cpf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, action: 'approve', razaoSocial: inputResult.value })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          Swal.fire({ title: 'Homologado!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+          loadDashboardData();
+        } else {
+          Swal.fire({ title: 'Erro!', text: data.error || 'Erro ao processar ação.', icon: 'error' });
+        }
+      } catch (err) {
+        console.error('Error processing CPF action:', err);
+        Swal.fire({ title: 'Erro!', text: 'Erro de conexão.', icon: 'error' });
+      }
+      return;
+    }
+
+    // --- Fluxo de REJEIÇÃO ---
+    const confirmResult = await Swal.fire({
+      title: 'Rejeitar CPF/CNPJ?',
+      text: `Os dados de CPF/CNPJ do usuário ${userName} serão limpos e ele precisará preencher novamente.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Sim, Rejeitar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      const res = await fetch('/api/admin/cpf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action: 'reject' })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        Swal.fire({
+          title: isApprove ? 'Homologado!' : 'Rejeitado!',
+          text: data.message,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        // Reload dashboard
+        loadDashboardData();
+      } else {
+        Swal.fire({
+          title: 'Erro!',
+          text: data.error || 'Erro ao processar ação.',
+          icon: 'error'
+        });
+      }
+    } catch (err) {
+      console.error('Error processing CPF action:', err);
       Swal.fire({
         title: 'Erro!',
         text: 'Erro de conexão.',
@@ -211,80 +323,186 @@ export default function AdminPage() {
           )}
 
           <div className={styles.dashboardGrid}>
-            {/* Left Box: Pending CRECI */}
-            <div className={styles.sectionBox}>
-              <div className={styles.sectionHeader}>
-                <h2>
-                  <FileText size={20} />
-                  Homologações do CRECI Pendentes
-                </h2>
-                {pendingCreci.length > 0 && (
-                  <span className={styles.badge}>{pendingCreci.length} novos</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {/* Left Box: Pending CRECI */}
+              <div className={styles.sectionBox}>
+                <div className={styles.sectionHeader}>
+                  <h2>
+                    <FileText size={20} />
+                    Homologações do CRECI Pendentes
+                  </h2>
+                  {pendingCreci.length > 0 && (
+                    <span className={styles.badge}>{pendingCreci.length} novos</span>
+                  )}
+                </div>
+
+                {pendingCreci.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <span className={styles.icon}>🎉</span>
+                    <p>Tudo em dia! Nenhuma solicitação de CRECI pendente de validação.</p>
+                  </div>
+                ) : (
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>CRECI / UF</th>
+                          <th>Documento</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pendingCreci.map((item) => (
+                          <tr key={item.id}>
+                            <td>
+                              <div style={{ fontWeight: 600 }}>{item.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.email}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.phone}</div>
+                            </td>
+                            <td>
+                              <div>{item.creci_numero}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.creci_tipo} • Região {item.state_sigla}</div>
+                            </td>
+                            <td>
+                              <a
+                                href={item.creci_document_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.docLink}
+                              >
+                                Ver Comprovante
+                              </a>
+                            </td>
+                            <td>
+                              <div className={styles.actionGroup}>
+                                <button
+                                  className={styles.btnApprove}
+                                  onClick={() => handleAction(item.id, item.name, 'approve')}
+                                  title="Aprovar CRECI"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  className={styles.btnReject}
+                                  onClick={() => handleAction(item.id, item.name, 'reject')}
+                                  title="Rejeitar Documento"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
 
-              {pendingCreci.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <span className={styles.icon}>🎉</span>
-                  <p>Tudo em dia! Nenhuma solicitação de CRECI pendente de validação.</p>
+              {/* Pending CPF/CNPJ box */}
+              <div className={styles.sectionBox}>
+                <div className={styles.sectionHeader}>
+                  <h2>
+                    <FileText size={20} />
+                    Homologações de CPF/CNPJ Pendentes
+                  </h2>
+                  {pendingCpf.length > 0 && (
+                    <span className={styles.badge}>{pendingCpf.length} novos</span>
+                  )}
                 </div>
-              ) : (
-                <div className={styles.tableWrapper}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Nome</th>
-                        <th>CRECI / UF</th>
-                        <th>Documento</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pendingCreci.map((item) => (
-                        <tr key={item.id}>
-                          <td>
-                            <div style={{ fontWeight: 600 }}>{item.name}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.email}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.phone}</div>
-                          </td>
-                          <td>
-                            <div>{item.creci_numero}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.creci_tipo} • Região {item.state_sigla}</div>
-                          </td>
-                          <td>
-                            <a 
-                              href={item.creci_document_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className={styles.docLink}
-                            >
-                              Ver Comprovante
-                            </a>
-                          </td>
-                          <td>
-                            <div className={styles.actionGroup}>
-                              <button 
-                                className={styles.btnApprove}
-                                onClick={() => handleAction(item.id, item.name, 'approve')}
-                                title="Aprovar CRECI"
-                              >
-                                <Check size={16} />
-                              </button>
-                              <button 
-                                className={styles.btnReject}
-                                onClick={() => handleAction(item.id, item.name, 'reject')}
-                                title="Rejeitar Documento"
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
-                          </td>
+
+                {pendingCpf.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <span className={styles.icon}>🎉</span>
+                    <p>Tudo em dia! Nenhuma solicitação de CPF/CNPJ pendente de validação.</p>
+                  </div>
+                ) : (
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>Documento (CPF/CNPJ)</th>
+                          <th>Data Nasc. / Abertura</th>
+                          <th>Receita Federal</th>
+                          <th>Ações</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      </thead>
+                      <tbody>
+                        {pendingCpf.map((item) => (
+                          <tr key={item.id}>
+                            <td>
+                              <div style={{ fontWeight: 600 }}>{item.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.email}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{item.phone || 'Sem telefone'}</div>
+                            </td>
+                            <td>
+                              <div
+                                style={{ fontFamily: 'monospace', fontWeight: 600, cursor: 'copy' }}
+                                title="Clique para copiar o CPF/CNPJ"
+                                onClick={() => navigator.clipboard.writeText(item.cpf_cnpj)}
+                              >
+                                {item.cpf_cnpj.length === 11
+                                  ? item.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                                  : item.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')}
+                              </div>
+                            </td>
+                            <td>
+                              <div
+                                style={{ cursor: 'copy' }}
+                                title="Clique para copiar a data"
+                                onClick={() => {
+                                  if (item.data_nascimento) {
+                                    const iso = new Date(item.data_nascimento).toISOString().split('T')[0];
+                                    const [y, m, d] = iso.split('-');
+                                    navigator.clipboard.writeText(`${d}/${m}/${y}`);
+                                  }
+                                }}
+                              >
+                                {item.data_nascimento
+                                  ? new Date(item.data_nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+                                  : 'Não informada'}
+                              </div>
+                            </td>
+                            <td>
+                              <a
+                                href="https://servicos.receita.fazenda.gov.br/servicos/cpf/consultasituacao/consultapublica.asp"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.docLink}
+                                title="Abrir portal da Receita Federal"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                              >
+                                <ExternalLink size={13} />
+                                Consultar RF
+                              </a>
+                            </td>
+                            <td>
+                              <div className={styles.actionGroup}>
+                                <button
+                                  className={styles.btnApprove}
+                                  onClick={() => handleCpfAction(item.id, item.name, 'approve')}
+                                  title="Aprovar CPF/CNPJ"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  className={styles.btnReject}
+                                  onClick={() => handleCpfAction(item.id, item.name, 'reject')}
+                                  title="Rejeitar CPF/CNPJ"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right Box: Recent Properties */}
@@ -325,11 +543,10 @@ export default function AdminPage() {
                             {formatPrice(prop.preco_base)}
                           </td>
                           <td>
-                            <span className={`${styles.statusBadge} ${
-                              prop.status.toLowerCase() === 'ativo' ? styles.statusActive : 
-                              prop.status.toLowerCase() === 'pendente' ? styles.statusPending : 
-                              styles.statusInactive
-                            }`}>
+                            <span className={`${styles.statusBadge} ${prop.status.toLowerCase() === 'ativo' ? styles.statusActive :
+                                prop.status.toLowerCase() === 'pendente' ? styles.statusPending :
+                                  styles.statusInactive
+                              }`}>
                               {prop.status}
                             </span>
                           </td>

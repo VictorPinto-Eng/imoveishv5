@@ -133,6 +133,7 @@ function MeusImoveisContent() {
     const [activeTab, setActiveTab] = useState('detalhes');
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
     const [isReordering, setIsReordering] = useState(false);
+    const [isReorderingEmp, setIsReorderingEmp] = useState(false);
     const [showActions, setShowActions] = useState(false);
     const [isGalleryActionsOpen, setIsGalleryActionsOpen] = useState(false);
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
@@ -194,7 +195,9 @@ function MeusImoveisContent() {
     };
 
     const checkCreciApproval = () => {
-        if (currentUser && Number(currentUser.id_tipo_usuario) === 1 && !currentUser.creci_status) {
+        const roles = currentUser?.roles || [];
+        const isCorretor = Number(currentUser?.id_tipo_usuario) === 2 || roles.some((r: any) => Number(r.id) === 2);
+        if (currentUser && isCorretor && !currentUser.creci_status) {
             const hasSentDoc = !!currentUser.creci_document_url;
             Swal.fire({
                 icon: hasSentDoc ? 'info' : 'warning',
@@ -662,7 +665,7 @@ function MeusImoveisContent() {
                                     <div
                                         key={emp.id}
                                         className={`${styles.cardCompactEmp} ${selectedEmpreendimento?.id === emp.id ? styles.cardCompactEmpActive : ''}`}
-                                        onClick={() => setSelectedEmpreendimento(emp)}
+                                        onClick={() => { setSelectedEmpreendimento(emp); setIsReorderingEmp(false); }}
                                     >
                                         <div className={styles.cardCompactEmpIcon}>
                                             <Building2 size={18} />
@@ -713,6 +716,30 @@ function MeusImoveisContent() {
                     {/* EMPREENDIMENTO DETAIL VIEW */}
                     {listMode === 'empreendimentos' && selectedEmpreendimento && (
                         <div style={{ padding: '32px', maxWidth: '700px' }}>
+                            <div className={styles.detailHeaderEmp} style={{ marginBottom: '24px' }}>
+                                <div className={styles.detailImageArea} style={{ cursor: 'pointer' }} onClick={() => {
+                                    setIsGalleryOpen(true);
+                                    setIsReordering(false);
+                                }}>
+                                    {(selectedEmpreendimento.foto_capa || (selectedEmpreendimento.imagens_urls && selectedEmpreendimento.imagens_urls.length > 0)) && !imageErrors[selectedEmpreendimento.id] ? (
+                                        <NextImage
+                                            src={selectedEmpreendimento.foto_capa || selectedEmpreendimento.imagens_urls[0]}
+                                            alt={selectedEmpreendimento.descricao}
+                                            fill
+                                            priority
+                                            unoptimized={true}
+                                            className={styles.detailImage}
+                                            onError={() => setImageErrors(prev => ({...prev, [selectedEmpreendimento.id]: true}))}
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100">
+                                            <ImageIcon size={64} className={styles.emptyStateIcon} strokeWidth={1} />
+                                            <span className={styles.emptyStateText} style={{ color: '#64748b' }}>Nenhuma foto cadastrada. Clique para gerenciar</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
                                 <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                     <Building2 size={28} color="white" />
@@ -773,8 +800,8 @@ function MeusImoveisContent() {
                                     <Edit2 size={16} />
                                     Editar Empreendimento
                                 </Link>
+     
                             </div>
-
                         </div>
                     )}
 
@@ -1407,7 +1434,7 @@ function MeusImoveisContent() {
             </div>
 
             {/* GALLeria OVERLAY */}
-            {isGalleryOpen && selectedImovel && (
+            {isGalleryOpen && (selectedImovel || selectedEmpreendimento) && (
                 <div className={styles.galleryOverlay}>
                     <div className={styles.galleryHeader}>
                         {!isReordering && (
@@ -1463,23 +1490,50 @@ function MeusImoveisContent() {
                         <div style={{ marginBottom: '2rem' }}>
                             <h3 style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Fotos</h3>
                         </div>
-                        <PhotoManager 
-                            imovelId={selectedImovel.id} 
-                            initialPhotos={photosCache[selectedImovel.id] || []} 
-                            onUpdate={() => {
-                                // Clear cache to force refresh on next fetch if needed, 
-                                // or better, fetch again to update cache
-                                fetch(`/api/property/${selectedImovel.id}/photos`)
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            setPhotosCache(prev => ({ ...prev, [selectedImovel.id]: data.photos }));
+                        {selectedImovel ? (
+                            <PhotoManager 
+                                imovelId={selectedImovel.id} 
+                                initialPhotos={photosCache[selectedImovel.id] || []} 
+                                onUpdate={() => {
+                                    // Clear cache to force refresh on next fetch if needed, 
+                                    // or better, fetch again to update cache
+                                    fetch(`/api/property/${selectedImovel.id}/photos`)
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                setPhotosCache(prev => ({ ...prev, [selectedImovel.id]: data.photos }));
+                                            }
+                                        });
+                                    fetchMyImoveis();
+                                }}
+                                isReordering={isReordering}
+                            />
+                        ) : selectedEmpreendimento ? (
+                            <PhotoManager 
+                                imovelId={Number(selectedEmpreendimento.id)} 
+                                initialPhotos={selectedEmpreendimento.imagens_urls?.map((url: string, i: number) => ({
+                                    id: i,
+                                    url_referencia: url,
+                                    legenda: '',
+                                    categoria: '',
+                                    foto_principal: url === selectedEmpreendimento.foto_capa,
+                                    privada: false
+                                })) || []} 
+                                onUpdate={async () => {
+                                    const res = await fetch('/api/property/empreendimentos');
+                                    const data = await res.json();
+                                    if (data.empreendimentos) {
+                                        setEmpreendimentos(data.empreendimentos);
+                                        const updated = data.empreendimentos.find((e: any) => e.id === selectedEmpreendimento.id);
+                                        if (updated) {
+                                            setSelectedEmpreendimento(updated);
                                         }
-                                    });
-                                fetchMyImoveis();
-                            }}
-                            isReordering={isReordering}
-                        />
+                                    }
+                                }}
+                                isReordering={isReordering}
+                                apiPath={`/api/property/empreendimentos/${selectedEmpreendimento.id}/photos`}
+                            />
+                        ) : null}
                     </div>
                 </div>
             )}

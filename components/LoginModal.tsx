@@ -245,11 +245,30 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         confirmPassword: '',
         phone: '',
         country_code: '+55',
-        idTipoUsuario: 2, // 1: Corretor/Imobiliária, 2: Proprietário
+        idTipoUsuario: 1, // 1: Consumidor, 2: Corretor/Imobiliária, 3: Proprietário
         creci_numero: '',
         creci_tipo: 'F',
         creci_apoestado_id: '' as number | '',
+        cpf_cnpj: '',
+        data_nascimento: '',
     })
+
+    const maskCpfCnpj = (value: string) => {
+        const cleaned = value.replace(/\D/g, '');
+        if (cleaned.length <= 11) {
+            return cleaned
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+            return cleaned
+                .substring(0, 14)
+                .replace(/^(\d{2})(\d)/, '$1.$2')
+                .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                .replace(/(\d{4})(\d)/, '$1-$2');
+        }
+    };
 
     const [estados, setEstados] = useState<Array<{ id: number; nome: string; sigla: string }>>([])
 
@@ -444,7 +463,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const handleUserTypeChange = (id: number) => {
         setFormData({ ...formData, idTipoUsuario: id })
         // Fetch estados if not loaded yet
-        if (id === 1 && estados.length === 0) {
+        if (id === 2 && estados.length === 0) {
             fetch('/api/property/estados')
                 .then(r => r.ok ? r.json() : [])
                 .then(data => { if (Array.isArray(data)) setEstados(data); })
@@ -646,25 +665,59 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 <p className={styles.formNote}>Todos os campos são obrigatórios para finalizar o seu cadastro.</p>
                                 
                                 <label className={styles.fieldLabel}>Você é:</label>
-                                <div className={styles.userTypeSelector}>
-                                    <button 
-                                        type="button"
-                                        className={`${styles.typeOption} ${formData.idTipoUsuario === 2 ? styles.activeType : ''}`}
-                                        onClick={() => handleUserTypeChange(2)}
-                                    >
-                                        Proprietário(a)
-                                    </button>
+                                <div className={styles.userTypeSelector} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                                     <button 
                                         type="button"
                                         className={`${styles.typeOption} ${formData.idTipoUsuario === 1 ? styles.activeType : ''}`}
                                         onClick={() => handleUserTypeChange(1)}
                                     >
-                                        Corretor(a) / Imobiliária
+                                        Consumidor
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        className={`${styles.typeOption} ${formData.idTipoUsuario === 3 ? styles.activeType : ''}`}
+                                        onClick={() => handleUserTypeChange(3)}
+                                    >
+                                        Proprietário(a)
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        className={`${styles.typeOption} ${formData.idTipoUsuario === 2 ? styles.activeType : ''}`}
+                                        onClick={() => handleUserTypeChange(2)}
+                                    >
+                                        Corretor(a)
                                     </button>
                                 </div>
+                                
+                                {/* CPF/CNPJ and Birth Date fields for Owner/Broker */}
+                                {(formData.idTipoUsuario === 2 || formData.idTipoUsuario === 3) && (
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', marginBottom: '0.25rem' }}>
+                                        <div className={styles.inputWrapper} style={{ flex: 1, marginBottom: 0 }}>
+                                            <input
+                                                type="text"
+                                                placeholder={formData.idTipoUsuario === 3 ? "CPF ou CNPJ" : "CPF"}
+                                                className={styles.input}
+                                                style={{ height: '48px' }}
+                                                value={formData.cpf_cnpj}
+                                                onChange={e => setFormData(prev => ({ ...prev, cpf_cnpj: maskCpfCnpj(e.target.value) }))}
+                                                required
+                                            />
+                                        </div>
+                                        <div className={styles.inputWrapper} style={{ flex: 1, marginBottom: 0 }}>
+                                            <input
+                                                type="date"
+                                                className={styles.input}
+                                                style={{ height: '48px' }}
+                                                value={formData.data_nascimento}
+                                                onChange={e => setFormData(prev => ({ ...prev, data_nascimento: e.target.value }))}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* CRECI fields — visible only when Corretor is selected */}
-                                {formData.idTipoUsuario === 1 && (
+                                {formData.idTipoUsuario === 2 && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', backgroundColor: 'rgba(127,52,230,0.06)', borderRadius: '10px', border: '1px solid rgba(127,52,230,0.2)', marginTop: '0.5rem' }}>
                                         <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: '#7F34E6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dados do CRECI</p>
 

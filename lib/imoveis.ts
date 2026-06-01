@@ -83,6 +83,7 @@ export interface Imovel {
   seguro_incendio?: number
   vrtotal?: number
   periodo_loca_id?: number
+  imbtipoanuncio_id?: number
 }
 
 export interface ImovelFilters {

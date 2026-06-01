@@ -7,9 +7,11 @@ import { sendActivationEmail } from '@/lib/resend';
 
 export async function POST(request: Request) {
     try {
-        const { name, social_name, email, phone, password, confirmPassword, idTipoUsuario, creci_numero, creci_apoestado_id, creci_tipo } = await request.json();
+        const { name, social_name, email, phone, password, confirmPassword, idTipoUsuario, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento } = await request.json();
 
-        const isCorretor = Number(idTipoUsuario) === 1;
+        const isCorretor = Number(idTipoUsuario) === 2;
+        const isProprietario = Number(idTipoUsuario) === 3;
+        
         const valCreciNumero = isCorretor ? (creci_numero || null) : null;
         const valCreciEstadoId = isCorretor ? (Number(creci_apoestado_id) || null) : null;
         const valCreciTipo = isCorretor ? (creci_tipo || null) : null;
@@ -26,6 +28,29 @@ export async function POST(request: Request) {
                 { error: 'As senhas não coincidem.' },
                 { status: 400 }
             );
+        }
+
+        // Validate fields for Proprietário
+        if (isProprietario) {
+            if (!cpf_cnpj) {
+                return NextResponse.json({ error: 'O CPF/CNPJ é obrigatório para proprietários.' }, { status: 400 });
+            }
+            if (!data_nascimento) {
+                return NextResponse.json({ error: 'A data de nascimento é obrigatória para proprietários.' }, { status: 400 });
+            }
+        }
+
+        // Validate fields for Corretor
+        if (isCorretor) {
+            if (!cpf_cnpj) {
+                return NextResponse.json({ error: 'O CPF é obrigatório para corretores.' }, { status: 400 });
+            }
+            if (!data_nascimento) {
+                return NextResponse.json({ error: 'A data de nascimento é obrigatória para corretores.' }, { status: 400 });
+            }
+            if (!valCreciNumero || !valCreciEstadoId || !valCreciTipo) {
+                return NextResponse.json({ error: 'Os dados do CRECI são obrigatórios para corretores.' }, { status: 400 });
+            }
         }
 
         // Check if user already exists
@@ -55,11 +80,21 @@ export async function POST(request: Request) {
         // Generate verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        // Insert user (email_verified defaults to FALSE)
-        await query(
-            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, id_tipo_usuario, creci_numero, creci_apoestado_id, creci_tipo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
-            [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 2, valCreciNumero, valCreciEstadoId, valCreciTipo]
+        // Insert user (email_verified defaults to FALSE) and get new ID
+        const result = await query(
+            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, id_tipo_usuario, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id',
+            [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 1, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null]
         );
+        const newUserId = result.rows[0].id;
+
+        // Automatically assign role 1 (Consumidor)
+        await query('INSERT INTO public.user_roles (user_id, role_id) VALUES ($1, 1) ON CONFLICT DO NOTHING', [newUserId]);
+
+        // If they chose another role (2: Corretor, 3: Proprietário), assign it as well
+        const selectedRole = Number(idTipoUsuario);
+        if (selectedRole === 2 || selectedRole === 3) {
+            await query('INSERT INTO public.user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [newUserId, selectedRole]);
+        }
 
         // Send email asynchronously and log status
         try {

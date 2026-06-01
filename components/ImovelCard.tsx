@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Heart, ChevronLeft, ChevronRight, Phone, Mail, MessageCircle, ImageOff, Share2 } from 'lucide-react'
 import styles from './ImovelCard.module.css'
@@ -15,16 +15,93 @@ import ShareModal from './ShareModal'
 interface ImovelCardProps {
   imovel: Imovel
   showStatus?: boolean
+  onFavoriteToggle?: (id: string, isFavorited: boolean) => void
 }
 
-export default function ImovelCard({ imovel, showStatus = false }: ImovelCardProps) {
+export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggle }: ImovelCardProps) {
     const { nome, preco_base, custom_fields, imagens_urls, logradouro, numero } = imovel
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [isContactModalOpen, setIsContactModalOpen] = useState(false)
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false)
     const [isShareModalOpen, setIsShareModalOpen] = useState(false)
     const [showPhone, setShowPhone] = useState(false)
+    const [isFavorited, setIsFavorited] = useState(false)
     const router = useRouter()
+
+    useEffect(() => {
+        const checkFavorite = async () => {
+            if (typeof window !== 'undefined') {
+                const win = window as any;
+                if (!win._favoritesPromise) {
+                    win._favoritesPromise = fetch('/api/user/favorites')
+                        .then(r => r.ok ? r.json() : { success: false, favorites: [] })
+                        .catch(() => ({ success: false, favorites: [] }));
+                }
+                
+                const data = await win._favoritesPromise;
+                if (data.success && Array.isArray(data.favorites)) {
+                    const favIds = data.favorites.map((f: any) => String(f.id));
+                    setIsFavorited(favIds.includes(String(imovel.id)));
+                }
+            }
+        };
+        checkFavorite();
+    }, [imovel.id]);
+
+    const handleFavoriteToggle = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            const authRes = await fetch('/api/auth/me');
+            const authData = await authRes.json();
+            if (!authData.authenticated) {
+                Swal.fire({
+                    title: 'Atenção',
+                    text: 'Você precisa estar logado para favoritar imóveis.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Fazer Login',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#7F34E6'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const loginBtn = document.querySelector('button[class*="loginButtonPill"]') as HTMLButtonElement;
+                        if (loginBtn) {
+                            loginBtn.click();
+                        }
+                    }
+                });
+                return;
+            }
+
+            if (isFavorited) {
+                const res = await fetch(`/api/user/favorites?propertyId=${imovel.id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    setIsFavorited(false);
+                    if (typeof window !== 'undefined') {
+                        delete (window as any)._favoritesPromise;
+                    }
+                    onFavoriteToggle?.(String(imovel.id), false);
+                }
+            } else {
+                const res = await fetch('/api/user/favorites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ propertyId: imovel.id })
+                });
+                if (res.ok) {
+                    setIsFavorited(true);
+                    if (typeof window !== 'undefined') {
+                        delete (window as any)._favoritesPromise;
+                    }
+                    onFavoriteToggle?.(String(imovel.id), true);
+                }
+            }
+        } catch (err) {
+            console.error('Error toggling favorite:', err);
+        }
+    };
 
     // Touch swipe states and handlers for mobile gallery
     const [touchStartX, setTouchStartX] = useState<number | null>(null)
@@ -145,6 +222,14 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
             <Share2 size={18} />
         </button>
 
+        <button 
+            className={`${styles.heartBtnFloating} ${isFavorited ? styles.heartActive : ''}`} 
+            onClick={handleFavoriteToggle}
+            title={isFavorited ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
+        >
+            <Heart size={18} fill={isFavorited ? '#ef4444' : 'none'} className={isFavorited ? 'text-red-500' : ''} />
+        </button>
+
         {imagens_urls && imagens_urls.length > 0 ? (
             <div onClick={(e) => e.stopPropagation()}>
                 <img
@@ -199,6 +284,9 @@ export default function ImovelCard({ imovel, showStatus = false }: ImovelCardPro
 
       <div className={styles.content}>
         <div className={styles.headerInfo}>
+          {imovel.imbtipoanuncio_id === 2 && (
+            <span className={styles.tipoAnuncioBadgeDev}>Empreendimento</span>
+          )}
           <h3 className={styles.propertyTitle}>
             {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
             {imovel.tipo_nome || (imovel.categoria === 'Imovel' ? 'Apartamento' : imovel.categoria)}

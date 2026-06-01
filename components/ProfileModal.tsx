@@ -19,6 +19,11 @@ interface User {
     creci_tipo?: string;
     creci_status?: boolean;
     creci_document_url?: string;
+    cpf_cnpj?: string;
+    data_nascimento?: string;
+    cpf_validated?: boolean;
+    razao_social?: string;
+    roles?: Array<{ id: number; nome: string }>;
 }
 
 interface ProfileModalProps {
@@ -33,12 +38,16 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
     const [email, setEmail] = useState(user?.email || '');
     const [phone, setPhone] = useState(user?.phone || '');
     const [countryCode, setCountryCode] = useState('55');
-    const [idTipoUsuario, setIdTipoUsuario] = useState<number>(user?.id_tipo_usuario || 2);
+    const [selectedRoles, setSelectedRoles] = useState<number[]>(user?.roles?.map((r: any) => Number(r.id)) || [1]);
     const [creciNumero, setCreciNumero] = useState(user?.creci_numero || '');
     const [creciApoestadoId, setCreciApoestadoId] = useState<number | ''>(user?.creci_apoestado_id || '');
     const [creciTipo, setCreciTipo] = useState(user?.creci_tipo || 'Física');
     const [creciStatus, setCreciStatus] = useState<boolean | null>(user?.creci_status ?? null);
     const [creciDocumentUrl, setCreciDocumentUrl] = useState(user?.creci_document_url || '');
+    const [cpfCnpj, setCpfCnpj] = useState('');
+    const [dataNascimento, setDataNascimento] = useState('');
+    const [cpfValidated, setCpfValidated] = useState(false);
+    const [razaoSocial, setRazaoSocial] = useState('');
     const [isUploadingDoc, setIsUploadingDoc] = useState(false);
     const [estados, setEstados] = useState<Array<{ id: number; nome: string; sigla: string }>>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -74,13 +83,23 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                 if (data.authenticated && data.user) {
                     setSocialName(data.user.social_name || '');
                     setEmail(data.user.email || '');
-                    setEmailVerified(data.user.email_verified);
-                    setIdTipoUsuario(data.user.id_tipo_usuario || 2);
+                    const rolesData = data.user.roles || [];
+                    const roleIds = rolesData.map((r: any) => Number(r.id));
+                    setSelectedRoles(roleIds.length > 0 ? roleIds : [Number(data.user.id_tipo_usuario || 1)]);
                     setCreciNumero(data.user.creci_numero || '');
                     setCreciApoestadoId(data.user.creci_apoestado_id || '');
                     setCreciTipo(data.user.creci_tipo || 'Física');
                     setCreciStatus(data.user.creci_status ?? null);
                     setCreciDocumentUrl(data.user.creci_document_url || '');
+                    setCpfCnpj(data.user.cpf_cnpj || '');
+                    setCpfValidated(data.user.cpf_validated || false);
+                    setRazaoSocial(data.user.razao_social || '');
+                    if (data.user.data_nascimento) {
+                        const dateOnly = new Date(data.user.data_nascimento).toISOString().split('T')[0];
+                        setDataNascimento(dateOnly);
+                    } else {
+                        setDataNascimento('');
+                    }
                     
                     const storedPhone = data.user.phone || '';
                     if (storedPhone.startsWith('55')) {
@@ -153,7 +172,29 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
             return;
         }
 
-        if (idTipoUsuario === 1) {
+        const isProprietario = selectedRoles.includes(2);
+        const isCorretor = selectedRoles.includes(3);
+
+        if (isProprietario) {
+            if (!cpfCnpj) {
+                setMessage({ type: 'error', text: 'O CPF/CNPJ é obrigatório para proprietários.' });
+                return;
+            }
+            if (!dataNascimento) {
+                setMessage({ type: 'error', text: 'A data de nascimento é obrigatória para proprietários.' });
+                return;
+            }
+        }
+
+        if (isCorretor) {
+            if (!cpfCnpj) {
+                setMessage({ type: 'error', text: 'O CPF é obrigatório para corretores.' });
+                return;
+            }
+            if (!dataNascimento) {
+                setMessage({ type: 'error', text: 'A data de nascimento é obrigatória para corretores.' });
+                return;
+            }
             if (!creciNumero) {
                 setMessage({ type: 'error', text: 'O número do CRECI é obrigatório para corretores.' });
                 return;
@@ -181,10 +222,12 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                 body: JSON.stringify({ 
                     social_name: socialName,
                     email: email,
-                    id_tipo_usuario: idTipoUsuario,
-                    creci_numero: idTipoUsuario === 1 ? creciNumero : null,
-                    creci_apoestado_id: idTipoUsuario === 1 ? (Number(creciApoestadoId) || null) : null,
-                    creci_tipo: idTipoUsuario === 1 ? creciTipo : null,
+                    roles: selectedRoles,
+                    creci_numero: isCorretor ? creciNumero : null,
+                    creci_apoestado_id: isCorretor ? (Number(creciApoestadoId) || null) : null,
+                    creci_tipo: isCorretor ? creciTipo : null,
+                    cpf_cnpj: (isProprietario || isCorretor) ? cpfCnpj : null,
+                    data_nascimento: (isProprietario || isCorretor) ? dataNascimento : null,
                     phone: (() => {
                         if (!phone) return null;
                         const cleaned = phone.replace(/\D/g, '');
@@ -254,6 +297,17 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
             .substring(0, 2);
     }
 
+    const handleRoleToggle = (roleId: number) => {
+        setSelectedRoles(prev => {
+            if (prev.includes(roleId)) {
+                if (prev.length === 1) return prev;
+                return prev.filter(id => id !== roleId);
+            } else {
+                return [...prev, roleId];
+            }
+        });
+    };
+
     const displayName = user.social_name || user.name;
     const isEmailChanged = email !== user.email;
 
@@ -295,24 +349,74 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label className={styles.label}>Você é:</label>
-                        <div className={styles.userTypeSelector}>
+                        <label className={styles.label}>Você é (selecione todas que se aplicam):</label>
+                        <div className={styles.userTypeSelector} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                             <button 
                                 type="button"
-                                className={`${styles.typeOption} ${idTipoUsuario === 2 ? styles.activeType : ''}`}
-                                onClick={() => setIdTipoUsuario(2)}
+                                className={`${styles.typeOption} ${selectedRoles.includes(1) ? styles.activeType : ''}`}
+                                onClick={() => handleRoleToggle(1)}
+                            >
+                                Consumidor
+                            </button>
+                            <button 
+                                type="button"
+                                className={`${styles.typeOption} ${selectedRoles.includes(2) ? styles.activeType : ''}`}
+                                onClick={() => handleRoleToggle(2)}
                             >
                                 Proprietário(a)
                             </button>
                             <button 
                                 type="button"
-                                className={`${styles.typeOption} ${idTipoUsuario === 1 ? styles.activeType : ''}`}
-                                onClick={() => setIdTipoUsuario(1)}
+                                className={`${styles.typeOption} ${selectedRoles.includes(3) ? styles.activeType : ''}`}
+                                onClick={() => handleRoleToggle(3)}
                             >
-                                Corretor(a) / Imobiliária
+                                Corretor(a)
                             </button>
                         </div>
                     </div>
+
+                    {(selectedRoles.includes(2) || selectedRoles.includes(3)) && (() => {
+                        const isPending = !!user?.cpf_cnpj && !cpfValidated;
+                        return (
+                            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <label className={styles.label}>{(selectedRoles.includes(2) && !selectedRoles.includes(3)) ? "CPF ou CNPJ" : "CPF"}</label>
+                                        {cpfValidated ? (
+                                            <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>✅ Validado</span>
+                                        ) : isPending ? (
+                                            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>⏳ Homologação Pendente</span>
+                                        ) : null}
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        value={cpfCnpj} 
+                                        onChange={(e) => setCpfCnpj(e.target.value)}
+                                        placeholder={(selectedRoles.includes(2) && !selectedRoles.includes(3)) ? "Digite CPF ou CNPJ" : "Digite seu CPF"}
+                                        className={(cpfValidated || isPending) ? styles.inputDisabled : styles.input} 
+                                        disabled={cpfValidated || isPending}
+                                    />
+                                    {cpfValidated && razaoSocial && (
+                                        <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px', fontWeight: 500 }}>
+                                            <strong>Razão Social:</strong> {razaoSocial}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className={styles.formGroup} style={{ flex: 1, marginBottom: 0 }}>
+                                    <label className={styles.label}>Data de Nascimento</label>
+                                    <input 
+                                        type="date" 
+                                        value={dataNascimento} 
+                                        onChange={(e) => setDataNascimento(e.target.value)}
+                                        className={(cpfValidated || isPending) ? styles.inputDisabled : styles.input} 
+                                        style={{ height: '45px' }}
+                                        disabled={cpfValidated || isPending}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     <div className={styles.formGroup}>
                         <label className={styles.label}>Nome Social</label>
@@ -350,7 +454,7 @@ export default function ProfileModal({ isOpen, onClose, user, onLogout }: Profil
                         </div>
                     </div>
 
-                    {idTipoUsuario === 1 && (
+                    {selectedRoles.includes(3) && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1', marginBottom: '1.5rem' }}>
                             <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#475569' }}>Dados do CRECI</h4>
                             
