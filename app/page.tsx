@@ -39,8 +39,8 @@ export default async function Home() {
   const sections = [
     {
       id: 'destaques',
-      title: 'Imóveis em Destaque',
-      subtitle: 'Conheça nossas melhores oportunidades — destaques, novidades e ofertas',
+      title: 'Imóveis para Locação',
+      subtitle: 'Encontre as melhores opções de aluguel para você e sua família',
       imoveis: allImoveis,
     },
   ]

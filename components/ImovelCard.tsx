@@ -283,15 +283,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
       </div>
 
       <div className={styles.content}>
-        <div className={styles.headerInfo}>
-          {imovel.imbtipoanuncio_id === 2 && (
-            <span className={styles.tipoAnuncioBadgeDev}>Empreendimento</span>
-          )}
-          <h3 className={styles.propertyTitle}>
-            {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
-            {imovel.tipo_nome || (imovel.categoria === 'Imovel' ? 'Apartamento' : imovel.categoria)}
-          </h3>
-        </div>
+        <p className={styles.locationSubtitle}>{locationTitle || 'Localização não informada'}</p>
 
         {!!(imovel.area_util || imovel.dormitorios || imovel.banheiros || imovel.lavabo || imovel.vagas || imovel.suites) && (
           <div className={styles.featuresRow}>
@@ -374,8 +366,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             )}
           </div>
         )}
-        
-        <p className={styles.locationSubtitle}>{locationTitle || 'Localização não informada'}</p>
+
 
 
         <div className={styles.priceContainer}>
