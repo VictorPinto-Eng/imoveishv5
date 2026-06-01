@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         if (email !== user.email) {
             // Validar se o novo e-mail já está cadastrado/em uso por outro usuário
             const emailExists = await query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, decoded.id]);
-            if (emailExists.rowCount > 0) {
+            if (emailExists.rowCount && emailExists.rowCount > 0) {
                 return NextResponse.json({ error: 'Este e-mail já está sendo utilizado por outra conta.' }, { status: 400 });
             }
 
