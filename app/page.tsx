@@ -36,14 +36,28 @@ export default async function Home() {
     }
   }
 
-  const sections = [
-    {
-      id: 'destaques',
+  const locacaoImoveis = allImoveis.filter(imovel => imovel.is_locacao)
+  const vendaImoveis = allImoveis.filter(imovel => imovel.is_venda)
+
+  const sections = []
+
+  if (locacaoImoveis.length > 0) {
+    sections.push({
+      id: 'locacao',
       title: 'Imóveis para Locação',
       subtitle: 'Encontre as melhores opções de aluguel para você e sua família',
-      imoveis: allImoveis,
-    },
-  ]
+      imoveis: locacaoImoveis,
+    })
+  }
+
+  if (vendaImoveis.length > 0) {
+    sections.push({
+      id: 'venda',
+      title: 'Imóveis para Venda',
+      subtitle: 'Encontre excelentes oportunidades para comprar o seu imóvel',
+      imoveis: vendaImoveis,
+    })
+  }
 
   return (
     <>
