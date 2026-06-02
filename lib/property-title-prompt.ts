@@ -27,31 +27,32 @@ export function buildPropertyTitlePrompt(data: PropertyTitleData): string {
     } = data;
 
     return `
-Você é um REDATOR IMOBILIÁRIO SÊNIOR especializado em copywriting persuasivo e mercado premium.
-Sua missão: criar UM título de anúncio ALTAMENTE ATRATIVO e IRRESISTÍVEL para captar leads qualificados.
+Você é um redator imobiliário sênior e altamente criativo especializado em anúncios premium e exclusivos.
+Sua tarefa é criar UM único título incrível, chamativo e extremamente persuasivo para um imóvel.
 
-DIRETRIZES DE COPYWRITING:
-- USE "POWER WORDS": Oportunidade, Exclusivo, Luxo, Conforto, Moderno, Vista Incrível, Raridade.
-- FOCO EM BENEFÍCIOS: Em vez de apenas listar dados, crie uma promessa de valor (ex: "More com sofisticação", "Oportunidade única").
-- NÃO INVENTE DADOS TÉCNICOS: Mantenha a precisão de quartos, suítes e área, mas use adjetivos que valorizam esses itens.
+Diretrizes importantes:
+1. FOCO NA ATRAÇÃO: Crie um gancho irresistível, elegante e moderno. Use adjetivos refinados que gerem desejo e curiosidade.
+2. DADOS DO IMÓVEL (Integre-os de forma natural):
+   - Tipo de imóvel: ${type || 'Não informado'}
+   - Operação: ${objective || 'Não informado'}
+   - Suítes/Quartos: ${suites ? `${suites} suíte(s)` : (rooms ? `${rooms} quarto(s)` : '')}
+   - Vagas: ${parking ? `${parking} vaga(s)` : ''}
+   - Área: ${area ? area + ' m²' : (areaConstruida ? areaConstruida + ' m²' : '')}
+   - Preço: ${price || ''}
+3. REGRAS OBRIGATÓRIAS:
+   - Limite estrito de no máximo 75 caracteres.
+   - Escreva TODO o título em letras MAIÚSCULAS.
+   - NÃO inclua bairro, rua, cidade ou qualquer localização.
+   - Retorne APENAS o título gerado, sem aspas, explicações, numerações ou introduções.
 
-DADOS REAIS (REFERÊNCIA OBRIGATÓRIA):
-• Tipo: ${type || 'Não informado'}
-• Operação: ${objective || 'Não informado'}
-• Suítes: ${suites || '0'} | Quartos: ${rooms || '0'}
-• Vagas: ${parking || '0'} | Varandas: ${varandas || '0'}
-• Área Útil: ${area ? area + ' m²' : (areaConstruida ? areaConstruida + ' m²' : 'Não informada')}
-• Diferenciais: ${acceptsPets ? 'Pet Friendly' : ''} | Preço: ${price || 'Sob consulta'}
+Exemplos de estrutura premium e muito criativa:
+- "APARTAMENTO DESIGN: LAZER COMPLETO E VISTA INFINITA COM 3 SUÍTES"
+- "CASA DOS SONHOS: ARQUITETURA MODERNA, PISCINA E 4 SUÍTES DE LUXO"
+- "COBERTURA EXCLUSIVA: TERRAÇO PRIVATIVO E MÁXIMO CONFORTO COM 320M²"
+- "CASA CONCEITO: INTEGRAÇÃO PERFEITA, ÁREA GOURMET E 3 VAGAS"
+- "TERRENO PRIVILEGIADO: OPORTUNIDADE ÚNICA PARA CONSTRUÇÃO DE LUXO"
 
-REGRAS DE OURO:
-1. MÁXIMO 70 CARACTERES.
-2. TUDO EM MAIÚSCULAS.
-3. NUNCA cite bairro, rua, cidade ou localização.
-4. Gere APENAS o texto do título, sem aspas ou introduções.
-5. Se for um imóvel compacto, foque na praticidade e modernidade. Se for amplo (>150m²), foque em exclusividade e amplitude.
-6. Se houver suítes, destaque como um diferencial de privacidade e conforto.
-
-Gere um título poderoso e persuasivo para captar leads:`.trim();
+Gere o título mais atraente, sofisticado e criativo possível:`.trim();
 }
 
 export function generatePropertyTitleFallback(data: PropertyTitleData): string {

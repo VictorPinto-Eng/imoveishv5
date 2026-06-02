@@ -24,8 +24,16 @@ export async function GET(req: NextRequest) {
                 p.varanda as varandas,
                 p.pub_facebook,
                 p.pub_instagram,
-                (SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = p.id AND foto_principal = TRUE LIMIT 1) as foto_capa,
-                (SELECT COUNT(*) FROM produtos_servicos_midia WHERE produto_servico_id = p.id) as total_fotos,
+                COALESCE(
+                    (SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = p.id AND foto_principal = TRUE LIMIT 1),
+                    (SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = p.imbempreendimento_id AND foto_principal = TRUE LIMIT 1),
+                    (SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = p.imbempreendimento_id ORDER BY ordem_exibicao ASC, id ASC LIMIT 1)
+                ) as foto_capa,
+                (SELECT CASE 
+                    WHEN EXISTS (SELECT 1 FROM public.produtos_servicos_midia WHERE produto_servico_id = p.id) 
+                    THEN (SELECT COUNT(*) FROM public.produtos_servicos_midia WHERE produto_servico_id = p.id)
+                    ELSE (SELECT COUNT(*) FROM public.imbempreendimento_midia WHERE imbempreendimento_id = p.imbempreendimento_id)
+                END) as total_fotos,
                 CAST((SELECT COUNT(*) FROM imovel_perguntas WHERE imovel_id = p.id AND status = 'pendente') AS INTEGER) as pending_questions,
                 op.descricao as operacao_nome,
                 tp.descricao as tipo_nome,

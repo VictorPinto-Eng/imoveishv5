@@ -277,7 +277,7 @@ export default function Header() {
                                             onClick={() => setIsDropdownOpen(false)}
                                         >
                                             <Heart size={18} />
-                                            <span>Meus Favoritos</span>
+                                            <span>Meu Painel</span>
                                         </Link>
                                         {user.is_admin && (
                                             <Link
@@ -384,7 +384,7 @@ export default function Header() {
                             )}
                             <Link href="/meus-favoritos" className={styles.mobileNavLink} onClick={toggleMenu}>
                                 <Heart size={20} />
-                                <span>Meus Favoritos</span>
+                                <span>Meu Painel</span>
                             </Link>
                             {user.is_admin && (
                                 <Link 

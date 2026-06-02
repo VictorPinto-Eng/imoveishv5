@@ -1203,78 +1203,121 @@ function MeusImoveisContent() {
                                         <div className={styles.sectionDivider} />
 
                                         {/* Áreas */}
-                                        <div className={styles.infoSection}>
-                                            <h3 className={styles.infoSectionTitle}>Dimensionamento</h3>
-                                            <div className={styles.detailsGrid}>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Área Útil</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.area_util || 0} m²</span>
+                                        {(Number(selectedImovel.area_util) > 0 || Number(selectedImovel.area_construida) > 0 || Number(selectedImovel.area_terreno) > 0 || selectedImovel.dimensoes_terreno) && (
+                                            <>
+                                                <div className={styles.infoSection}>
+                                                    <h3 className={styles.infoSectionTitle}>Dimensionamento</h3>
+                                                    <div className={styles.detailsGrid}>
+                                                        {Number(selectedImovel.area_util) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Área Útil</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.area_util} m²</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.area_construida) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Área Const.</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.area_construida} m²</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.area_terreno) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Área Terreno</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.area_terreno} m²</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedImovel.dimensoes_terreno && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Dim. Terreno</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.dimensoes_terreno}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Área Const.</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.area_construida || 0} m²</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Área Terreno</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.area_terreno || 0} m²</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Dim. Terreno</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.dimensoes_terreno || '-'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.sectionDivider} />
+                                                <div className={styles.sectionDivider} />
+                                            </>
+                                        )}
 
                                         {/* Características */}
-                                        <div className={styles.infoSection}>
-                                            <h3 className={styles.infoSectionTitle}>Características</h3>
-                                            <div className={styles.detailsGrid}>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Dormitório</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.dormitorios || 0}</span>
+                                        {(Number(selectedImovel.dormitorios) > 0 || 
+                                          Number(selectedImovel.suites) > 0 || 
+                                          Number(selectedImovel.banheiros) > 0 || 
+                                          Number(selectedImovel.vagas) > 0 || 
+                                          Number(selectedImovel.varandas) > 0 || 
+                                          Number(selectedImovel.sala) > 0 || 
+                                          Number(selectedImovel.areaservico) > 0 || 
+                                          Number(selectedImovel.quartoservico) > 0 || 
+                                          Number(selectedImovel.cozinha) > 0 || 
+                                          Number(selectedImovel.lavabo) > 0) && (
+                                            <>
+                                                <div className={styles.infoSection}>
+                                                    <h3 className={styles.infoSectionTitle}>Características</h3>
+                                                    <div className={styles.detailsGrid}>
+                                                        {Number(selectedImovel.dormitorios) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Dormitório</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.dormitorios}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.suites) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Suíte</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.suites}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.banheiros) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Banheiro</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.banheiros}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.vagas) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Vaga</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.vagas}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.varandas) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Varanda</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.varandas}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.sala) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Sala</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.sala}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.areaservico) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Área Serv.</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.areaservico}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.quartoservico) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Quarto Serv.</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.quartoservico}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.cozinha) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Cozinha</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.cozinha}</span>
+                                                            </div>
+                                                        )}
+                                                        {Number(selectedImovel.lavabo) > 0 && (
+                                                            <div className={styles.detailsItem}>
+                                                                <span className={styles.detailsLabel}>Lavabo</span>
+                                                                <span className={styles.detailsValue}>{selectedImovel.lavabo}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Suíte</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.suites || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Banheiro</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.banheiros || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Vaga</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.vagas || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Varanda</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.varandas || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Sala</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.sala || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Área Serv.</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.areaservico || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Quarto Serv.</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.quartoservico || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Cozinha</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.cozinha || 0}</span>
-                                                </div>
-                                                <div className={styles.detailsItem}>
-                                                    <span className={styles.detailsLabel}>Lavabo</span>
-                                                    <span className={styles.detailsValue}>{selectedImovel.lavabo || 0}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.sectionDivider} />
+                                                <div className={styles.sectionDivider} />
+                                            </>
+                                        )}
 
                                         <div className={styles.docsSection}>
                                             <div className={styles.docsHeader}>
@@ -1441,11 +1484,13 @@ function MeusImoveisContent() {
                             <>
                                 <div className={styles.galleryHeaderLeft}>
                                     <ArrowLeft size={24} className="cursor-pointer" onClick={() => setIsGalleryOpen(false)} />
-                                    <h2 className={styles.galleryTitle}>Galeria</h2>
+                                    <h2 className={styles.galleryTitle}>
+                                        Galeria - Cód {listMode === 'imoveis' && selectedImovel ? selectedImovel.id : selectedEmpreendimento?.id}
+                                    </h2>
                                 </div>
                                 <div className={styles.galleryHeaderRight}>
                                     <Plus size={24} className="cursor-pointer" onClick={() => {
-                                        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                                        const fileInput = document.querySelector(`.${styles.galleryOverlay} input[type="file"]`) as HTMLInputElement;
                                         if(fileInput) fileInput.click();
                                     }} />
                                     <div style={{ position: 'relative' }}>
@@ -1490,8 +1535,9 @@ function MeusImoveisContent() {
                         <div style={{ marginBottom: '2rem' }}>
                             <h3 style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Fotos</h3>
                         </div>
-                        {selectedImovel ? (
+                        {listMode === 'imoveis' && selectedImovel ? (
                             <PhotoManager 
+                                key={`imovel-${selectedImovel.id}`}
                                 imovelId={selectedImovel.id} 
                                 initialPhotos={photosCache[selectedImovel.id] || []} 
                                 onUpdate={() => {
@@ -1508,8 +1554,9 @@ function MeusImoveisContent() {
                                 }}
                                 isReordering={isReordering}
                             />
-                        ) : selectedEmpreendimento ? (
+                        ) : listMode === 'empreendimentos' && selectedEmpreendimento ? (
                             <PhotoManager 
+                                key={`emp-${selectedEmpreendimento.id}`}
                                 imovelId={Number(selectedEmpreendimento.id)} 
                                 initialPhotos={selectedEmpreendimento.imagens_urls?.map((url: string, i: number) => ({
                                     id: i,

@@ -613,6 +613,15 @@ export default function EditarImovelPage() {
 
     const handleSave = async () => {
         if (!imovel) return;
+        if (!imovel.numero || !imovel.numero.trim()) {
+            Swal.fire({
+                title: 'Atenção!',
+                text: 'O número do endereço é obrigatório. Preencha com o número ou S/N.',
+                icon: 'warning',
+                confirmButtonColor: '#7F34E6'
+            });
+            return;
+        }
         setSaving(true);
         try {
             // 1. Sequential Verification Chain
@@ -1114,11 +1123,12 @@ export default function EditarImovelPage() {
                             {/* -- Row: Número + Complemento (inline after Endereço) -- */}
                             <div className={styles.featGrid}>
                                 <div className={styles.formGroup}>
-                                    <h3 className={styles.question}>Número</h3>
+                                    <h3 className={styles.question}>Número <span style={{ color: '#ef4444' }}>*</span></h3>
                                     <input
                                         type="text"
                                         value={imovel.numero || ''}
                                         onChange={(e) => setImovel({ ...imovel, numero: sanitizeLocationName(e.target.value, false) })}
+                                        placeholder="Ex: 555 ou S/N"
                                     />
                                 </div>
                                 <div className={styles.formGroupWide}>

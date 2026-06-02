@@ -49,6 +49,7 @@ export default function LeadCaptureModal({
   const [isSuccess, setIsSuccess] = useState(false)
   const [showCountryPicker, setShowCountryPicker] = useState(false)
   const [countrySearch, setCountrySearch] = useState('')
+  const [activeTab, setActiveTab] = useState<'quick' | 'register'>('quick')
   
   const [formData, setFormData] = useState({
     name: '',
@@ -65,8 +66,19 @@ export default function LeadCaptureModal({
     if (isOpen) {
       setFormData({ name: '', email: '', phone: '', country_code: '+55' })
       setIsSuccess(false)
+      setActiveTab('quick')
     }
   }, [isOpen])
+
+  const handleLoginClick = () => {
+    onClose();
+    setTimeout(() => {
+      const loginBtn = document.querySelector('button[class*="loginButtonPill"]') as HTMLButtonElement;
+      if (loginBtn) {
+        loginBtn.click();
+      }
+    }, 150);
+  };
 
   if (!isOpen || !mounted) return null
 
@@ -76,7 +88,7 @@ export default function LeadCaptureModal({
     const phoneNumberLength = phoneNumber.length;
     if (phoneNumberLength < 3) return phoneNumber;
     if (phoneNumberLength < 7) {
-        return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+      return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
     }
     return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
   };
@@ -92,8 +104,8 @@ export default function LeadCaptureModal({
     setCountrySearch('');
   }
 
-  const filteredCountries = countries.filter(c => 
-    c.name.toLowerCase().includes(countrySearch.toLowerCase()) || 
+  const filteredCountries = countries.filter(c =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
     c.code.includes(countrySearch)
   );
 
@@ -118,7 +130,7 @@ export default function LeadCaptureModal({
 
       if (res.ok) {
         setIsSuccess(true)
-        
+
         // Track analytics
         fetch('/api/analytics/event', {
           method: 'POST',
@@ -178,93 +190,164 @@ export default function LeadCaptureModal({
           </div>
         ) : (
           <>
-            <h2 className={styles.title}>Informe seus dados para ver o telefone</h2>
-
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <div className={styles.inputWrapper}>
-                <User size={18} className={styles.inputIcon} />
-                <input
-                  type="text"
-                  placeholder="Digite seu nome"
-                  className={styles.input}
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className={styles.inputWrapper}>
-                <Mail size={18} className={styles.inputIcon} />
-                <input
-                  type="email"
-                  placeholder="Digite seu email"
-                  className={styles.input}
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className={styles.inputWrapper}>
-                <button 
-                  type="button"
-                  className={styles.countrySelector}
-                  onClick={() => setShowCountryPicker(!showCountryPicker)}
-                >
-                  <span>{countries.find(c => c.code === formData.country_code)?.flag || '🇧🇷'}</span>
-                  <span>{formData.country_code}</span>
-                </button>
-
-                {showCountryPicker && (
-                  <div className={styles.countryPicker}>
-                    <input 
-                      autoFocus
-                      type="text"
-                      placeholder="Buscar país..."
-                      value={countrySearch}
-                      onChange={(e) => setCountrySearch(e.target.value)}
-                      className={styles.countrySearchInput}
-                    />
-                    <div className={styles.countryList}>
-                      {filteredCountries.map((c, i) => (
-                        <div 
-                          key={i}
-                          onClick={() => selectCountry(c)}
-                          className={styles.countryItem}
-                        >
-                          <span>{c.flag}</span>
-                          <span style={{ flex: 1 }}>{c.name}</span>
-                          <span style={{ color: '#64748b' }}>{c.code}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <input
-                  type="tel"
-                  placeholder="(xx) xxxxx-xxxx"
-                  className={styles.input}
-                  style={{ paddingLeft: '7.5rem' }}
-                  value={formData.phone}
-                  onChange={handlePhoneChange}
-                  required
-                />
-                <PhoneIcon size={18} className={styles.inputIcon} />
-              </div>
-
+            <h2 className={styles.title} style={{ marginBottom: '1.5rem' }}>Quer falar com o anunciante?</h2>
+            
+            <div className={styles.tabContainer}>
               <button 
-                type="submit" 
-                className={styles.submitBtn}
-                disabled={isSubmitting}
+                type="button"
+                className={`${styles.tabButton} ${activeTab === 'quick' ? styles.tabButtonActive : ''}`}
+                onClick={() => setActiveTab('quick')}
               >
-                {isSubmitting ? 'Processando...' : 'Ver Telefones'}
+                Acesso Rápido
               </button>
-            </form>
+              <button 
+                type="button"
+                className={`${styles.tabButton} ${activeTab === 'register' ? styles.tabButtonActive : ''}`}
+                onClick={() => setActiveTab('register')}
+              >
+                Vantagens de se Cadastrar ✨
+              </button>
+            </div>
 
-            <p className={styles.footerText}>
-              Ao enviar, você afirma que leu, compreendeu e concordou com os nossos <a href="/termos">Termos de Uso</a> e <a href="/politica-de-privacidade">Política de Privacidade</a>.
-            </p>
+            {activeTab === 'quick' ? (
+              <>
+                <p className={styles.subtitle} style={{ 
+                    fontSize: '0.825rem', 
+                    color: '#64748b', 
+                    textAlign: 'center', 
+                    marginTop: '-0.75rem', 
+                    marginBottom: '1.25rem',
+                    padding: '0 0.5rem',
+                    lineHeight: '1.4'
+                }}>
+                    Insira seus dados abaixo para visualizar todos os telefones de contato imediatamente.
+                </p>
+
+                <form onSubmit={handleSubmit} className={styles.form}>
+                  <div className={styles.inputWrapper}>
+                    <User size={18} className={styles.inputIcon} />
+                    <input
+                      type="text"
+                      placeholder="Digite seu nome"
+                      className={styles.input}
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.inputWrapper}>
+                    <Mail size={18} className={styles.inputIcon} />
+                    <input
+                      type="email"
+                      placeholder="Digite seu email"
+                      className={styles.input}
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.inputWrapper}>
+                    <button 
+                      type="button"
+                      className={styles.countrySelector}
+                      onClick={() => setShowCountryPicker(!showCountryPicker)}
+                    >
+                      <span>{countries.find(c => c.code === formData.country_code)?.flag || '🇧🇷'}</span>
+                      <span>{formData.country_code}</span>
+                    </button>
+
+                    {showCountryPicker && (
+                      <div className={styles.countryPicker}>
+                        <input 
+                          autoFocus
+                          type="text"
+                          placeholder="Buscar país..."
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          className={styles.countrySearchInput}
+                        />
+                        <div className={styles.countryList}>
+                          {filteredCountries.map((c, i) => (
+                            <div 
+                              key={i}
+                              onClick={() => selectCountry(c)}
+                              className={styles.countryItem}
+                            >
+                              <span>{c.flag}</span>
+                              <span style={{ flex: 1 }}>{c.name}</span>
+                              <span style={{ color: '#64748b' }}>{c.code}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <input
+                      type="tel"
+                      placeholder="(xx) xxxxx-xxxx"
+                      className={styles.input}
+                      style={{ paddingLeft: '7.5rem' }}
+                      value={formData.phone}
+                      onChange={handlePhoneChange}
+                      required
+                    />
+                    <PhoneIcon size={18} className={styles.inputIcon} />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className={styles.submitBtn}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Processando...' : 'Ver Telefones'}
+                  </button>
+                </form>
+
+                <p className={styles.footerText}>
+                  Ao enviar, você afirma que leu, compreendeu e concordou com os nossos <a href="/termos">Termos de Uso</a> e <a href="/politica-de-privacidade">Política de Privacidade</a>.
+                </p>
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <p style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 600, textAlign: 'center', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+                  Crie uma conta gratuita para ter acesso a mais recursos:
+                </p>
+                
+                <div className={styles.benefitsList}>
+                  <div className={styles.benefitItem}>
+                    <CheckCircle2 size={16} className={styles.benefitIcon} />
+                    <span>Ver todos os telefones sem precisar preencher dados novamente</span>
+                  </div>
+                  <div className={styles.benefitItem}>
+                    <CheckCircle2 size={16} className={styles.benefitIcon} />
+                    <span>Salvar seus imóveis favoritos e receber alertas de preços</span>
+                  </div>
+                  <div className={styles.benefitItem}>
+                    <CheckCircle2 size={16} className={styles.benefitIcon} />
+                    <span>Histórico de mensagens e contatos em um único painel</span>
+                  </div>
+                  <div className={styles.benefitItem}>
+                    <CheckCircle2 size={16} className={styles.benefitIcon} />
+                    <span>Enviar propostas de compra ou locação online</span>
+                  </div>
+                </div>
+
+                <button 
+                  type="button" 
+                  onClick={handleLoginClick} 
+                  className={styles.registerBtn}
+                  style={{ width: '100%', marginTop: '0.5rem' }}
+                >
+                  Entrar ou Cadastrar Grátis
+                </button>
+                
+                <p className={styles.footerText}>
+                  Rápido, seguro e 100% gratuito.
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>

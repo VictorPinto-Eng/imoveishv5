@@ -14,7 +14,13 @@ async function generateContentWithRetry(prompt: string, maxRetries = 2) {
     for (let i = 0; i < maxRetries; i++) {
         try {
             // Attempt with the primary stable model
-            const result = await model.generateContent(prompt);
+            const result = await model.generateContent({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.95,
+                    topP: 0.95,
+                }
+            });
             return result;
         } catch (error: any) {
             console.warn(`Primary model attempt ${i+1} failed:`, error.message);
@@ -23,7 +29,13 @@ async function generateContentWithRetry(prompt: string, maxRetries = 2) {
             if ((error.status === 404 || error.status === 429) && i === 0) {
                 try {
                     console.info('Switching to high-availability fallback model (8b)...');
-                    const fbResult = await fallbackModel.generateContent(prompt);
+                    const fbResult = await fallbackModel.generateContent({
+                        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            temperature: 0.95,
+                            topP: 0.95,
+                        }
+                    });
                     return fbResult;
                 } catch (fbError: any) {
                     console.error('Fallback model also failed:', fbError.message);

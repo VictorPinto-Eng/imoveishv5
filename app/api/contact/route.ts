@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { sendPropertyContactEmail } from '@/lib/resend';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '@/lib/auth-config';
 
 export async function POST(req: NextRequest) {
     try {
@@ -10,6 +12,18 @@ export async function POST(req: NextRequest) {
 
         if (!propertyId || !name || !email || !message) {
             return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 });
+        }
+
+        // Detect logged in user
+        let userId: number | null = null;
+        try {
+            const token = req.cookies.get('token')?.value;
+            if (token) {
+                const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+                userId = decoded.id;
+            }
+        } catch (authError) {
+            // Ignore auth errors, just record as anonymous
         }
 
         // Fetch property owner info
@@ -38,9 +52,9 @@ export async function POST(req: NextRequest) {
 
         // 1. Save to Database (Leads)
         await query(`
-            INSERT INTO leads (produto_servico_id, nome, email, telefone, mensagem)
-            VALUES ($1, $2, $3, $4, $5)
-        `, [propertyId, name, email, phone, message]);
+            INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [propertyId, userId, name, email, phone, message]);
 
         // 2. Send Email
         const emailRes = await sendPropertyContactEmail(

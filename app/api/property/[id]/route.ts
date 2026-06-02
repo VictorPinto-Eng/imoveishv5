@@ -64,9 +64,17 @@ export async function GET(
 
     // Fetch photos from new media table
     const photosRes = await query(
-      'SELECT * FROM produtos_servicos_midia WHERE produto_servico_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
+      'SELECT * FROM public.produtos_servicos_midia WHERE produto_servico_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
       [id]
     );
+    let photosList = photosRes.rows;
+    if (photosList.length === 0 && res.rows[0]?.imbempreendimento_id) {
+      const empPhotosRes = await query(
+        'SELECT * FROM public.imbempreendimento_midia WHERE imbempreendimento_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
+        [res.rows[0].imbempreendimento_id]
+      );
+      photosList = empPhotosRes.rows;
+    }
 
     // Map relimovel_id back to relationship string for frontend
     const relMapping: Record<number, string> = {
@@ -184,7 +192,7 @@ export async function GET(
             seguro_incendio_incluso,
             vrtotal: row.imbtpoperacao_id === 2 ? vrtotal : null,
             periodo_loca_id: hasLocacao ? row.periodo_loca_id : (row.imbtpoperacao_id === 2 ? 3 : null),
-            photos: photosRes.rows
+            photos: photosList
         } 
     });
 

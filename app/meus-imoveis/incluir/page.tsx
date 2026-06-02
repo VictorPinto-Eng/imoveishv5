@@ -1089,13 +1089,13 @@ export default function IncluirImovelPage() {
 
 
                                 <div className={styles.formGroup}>
-                                    <h3 className={styles.question}>Número</h3>
+                                    <h3 className={styles.question}>Número <span style={{ color: '#ef4444' }}>*</span></h3>
                                     <div className={styles.inputWrapper}>
                                         <input
                                             type="text"
                                             name="number"
                                             className={styles.input}
-                                            placeholder="Ex: 555"
+                                            placeholder="Ex: 555 ou S/N"
                                             value={formData.number}
                                             onChange={handleChange}
                                             onKeyDown={(e) => handleKeyDown(e, 'complement')}

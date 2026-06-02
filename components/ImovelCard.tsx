@@ -219,7 +219,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             onClick={handleShareClick}
             title="Compartilhar Link"
         >
-            <Share2 size={18} />
+            <Share2 size={15} />
         </button>
 
         <button 
@@ -227,7 +227,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             onClick={handleFavoriteToggle}
             title={isFavorited ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
         >
-            <Heart size={18} fill={isFavorited ? '#ef4444' : 'none'} className={isFavorited ? 'text-red-500' : ''} />
+            <Heart size={15} fill={isFavorited ? '#ef4444' : 'none'} className={isFavorited ? 'text-red-500' : ''} />
         </button>
 
         {imagens_urls && imagens_urls.length > 0 ? (
@@ -284,91 +284,116 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
 
       <div className={styles.content}>
         <p className={styles.locationSubtitle}>{locationTitle || 'Localização não informada'}</p>
-
-        {!!(imovel.area_util || imovel.dormitorios || imovel.banheiros || imovel.lavabo || imovel.vagas || imovel.suites) && (
-          <div className={styles.featuresRow}>
-            {!!imovel.area_util && (
-              <div className={styles.featureItem} data-tooltip="Área Útil" title="Área Útil">
-                {/* Custom Area Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 3v18h18" />
-                  <rect x="7" y="3" width="14" height="14" rx="2" strokeDasharray="2 2" />
-                </svg>
-                <span>{imovel.area_util} m²</span>
-              </div>
-            )}
-            {!!imovel.dormitorios && (
-              <div 
-                className={styles.featureItem} 
-                data-tooltip={imovel.dormitorios === 1 ? 'Dormitório' : 'Dormitórios'} 
-                title={imovel.dormitorios === 1 ? 'Dormitório' : 'Dormitórios'}
-              >
-                {/* Modern Bed Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 17h20M2 17v-4c0-1.1.9-2 2-2h16c1.1 0 2 .9 2 2v4M6 11V7c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v4M6 11h12" />
-                </svg>
-                <span>{imovel.dormitorios}</span>
-              </div>
-            )}
-            {!!imovel.suites && (
-              <div 
-                className={styles.featureItem} 
-                data-tooltip={imovel.suites === 1 ? 'Suíte' : 'Suítes'} 
-                title={imovel.suites === 1 ? 'Suíte' : 'Suítes'}
-              >
-                {/* Modern Suite Icon (Double) */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
-                  <path d="M2 17h20M2 17v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4M12 5v6" />
-                </svg>
-                <span>{imovel.suites}</span>
-              </div>
-            )}
-            {!!imovel.banheiros && (
-              <div 
-                className={styles.featureItem} 
-                data-tooltip={imovel.banheiros === 1 ? 'Banheiro' : 'Banheiros'} 
-                title={imovel.banheiros === 1 ? 'Banheiro' : 'Banheiros'}
-              >
-                {/* Clean Bath Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 10h18v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7zM7 21v2M17 21v2M12 2v2M2 10V8a2 2 0 0 1 2-2h2" />
-                </svg>
-                <span>{imovel.banheiros}</span>
-              </div>
-            )}
-            {!!imovel.lavabo && (
-              <div 
-                className={styles.featureItem} 
-                data-tooltip={imovel.lavabo === 1 ? 'Lavabo' : 'Lavabos'} 
-                title={imovel.lavabo === 1 ? 'Lavabo' : 'Lavabos'}
-              >
-                {/* Sink Icon for Lavabo */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2v4" />
-                  <path d="M12 6a3 3 0 0 1 3 3v1H9V9a3 3 0 0 1 3-3Z" />
-                  <path d="M5 10h14v7a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-7Z" />
-                </svg>
-                <span>{imovel.lavabo}</span>
-              </div>
-            )}
-            {!!imovel.vagas && (
-              <div 
-                className={styles.featureItem} 
-                data-tooltip={imovel.vagas === 1 ? 'Vaga de Garagem' : 'Vagas de Garagem'} 
-                title={imovel.vagas === 1 ? 'Vaga de Garagem' : 'Vagas de Garagem'}
-              >
-                {/* Modern Parking Icon */}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.7 8.2c-.5-1.4-1.8-2.2-3.3-2.2H8.6c-1.5 0-2.8.8-3.3 2.2L2.5 11.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2M5 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2M15 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2" />
-                </svg>
-                <span>{imovel.vagas}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-
-
+        {logradouro && <p className={styles.addressSub}>{logradouro}</p>}
+        
+        {(() => {
+          const areaUtil = Number(imovel.area_util) || 0;
+          const areaConstruida = Number(imovel.area_construida) || 0;
+          const areaTerreno = Number(imovel.area_terreno) || 0;
+          const dimensoesTerreno = (imovel.dimensoes_terreno || '').trim();
+          
+          const dormitorios = Number(imovel.dormitorios) || 0;
+          const suites = Number(imovel.suites) || 0;
+          const banheiros = Number(imovel.banheiros) || 0;
+          const lavabo = Number(imovel.lavabo) || 0;
+          const vagas = Number(imovel.vagas) || 0;
+          
+          const hasArea = areaUtil > 0 || areaConstruida > 0 || areaTerreno > 0 || !!dimensoesTerreno;
+          const hasAnyFeature = hasArea || dormitorios > 0 || suites > 0 || banheiros > 0 || lavabo > 0 || vagas > 0;
+          
+          if (!hasAnyFeature) return null;
+          
+          return (
+            <div className={styles.featuresRow}>
+              {hasArea && (
+                <div 
+                  className={styles.featureItem} 
+                  data-tooltip={areaUtil > 0 ? "Área Útil" : areaConstruida > 0 ? "Área Construída" : areaTerreno > 0 ? "Área Terreno" : "Dimensões do Terreno"} 
+                  title={areaUtil > 0 ? "Área Útil" : areaConstruida > 0 ? "Área Construída" : areaTerreno > 0 ? "Área Terreno" : "Dimensões do Terreno"}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3v18h18" />
+                    <rect x="7" y="3" width="14" height="14" rx="2" strokeDasharray="2 2" />
+                  </svg>
+                  <span>
+                    {areaUtil > 0 
+                      ? `${areaUtil} m²` 
+                      : areaConstruida > 0 
+                        ? `${areaConstruida} m²` 
+                        : areaTerreno > 0 
+                          ? `${areaTerreno} m²` 
+                          : dimensoesTerreno}
+                  </span>
+                </div>
+              )}
+              {dormitorios > 0 && (
+                <div 
+                  className={styles.featureItem} 
+                  data-tooltip={dormitorios === 1 ? 'Dormitório' : 'Dormitórios'} 
+                  title={dormitorios === 1 ? 'Dormitório' : 'Dormitórios'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 17h20M2 17v-4c0-1.1.9-2 2-2h16c1.1 0 2 .9 2 2v4M6 11V7c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v4M6 11h12" />
+                  </svg>
+                  <span>{dormitorios}</span>
+                </div>
+              )}
+              {suites > 0 && (
+                <div 
+                  className={styles.featureItem} 
+                  data-tooltip={suites === 1 ? 'Suíte' : 'Suítes'} 
+                  title={suites === 1 ? 'Suíte' : 'Suítes'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
+                    <path d="M2 17h20M2 17v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4M6 11V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4M12 5v6" />
+                  </svg>
+                  <span>{suites}</span>
+                </div>
+              )}
+              {banheiros > 0 && (
+                <div 
+                  className={styles.featureItem} 
+                  data-tooltip={banheiros === 1 ? 'Banheiro' : 'Banheiros'} 
+                  title={banheiros === 1 ? 'Banheiro' : 'Banheiros'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 10h18v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-7zM7 21v2M17 21v2M12 2v2M2 10V8a2 2 0 0 1 2-2h2" />
+                  </svg>
+                  <span>{banheiros}</span>
+                </div>
+              )}
+              {lavabo > 0 && (
+                <div 
+                  className={styles.featureItem} 
+                  data-tooltip={lavabo === 1 ? 'Lavabo' : 'Lavabos'} 
+                  title={lavabo === 1 ? 'Lavabo' : 'Lavabos'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2v4" />
+                    <path d="M12 6a3 3 0 0 1 3 3v1H9V9a3 3 0 0 1 3-3Z" />
+                    <path d="M5 10h14v7a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-7Z" />
+                  </svg>
+                  <span>{lavabo}</span>
+                </div>
+              )}
+              {vagas > 0 && (
+                <div 
+                  className={styles.featureItem} 
+                  data-tooltip={vagas === 1 ? 'Vaga de Garagem' : 'Vagas de Garagem'} 
+                  title={vagas === 1 ? 'Vaga de Garagem' : 'Vagas de Garagem'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18.7 8.2c-.5-1.4-1.8-2.2-3.3-2.2H8.6c-1.5 0-2.8.8-3.3 2.2L2.5 11.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2M5 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2M15 17v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2" />
+                  </svg>
+                  <span>{vagas}</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+ 
+ 
+ 
         <div className={styles.priceContainer}>
           <div 
             className={`${styles.priceValue} ${imovel.pub_price === false ? styles.priceValueMasked : ''}`}
@@ -383,7 +408,11 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
               margin: '0.5rem 0'
             } : {}}
           >
-            {imovel.pub_price === false ? 'CONSULTAR PREÇO' : `${priceFormatted}${isRental ? '/mês' : ''}`}
+            {imovel.pub_price === false ? 'CONSULTAR PREÇO' : (
+                isRental 
+                    ? <span className={styles.pricePrefix}><strong className={styles.priceMainVal}>{priceFormatted}</strong>/mês</span>
+                    : <strong className={styles.priceMainVal}>{priceFormatted}</strong>
+            )}
           </div>
 
           {isRental && imovel.pub_price !== false && (

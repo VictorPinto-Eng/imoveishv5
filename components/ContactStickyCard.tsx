@@ -2,12 +2,15 @@
 
 import React, { useState } from 'react';
 import styles from './contactStickyCard.module.css';
-import { Phone, MessageCircle, Info, Mail } from 'lucide-react';
+import { Phone, MessageCircle, Info, Mail, FileText } from 'lucide-react';
 import WhatsAppLink from './WhatsAppLink';
 import ContactModal from './ContactModal';
+import ProposalModal from './ProposalModal';
 
 interface ContactStickyCardProps {
     price: string;
+    numericPrice: number;
+    operacao_nome: string;
     condominium?: string;
     iptu?: string;
     seguroIncendio?: string;
@@ -21,7 +24,9 @@ interface ContactStickyCardProps {
 
 export default function ContactStickyCard({ 
     price, 
-    condominium, 
+    numericPrice,
+    operacao_nome,
+    condominium,
     iptu, 
     seguroIncendio,
     vrtotal,
@@ -32,6 +37,7 @@ export default function ContactStickyCard({
     isRental = false
 }: ContactStickyCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isProposalOpen, setIsProposalOpen] = useState(false);
 
     return (
         <div className={styles.stickyContainer}>
@@ -111,6 +117,13 @@ export default function ContactStickyCard({
                     >
                         Contatar <Mail size={18} />
                     </button>
+
+                    <button 
+                        className={styles.proposalBtn}
+                        onClick={() => setIsProposalOpen(true)}
+                    >
+                        Enviar Proposta <FileText size={18} />
+                    </button>
                     
                     <WhatsAppLink
                         messageOrImovel={propertyName}
@@ -134,6 +147,15 @@ export default function ContactStickyCard({
                 propertyTitle={propertyName}
                 propertyLocation={propertyLocation}
                 isRental={isRental}
+            />
+
+            <ProposalModal
+                propertyId={propertyId}
+                isOpen={isProposalOpen}
+                onClose={() => setIsProposalOpen(false)}
+                propertyTitle={propertyName}
+                propertyPrice={numericPrice}
+                operationType={operacao_nome}
             />
         </div>
     );

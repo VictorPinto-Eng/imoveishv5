@@ -53,7 +53,7 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
         notFound()
     }
 
-    const similarImoveis = await getFeaturedImoveis(4, id)
+    const similarImoveis = await getFeaturedImoveis(4, id, imovel.imbtpimovel_id, imovel.imbtpoperacao_id, imovel.imbfinalidade_id)
 
     const priceFormatted = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -156,16 +156,6 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                                     {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
                                     {imovel.tipo_imovel_nome}
                                 </span>
-                                {(() => {
-                                    const statusText = imovel.status_imovel_nome || imovel.status || '';
-                                    const isAvailable = ['disponível', 'disponivel', 'ativo', 'ativa'].includes(statusText.toLowerCase());
-                                    if (!statusText || isAvailable) return null;
-                                    return (
-                                        <span className={styles.statusBadge}>
-                                            {statusText.toUpperCase()}
-                                        </span>
-                                    );
-                                })()}
                             </div>
                             <h1 className={styles.title}>{imovel.nome}</h1>
                             <div className={styles.address}>
@@ -181,7 +171,15 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                         </div>
 
                         <PropertyStats 
-                            area={imovel.area_util || imovel.area_terreno}
+                            area={
+                                Number(imovel.area_util) > 0 
+                                    ? imovel.area_util 
+                                    : (Number(imovel.area_terreno) > 0 
+                                        ? imovel.area_terreno 
+                                        : (imovel.dimensoes_terreno && imovel.dimensoes_terreno.trim() !== '0' && imovel.dimensoes_terreno.trim() !== '0.00'
+                                            ? imovel.dimensoes_terreno 
+                                            : undefined))
+                            }
                             bedrooms={imovel.dormitorios}
                             suites={imovel.suites}
                             bathrooms={imovel.banheiros}
@@ -209,6 +207,8 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                     <div className={styles.rightCol}>
                         <ContactStickyCard 
                             price={priceFormatted}
+                            numericPrice={imovel.preco_base}
+                            operacao_nome={imovel.operacao_nome || 'Venda'}
                             condominium={condominioFormatted}
                             iptu={iptuFormatted}
                             seguroIncendio={seguroIncendioFormatted}
@@ -229,11 +229,17 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             <h2>Imóveis semelhantes</h2>
                             <p style={{ color: '#64748b' }}>Outras opções que podem te interessar nesta região</p>
                         </div>
-                        <div className={styles.similarGrid}>
-                            {similarImoveis.map((item: any) => (
-                                <ImovelCard key={item.id} imovel={item} />
-                            ))}
-                        </div>
+                        {similarImoveis.length > 0 ? (
+                            <div className={styles.similarGrid}>
+                                {similarImoveis.map((item: any) => (
+                                    <ImovelCard key={item.id} imovel={item} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b', fontSize: '0.95rem' }}>
+                                Nenhum outro imóvel semelhante encontrado nesta categoria.
+                            </div>
+                        )}
                     </div>
                 </section>
             </main>

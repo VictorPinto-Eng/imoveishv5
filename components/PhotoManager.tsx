@@ -55,11 +55,8 @@ export default function PhotoManager({ imovelId, initialPhotos, onUpdate, isReor
     };
 
     useEffect(() => {
-        // Carrega fotos apenas se mudar o ID do imóvel ou se não houver fotos no estado
-        if (photos.length === 0) {
-            loadPhotos();
-        }
-    }, [imovelId]);
+        loadPhotos();
+    }, [basePath]);
 
     useEffect(() => {
         const preventDefaultGlobal = (e: DragEvent) => {

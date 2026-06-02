@@ -1,18 +1,32 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '@/lib/auth-config';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, whatsapp, email, mensagem, codigo } = body;
+
+    // Detect logged in user
+    let userId: number | null = null;
+    try {
+      const token = request.cookies.get('token')?.value;
+      if (token) {
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        userId = decoded.id;
+      }
+    } catch (authError) {
+      // Ignore auth errors, just record as anonymous
+    }
 
     // 1. Record the lead in the local application database (leads table)
     try {
       if (codigo && name && email) {
         await query(`
-          INSERT INTO leads (produto_servico_id, nome, email, telefone, mensagem)
-          VALUES ($1, $2, $3, $4, $5)
-        `, [Number(codigo), name, email, whatsapp, mensagem]);
+          INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [Number(codigo), userId, name, email, whatsapp, mensagem]);
         console.log('[Leads Proxy] Lead recorded in local DB.');
       }
     } catch (dbError) {

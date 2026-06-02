@@ -250,7 +250,10 @@ function parseImoveis(data: any[]): Imovel[] {
 const BASE_SELECT = `
   SELECT 
     I.*, 
-    ARRAY(SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC) as all_photos,
+    COALESCE(
+      NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC), '{}'),
+      ARRAY(SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = I.imbempreendimento_id ORDER BY ordem_exibicao ASC, id ASC)
+    ) as all_photos,
     OP.descricao as operacao_nome,
     TP.descricao as tipo_nome,
     ST.nome as status_imovel_nome,
@@ -289,7 +292,13 @@ const BASE_SELECT = `
   LEFT JOIN apoestado EST ON I.estado_id = EST.id
 `
 
-export async function getFeaturedImoveis(limit = 6, excludeId?: string) {
+export async function getFeaturedImoveis(
+  limit = 6, 
+  excludeId?: string, 
+  imbtpimovelId?: number,
+  imbtpoperacaoId?: number,
+  imbfinalidadeId?: number
+) {
   try {
     const params: any[] = [limit]
     let whereClause = `WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true`
@@ -297,6 +306,21 @@ export async function getFeaturedImoveis(limit = 6, excludeId?: string) {
     if (excludeId) {
       params.push(excludeId)
       whereClause += ` AND I.id != $${params.length}`
+    }
+
+    if (imbtpimovelId) {
+      params.push(imbtpimovelId)
+      whereClause += ` AND COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) = $${params.length}`
+    }
+
+    if (imbtpoperacaoId) {
+      params.push(imbtpoperacaoId)
+      whereClause += ` AND I.imbtpoperacao_id = $${params.length}`
+    }
+
+    if (imbfinalidadeId) {
+      params.push(imbfinalidadeId)
+      whereClause += ` AND COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) = $${params.length}`
     }
 
     const res = await query(`
@@ -354,7 +378,10 @@ export async function getImoveis(filters: ImovelFilters = {}) {
     let sql = `
       SELECT 
         I.*, 
-        ARRAY(SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC) as all_photos,
+        COALESCE(
+          NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC), '{}'),
+          ARRAY(SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = I.imbempreendimento_id ORDER BY ordem_exibicao ASC, id ASC)
+        ) as all_photos,
         OP.descricao as operacao_nome,
         TP.descricao as tipo_nome,
         ST.nome as status_imovel_nome,
