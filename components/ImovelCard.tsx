@@ -536,9 +536,25 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
       {showPhone && (
           <div className={styles.revealedPhoneRowBottom}>
               <Phone size={14} className={styles.revealedPhoneIcon} />
-              <a href="tel:81986661683" className={styles.phoneNumberLink}>(81) 98666-1683</a>
-              <span className={styles.phoneDivider}>|</span>
-              <a href="tel:81999529391" className={styles.phoneNumberLink}>99952-9391</a>
+              {imovel.owner_phone ? (
+                  imovel.owner_phone.split(/[,/]/).map((num, idx) => {
+                      const cleanNum = num.replace(/\D/g, '');
+                      const formatted = num.length >= 10 ? (() => {
+                          const cleaned = num.replace(/\D/g, '');
+                          if (cleaned.length === 11) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+                          if (cleaned.length === 10) return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+                          return num;
+                      })() : num;
+                      return (
+                          <React.Fragment key={num}>
+                              {idx > 0 && <span className={styles.phoneDivider}>|</span>}
+                              <a href={`tel:${cleanNum}`} className={styles.phoneNumberLink}>{formatted.trim()}</a>
+                          </React.Fragment>
+                      );
+                  })
+              ) : (
+                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Telefone não informado</span>
+              )}
           </div>
       )}
     </article>

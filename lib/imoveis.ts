@@ -84,6 +84,7 @@ export interface Imovel {
   vrtotal?: number
   periodo_loca_id?: number
   imbtipoanuncio_id?: number
+  owner_phone?: string
 }
 
 export interface ImovelFilters {
@@ -277,11 +278,12 @@ const BASE_SELECT = `
     PV.pr_iptuanual as venda_pr_iptuanual,
     PV.pr_segincendio as venda_pr_segincendio,
     PV.vrtotal as venda_vrtotal,
-    PV.preco_base as venda_preco_base,
     COALESCE(PL.preco_base, PV.preco_base, 0) as preco_base,
     COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) as imbfinalidade_id,
-    COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) as imbtpimovel_id
+    COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) as imbtpimovel_id,
+    U.phone as owner_phone
   FROM produtos_servicos I
+  LEFT JOIN public.users U ON I.user_id = U.id
   LEFT JOIN imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
   LEFT JOIN public.produto_servicos_loca PL ON I.id = PL.produto_servico_id
   LEFT JOIN public.produto_servicos_venda PV ON I.id = PV.produto_servico_id
