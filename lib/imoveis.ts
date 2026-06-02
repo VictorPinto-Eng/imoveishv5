@@ -84,6 +84,8 @@ export interface Imovel {
   vrtotal?: number
   periodo_loca_id?: number
   imbtipoanuncio_id?: number
+  imbtpimovel_id?: number
+  imbfinalidade_id?: number
   owner_phone?: string
 }
 
