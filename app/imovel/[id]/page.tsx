@@ -230,7 +230,7 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             <p style={{ color: '#64748b' }}>Outras opções que podem te interessar nesta região</p>
                         </div>
                         {similarImoveis.length > 0 ? (
-                            <div className={styles.similarGrid}>
+                            <div className="card-grid">
                                 {similarImoveis.map((item: any) => (
                                     <ImovelCard key={item.id} imovel={item} />
                                 ))}
