@@ -158,7 +158,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
   const uf = imovel.uf_nome || '';
   const cidade = imovel.cidade_nome || '';
   const bairro = imovel.bairro_nome || '';
-  const locationTitle = [bairro, cidade].filter(Boolean).join(', ') + (uf ? ` - ${uf.toUpperCase()}` : '')
+  const locationTitle = [bairro, cidade].filter(Boolean).join(', ') + (uf ? `/${uf.toUpperCase()}` : '')
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
