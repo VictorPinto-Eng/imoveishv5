@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
     const res = await query(`
       SELECT 
         p.*,
+        carac.dormitorio, carac.suite, carac.varanda, carac.banheiro, carac.vaga, carac.areaservico, carac.quartoservico, carac.cozinha, carac.lavabo, carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno, carac.sala,
         OP.descricao as operacao_nome,
         TP.descricao as tipo_nome,
         CID.descricao as cidade_nome,
@@ -35,7 +36,8 @@ export async function GET(req: NextRequest) {
         COALESCE(PL.preco_base, PV.preco_base, 0) as preco_base,
         ARRAY(SELECT url_referencia FROM produtos_servicos_midia WHERE produto_servico_id = p.id ORDER BY ordem_exibicao ASC, id ASC) as all_photos
       FROM public.user_favorites f
-      JOIN public.produtos_servicos p ON f.produto_servico_id = p.id
+      JOIN public.produto_servico p ON f.produto_servico_id = p.id
+      LEFT JOIN public.produto_servico_carac carac ON p.id = carac.produto_servico_id
       LEFT JOIN public.imbtpoperacao OP ON p.imbtpoperacao_id = OP.id
       LEFT JOIN public.produto_servicos_loca PL ON p.id = PL.produto_servico_id
       LEFT JOIN public.produto_servicos_venda PV ON p.id = PV.produto_servico_id

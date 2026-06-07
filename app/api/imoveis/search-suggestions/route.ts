@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       FROM public.apocidade c
       LEFT JOIN public.apoestado e ON c.estado_id = e.id
       WHERE c.descricao ILIKE $1
-      AND EXISTS (SELECT 1 FROM produtos_servicos WHERE cidade_id = c.id AND ativo = true)
+      AND EXISTS (SELECT 1 FROM public.produto_servico WHERE cidade_id = c.id AND ativo = true)
       LIMIT 5
     `, [`%${q}%`]);
 
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       JOIN public.apocidade c ON b.cidade_id = c.id
       LEFT JOIN public.apoestado e ON c.estado_id = e.id
       WHERE b.descricao ILIKE $1
-      AND EXISTS (SELECT 1 FROM produtos_servicos WHERE bairro_id = b.id AND ativo = true)
+      AND EXISTS (SELECT 1 FROM public.produto_servico WHERE bairro_id = b.id AND ativo = true)
       LIMIT 10
     `, [`%${q}%`]);
 
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         CID.descricao as city,
         'endereco' as type,
         EST.sigla as uf
-      FROM produtos_servicos I
+      FROM public.produto_servico I
       LEFT JOIN public.apocidade CID ON I.cidade_id = CID.id
       LEFT JOIN public.apobairro BAI ON I.bairro_id = BAI.id
       LEFT JOIN public.apoestado EST ON I.estado_id = EST.id

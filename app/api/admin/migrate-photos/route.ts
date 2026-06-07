@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     await query(`
       CREATE TABLE IF NOT EXISTS public.produtos_servicos_midia (
         id SERIAL PRIMARY KEY,
-        produto_servico_id INTEGER REFERENCES public.produtos_servicos(id) ON DELETE CASCADE,
+        produto_servico_id INTEGER REFERENCES public.produto_servico(id) ON DELETE CASCADE,
         url_referencia TEXT NOT NULL,
         tipo_midia VARCHAR(20) DEFAULT 'FOTO',
         ordem_exibicao INTEGER DEFAULT 0,
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     `);
 
     // 3. Migrate existing photos
-    const res = await query('SELECT id, imagens_urls FROM public.produtos_servicos WHERE imagens_urls IS NOT NULL');
+    const res = await query('SELECT id, imagens_urls FROM public.produto_servico WHERE imagens_urls IS NOT NULL');
     
     let migratedCount = 0;
     for (const row of res.rows) {

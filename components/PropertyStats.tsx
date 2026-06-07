@@ -6,6 +6,7 @@ import { Bed, Bath, Car, Maximize, DoorOpen } from 'lucide-react';
 
 interface PropertyStatsProps {
     area?: number | string;
+    areaLabel?: string;
     bedrooms?: number;
     suites?: number;
     bathrooms?: number;
@@ -13,14 +14,14 @@ interface PropertyStatsProps {
     parking?: number;
 }
 
-export default function PropertyStats({ area, bedrooms, suites, bathrooms, lavabos, parking }: PropertyStatsProps) {
+export default function PropertyStats({ area, areaLabel, bedrooms, suites, bathrooms, lavabos, parking }: PropertyStatsProps) {
     const cleanAreaStr = String(area || '').trim();
-    const numArea = parseFloat(cleanAreaStr);
-    const isZeroOrEmpty = !cleanAreaStr || cleanAreaStr === '0' || cleanAreaStr === '0.00' || isNaN(numArea) || numArea <= 0;
+    const isZeroOrEmpty = !cleanAreaStr || cleanAreaStr === '0' || cleanAreaStr === '0.00';
     const showArea = area && !isZeroOrEmpty;
 
     const isPureNumber = !isNaN(Number(cleanAreaStr)) && Number(cleanAreaStr) > 0;
 
+    const numArea = isPureNumber ? Number(cleanAreaStr) : 0;
     const numBedrooms = Number(bedrooms) || 0;
     const numSuites = Number(suites) || 0;
     const numBathrooms = Number(bathrooms) || 0;
@@ -36,7 +37,7 @@ export default function PropertyStats({ area, bedrooms, suites, bathrooms, lavab
                         <span className={styles.value}>
                             {isPureNumber ? `${numArea} m²` : cleanAreaStr}
                         </span>
-                        <span className={styles.label}>Área total</span>
+                        <span className={styles.label}>{areaLabel || 'Área total'}</span>
                     </div>
                 </div>
             )}

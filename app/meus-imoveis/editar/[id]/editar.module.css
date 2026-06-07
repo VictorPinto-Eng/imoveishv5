@@ -331,6 +331,18 @@
     border-top: 1px dashed #e2e8f0;
 }
 
+@media (max-width: 768px) {
+    .checkboxGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .checkboxGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .inputWithSideAction {
     display: flex;
     align-items: center;
@@ -345,32 +357,19 @@
     margin-top: 0.5rem;
 }
 
-.checkboxLabel {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #475569;
-}
-
-.checkboxLabel:hover {
-    color: #7F34E6;
-}
-
 .checkbox {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
     accent-color: #7F34E6;
     cursor: pointer;
 }
 
-.checkboxLabel {
+.checkboxCard {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 0.75rem;
@@ -379,16 +378,20 @@
     font-size: 0.875rem;
     font-weight: 600;
     color: #475569;
+    height: 56px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.checkboxLabel:hover {
+.checkboxCard:hover {
     background-color: #f1f5f9;
     border-color: #7F34E6;
 }
 
-.checkboxLabel input[type="checkbox"] {
+.checkboxCard input[type="checkbox"] {
     width: 20px;
     height: 20px;
+    flex-shrink: 0;
     accent-color: #7F34E6;
     cursor: pointer;
 }

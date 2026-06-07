@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { descricao, bairro_id, cidade_id, estado_id, pais_id, cep } = body;
+        const { descricao, bairro_id, cidade_id, estado_id, pais_id, cep, possui_carac } = body;
 
         // Basic validation - ensure required fields are present and numeric IDs
         if (!descricao || !bairro_id || !cidade_id || !estado_id) {
@@ -34,10 +34,11 @@ export async function POST(request: Request) {
                 estado_id, 
                 pais_id,
                 cep,
+                possui_carac,
                 created_at,
                 updated_at
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, NOW(), NOW()
+                $1, $2, $3, $4, $5, $6, $7, NOW(), NOW()
             ) RETURNING id;
         `;
 
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
             parsedEstadoId,
             pais_id || 1,
             cep || null,
+            possui_carac === true || possui_carac === 'true',
         ];
         
         const result = await query(insertQuery, values);

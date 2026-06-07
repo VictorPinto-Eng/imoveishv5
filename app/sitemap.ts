@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 async function getAllImovelIds(): Promise<{ id: string; updated_at?: string }[]> {
   try {
     const res = await query(
-      `SELECT id, updated_at FROM produtos_servicos 
+      `SELECT id, updated_at FROM public.produto_servico 
        WHERE tipo = 'produto' AND categoria = 'Imovel' AND ativo = true AND pub_site = true
        ORDER BY updated_at DESC`,
       []

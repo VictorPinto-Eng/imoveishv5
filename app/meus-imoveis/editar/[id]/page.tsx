@@ -1,6 +1,7 @@
 'use client'
+// Force Turbopack CSS rebuild trigger: 2
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import NextImage from 'next/image';
@@ -99,6 +100,38 @@ interface Imovel {
     uf_nome?: string;
     cidade_nome?: string;
     bairro_nome?: string;
+    // New Boolean characteristics
+    parque_aquatico?: boolean;
+    salao_festas?: boolean;
+    espaco_gourmet?: number;
+    espaco_zen?: boolean;
+    coworking?: boolean;
+    piquenique?: boolean;
+    espaco_grill?: boolean;
+    pet_park?: boolean;
+    supermarket?: boolean;
+    espaco_gamer?: boolean;
+    salao_jogos?: boolean;
+    sala_cinema?: boolean;
+    playground?: boolean;
+    sala_yoga?: boolean;
+    redario?: boolean;
+    horta?: boolean;
+    area_convivencia?: boolean;
+    espacos_gourmet_multiplos?: boolean;
+    academia?: boolean;
+    sala_funcional?: boolean;
+    quadra_poliesportiva?: boolean;
+    quadra_beach_tennis?: boolean;
+    campo_futebol_society?: boolean;
+    quadra_volei_praia?: boolean;
+    quadra_tenis?: boolean;
+    ciclovia?: boolean;
+    pista_cooper?: boolean;
+    controle_acesso_automatizado?: boolean;
+    sala_encomendas_delivery?: boolean;
+    wi_fi_areas_comuns?: boolean;
+    [key: string]: any;
 }
 
 export default function EditarImovelPage() {
@@ -127,6 +160,8 @@ export default function EditarImovelPage() {
     const [isMapOpen, setIsMapOpen] = useState(false);
     const previousBairroValue = useRef<string>('');
 
+
+
     const handleBack = (e: React.MouseEvent) => {
         e.stopPropagation();
         router.push(`/meus-imoveis?id=${id}`);
@@ -138,6 +173,76 @@ export default function EditarImovelPage() {
         const iptu = currentImovel.iptu_incluso ? 0 : ((Number(currentImovel.custom_fields?.iptu) || 0) / 12);
         const seguro = currentImovel.seguro_incendio_incluso ? 0 : (Number(currentImovel.seguro_incendio) || 0);
         return precoBase + condo + iptu + seguro;
+    };
+
+    const copyEmpreendimentoCarac = (carac: any) => {
+        setImovel(prev => {
+            if (!prev) return null;
+            const updated = { ...prev };
+            const keys = [
+                'parque_aquatico', 'salao_festas', 'espaco_zen', 'coworking', 
+                'piquenique', 'espaco_grill', 'pet_park', 'supermarket', 
+                'espaco_gamer', 'salao_jogos', 'sala_cinema', 'playground', 
+                'sala_yoga', 'redario', 'horta', 'area_convivencia', 
+                'academia', 'sala_funcional', 'quadra_poliesportiva', 
+                'quadra_beach_tennis', 'campo_futebol_society', 'quadra_volei_praia', 
+                'quadra_tenis', 'ciclovia', 'pista_cooper', 
+                'controle_acesso_automatizado', 'sala_encomendas_delivery', 'wi_fi_areas_comuns'
+            ];
+            
+            keys.forEach(key => {
+                if (key in carac) {
+                    updated[key] = !!carac[key];
+                }
+            });
+            
+            // Espaço Gourmet (Numeric field)
+            if ('espaco_gourmet' in carac) {
+                updated['espaco_gourmet'] = Number(carac.espaco_gourmet) || 0;
+            }
+            
+            return updated;
+        });
+    };
+
+    const handleEmpreendimentoChange = async (val: any) => {
+        setImovel(prev => prev ? ({ ...prev, empreendimento: val ? Number(val) : undefined }) : null);
+        
+        if (!val) return;
+        
+        try {
+            const res = await fetch(`/api/property/empreendimentos/${val}`);
+            const data = await res.json();
+            console.log(">>> Empreendimento carregado:", data);
+            if (data.success && data.empreendimento) {
+                const emp = data.empreendimento;
+                if (emp.possui_carac === true || emp.possui_carac === 1 || emp.possui_carac === 'true') {
+                    Swal.fire({
+                        title: 'Carregar Características?',
+                        text: 'Este empreendimento possui características de lazer/comuns cadastradas. Deseja importá-las para este imóvel?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7F34E6',
+                        cancelButtonColor: '#cbd5e1',
+                        confirmButtonText: 'Sim, importar',
+                        cancelButtonText: 'Não'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            copyEmpreendimentoCarac(emp);
+                            Swal.fire({
+                                title: 'Importado!',
+                                text: 'Características carregadas com sucesso.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                }
+            }
+        } catch (err) {
+            console.error("Erro ao carregar características do empreendimento:", err);
+        }
     };
 
     useEffect(() => {
@@ -688,7 +793,38 @@ export default function EditarImovelPage() {
                 periodo_loca_id: imovel.periodo_loca_id,
                 relationship: imovel.relimovel_id === 1 ? 'Proprietário' : imovel.relimovel_id === 2 ? 'Corretor' : 'Administrador/Outro',
                 pub_facebook: imovel.custom_fields.pub_facebook,
-                pub_instagram: imovel.custom_fields.pub_instagram
+                pub_instagram: imovel.custom_fields.pub_instagram,
+                // Boolean characteristics
+                parque_aquatico: imovel.parque_aquatico || false,
+                salao_festas: imovel.salao_festas || false,
+                espaco_gourmet: Number(imovel.espaco_gourmet) || 0,
+                espaco_zen: imovel.espaco_zen || false,
+                coworking: imovel.coworking || false,
+                piquenique: imovel.piquenique || false,
+                espaco_grill: imovel.espaco_grill || false,
+                pet_park: imovel.pet_park || false,
+                supermarket: imovel.supermarket || false,
+                espaco_gamer: imovel.espaco_gamer || false,
+                salao_jogos: imovel.salao_jogos || false,
+                sala_cinema: imovel.sala_cinema || false,
+                playground: imovel.playground || false,
+                sala_yoga: imovel.sala_yoga || false,
+                redario: imovel.redario || false,
+                horta: imovel.horta || false,
+                area_convivencia: imovel.area_convivencia || false,
+                espacos_gourmet_multiplos: imovel.espacos_gourmet_multiplos || false,
+                academia: imovel.academia || false,
+                sala_funcional: imovel.sala_funcional || false,
+                quadra_poliesportiva: imovel.quadra_poliesportiva || false,
+                quadra_beach_tennis: imovel.quadra_beach_tennis || false,
+                campo_futebol_society: imovel.campo_futebol_society || false,
+                quadra_volei_praia: imovel.quadra_volei_praia || false,
+                quadra_tenis: imovel.quadra_tenis || false,
+                ciclovia: imovel.ciclovia || false,
+                pista_cooper: imovel.pista_cooper || false,
+                controle_acesso_automatizado: imovel.controle_acesso_automatizado || false,
+                sala_encomendas_delivery: imovel.sala_encomendas_delivery || false,
+                wi_fi_areas_comuns: imovel.wi_fi_areas_comuns || false
             };
 
             const res = await fetch(`/api/property/${id}`, {
@@ -1173,10 +1309,7 @@ export default function EditarImovelPage() {
                                     <SearchableSelect
                                         options={empreendimentos}
                                         value={imovel.empreendimento || ''}
-                                        onChange={(val) => setImovel({
-                                            ...imovel,
-                                            empreendimento: val
-                                        })}
+                                        onChange={handleEmpreendimentoChange}
                                         placeholder="Selecione um empreendimento..."
                                     />
                                 </div>
@@ -1736,6 +1869,165 @@ export default function EditarImovelPage() {
                                     <p style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', lineHeight: '1.2' }}>
                                         Exemplo: TT: 8m; FR 3,95m; LE 18,11m; LD 25m; FD 4,10m
                                     </p>
+                                </div>
+                            </div>
+
+                            {/* Área Comum / Lazer */}
+                            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px dashed #e2e8f0' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Sparkles size={16} style={{ color: '#7F34E6' }} />
+                                    Área Comum e Lazer (Condomínio / Empreendimento)
+                                </h3>
+                                
+                                {/* Subgrupo: Social */}
+                                <div style={{ marginBottom: '20px' }}>
+                                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Social</h4>
+                                    <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.parque_aquatico} onChange={(e) => setImovel({...imovel, parque_aquatico: e.target.checked})} />
+                                            <span>Parque Aquático</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.salao_festas} onChange={(e) => setImovel({...imovel, salao_festas: e.target.checked})} />
+                                            <span>Salão de Festas</span>
+                                        </label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.5rem 1rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', background: '#f8fafc', height: '56px', boxSizing: 'border-box' }}>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#334155' }}>Espaço Gourmet (Qtd):</span>
+                                            <input 
+                                                type="number" 
+                                                min="0"
+                                                style={{ width: '50px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.875rem', textAlign: 'right', marginLeft: 'auto' }} 
+                                                value={imovel.espaco_gourmet ?? 0} 
+                                                onChange={(e) => handleCharChange('espaco_gourmet', e.target.value)}
+                                                onFocus={(e) => e.target.select()}
+                                            />
+                                        </div>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.espaco_zen} onChange={(e) => setImovel({...imovel, espaco_zen: e.target.checked})} />
+                                            <span>Espaço Zen</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.coworking} onChange={(e) => setImovel({...imovel, coworking: e.target.checked})} />
+                                            <span>Coworking</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.piquenique} onChange={(e) => setImovel({...imovel, piquenique: e.target.checked})} />
+                                            <span>Piquenique</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.espaco_grill} onChange={(e) => setImovel({...imovel, espaco_grill: e.target.checked})} />
+                                            <span>Espaço Grill</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.pet_park} onChange={(e) => setImovel({...imovel, pet_park: e.target.checked})} />
+                                            <span>Pet Park</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.supermarket} onChange={(e) => setImovel({...imovel, supermarket: e.target.checked})} />
+                                            <span>Supermercado</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.espaco_gamer} onChange={(e) => setImovel({...imovel, espaco_gamer: e.target.checked})} />
+                                            <span>Espaço Gamer</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.salao_jogos} onChange={(e) => setImovel({...imovel, salao_jogos: e.target.checked})} />
+                                            <span>Salão de Jogos</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.sala_cinema} onChange={(e) => setImovel({...imovel, sala_cinema: e.target.checked})} />
+                                            <span>Sala de Cinema</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.playground} onChange={(e) => setImovel({...imovel, playground: e.target.checked})} />
+                                            <span>Playground</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Subgrupo: Bem-Estar */}
+                                <div style={{ marginBottom: '20px' }}>
+                                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bem-Estar</h4>
+                                    <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.sala_yoga} onChange={(e) => setImovel({...imovel, sala_yoga: e.target.checked})} />
+                                            <span>Sala de Yoga</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.redario} onChange={(e) => setImovel({...imovel, redario: e.target.checked})} />
+                                            <span>Redário</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.horta} onChange={(e) => setImovel({...imovel, horta: e.target.checked})} />
+                                            <span>Horta</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.area_convivencia} onChange={(e) => setImovel({...imovel, area_convivencia: e.target.checked})} />
+                                            <span>Área de Convivência</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Subgrupo: Esportes */}
+                                <div style={{ marginBottom: '20px' }}>
+                                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Esportes</h4>
+                                    <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.academia} onChange={(e) => setImovel({...imovel, academia: e.target.checked})} />
+                                            <span>Academia</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.sala_funcional} onChange={(e) => setImovel({...imovel, sala_funcional: e.target.checked})} />
+                                            <span>Sala Funcional</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.quadra_poliesportiva} onChange={(e) => setImovel({...imovel, quadra_poliesportiva: e.target.checked})} />
+                                            <span>Quadra Poliesportiva</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.quadra_beach_tennis} onChange={(e) => setImovel({...imovel, quadra_beach_tennis: e.target.checked})} />
+                                            <span>Quadra Beach Tennis</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.campo_futebol_society} onChange={(e) => setImovel({...imovel, campo_futebol_society: e.target.checked})} />
+                                            <span>Campo Futebol Society</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.quadra_volei_praia} onChange={(e) => setImovel({...imovel, quadra_volei_praia: e.target.checked})} />
+                                            <span>Quadra Vôlei de Praia</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.quadra_tenis} onChange={(e) => setImovel({...imovel, quadra_tenis: e.target.checked})} />
+                                            <span>Quadra de Tênis</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.ciclovia} onChange={(e) => setImovel({...imovel, ciclovia: e.target.checked})} />
+                                            <span>Ciclovia</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.pista_cooper} onChange={(e) => setImovel({...imovel, pista_cooper: e.target.checked})} />
+                                            <span>Pista de Cooper</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Subgrupo: Segurança e Conforto */}
+                                <div>
+                                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Segurança e Conforto</h4>
+                                    <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.controle_acesso_automatizado} onChange={(e) => setImovel({...imovel, controle_acesso_automatizado: e.target.checked})} />
+                                            <span>Acesso Automatizado</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.sala_encomendas_delivery} onChange={(e) => setImovel({...imovel, sala_encomendas_delivery: e.target.checked})} />
+                                            <span>Sala de Encomendas</span>
+                                        </label>
+                                        <label className={styles.checkboxCard}>
+                                            <input type="checkbox" className={styles.checkbox} checked={!!imovel.wi_fi_areas_comuns} onChange={(e) => setImovel({...imovel, wi_fi_areas_comuns: e.target.checked})} />
+                                            <span>Wi-Fi Áreas Comuns</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </section>

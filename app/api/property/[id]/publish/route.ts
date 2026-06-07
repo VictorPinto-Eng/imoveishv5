@@ -30,13 +30,14 @@ export async function POST(
         bai.descricao as bairro_nome,
         cid.descricao as cidade_nome,
         est.sigla as estado_sigla,
-        p.area_util,
-        p.dormitorio as dormitorios,
-        p.banheiro as banheiros,
-        p.vaga as vagas,
+        carac.area_util,
+        carac.dormitorio as dormitorios,
+        carac.banheiro as banheiros,
+        carac.vaga as vagas,
         COALESCE(pl.preco_base, pv.preco_base, 0) as preco_base,
         (SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = p.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 1) as foto_capa
-      FROM produtos_servicos p
+      FROM public.produto_servico p
+      LEFT JOIN public.produto_servico_carac carac ON p.id = carac.produto_servico_id
       LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id
       LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id
       LEFT JOIN imbtpimovel tp ON COALESCE(pl.imbtpimovel_id, pv.imbtpimovel_id) = tp.id

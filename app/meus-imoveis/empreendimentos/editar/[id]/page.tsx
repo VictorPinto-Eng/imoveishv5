@@ -1,7 +1,8 @@
 'use client'
+// Force Turbopack CSS rebuild trigger: 2
 
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Building2, CheckCircle, Loader2, Square } from 'lucide-react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
+import { ArrowLeft, Building2, CheckCircle, Loader2, Square, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -34,6 +35,7 @@ export default function EditarEmpreendimentoPage() {
     const isCepSearching = useRef(false);
     const isInitialLoad = useRef(true);
 
+
     // Form state
     const [descricao, setDescricao] = useState('');
     const [cep, setCep] = useState('');
@@ -41,11 +43,45 @@ export default function EditarEmpreendimentoPage() {
     const [cidadeId, setCidadeId] = useState<number | ''>('');
     const [bairroId, setBairroId] = useState<number | ''>('');
     const [paisId] = useState<number>(1); // Default Brasil
+    const [possuiCarac, setPossuiCarac] = useState(false);
+    const [carac, setCarac] = useState<Record<string, any>>({
+        parque_aquatico: 0,
+        salao_festas: 0,
+        espaco_gourmet: 0,
+        espaco_zen: 0,
+        coworking: 0,
+        piquenique: 0,
+        espaco_grill: 0,
+        pet_park: 0,
+        supermarket: 0,
+        espaco_gamer: 0,
+        salao_jogos: 0,
+        sala_cinema: 0,
+        playground: 0,
+        sala_yoga: 0,
+        redario: 0,
+        horta: 0,
+        area_convivencia: 0,
+        academia: 0,
+        sala_funcional: 0,
+        quadra_poliesportiva: 0,
+        quadra_beach_tennis: 0,
+        campo_futebol_society: 0,
+        quadra_volei_praia: 0,
+        quadra_tenis: 0,
+        ciclovia: 0,
+        pista_cooper: 0,
+        controle_acesso_automatizado: 0,
+        sala_encomendas_delivery: 0,
+        wi_fi_areas_comuns: 0
+    });
 
     // Locations state
     const [estados, setEstados] = useState<LocationItem[]>([]);
     const [cidades, setCidades] = useState<LocationItem[]>([]);
     const [bairros, setBairros] = useState<LocationItem[]>([]);
+
+
 
     // 1. Fetch States on mount
     useEffect(() => {
@@ -92,6 +128,38 @@ export default function EditarEmpreendimentoPage() {
                         setEstadoId(emp.estado_id || '');
                         setCidadeId(emp.cidade_id || '');
                         setBairroId(emp.bairro_id || '');
+                        setPossuiCarac(emp.possui_carac === true || emp.possui_carac === 'true');
+                        setCarac({
+                            parque_aquatico: emp.parque_aquatico || 0,
+                            salao_festas: emp.salao_festas || 0,
+                            espaco_gourmet: emp.espaco_gourmet || 0,
+                            espaco_zen: emp.espaco_zen || 0,
+                            coworking: emp.coworking || 0,
+                            piquenique: emp.piquenique || 0,
+                            espaco_grill: emp.espaco_grill || 0,
+                            pet_park: emp.pet_park || 0,
+                            supermarket: emp.supermarket || 0,
+                            espaco_gamer: emp.espaco_gamer || 0,
+                            salao_jogos: emp.salao_jogos || 0,
+                            sala_cinema: emp.sala_cinema || 0,
+                            playground: emp.playground || 0,
+                            sala_yoga: emp.sala_yoga || 0,
+                            redario: emp.redario || 0,
+                            horta: emp.horta || 0,
+                            area_convivencia: emp.area_convivencia || 0,
+                            academia: emp.academia || 0,
+                            sala_funcional: emp.sala_funcional || 0,
+                            quadra_poliesportiva: emp.quadra_poliesportiva || 0,
+                            quadra_beach_tennis: emp.quadra_beach_tennis || 0,
+                            campo_futebol_society: emp.campo_futebol_society || 0,
+                            quadra_volei_praia: emp.quadra_volei_praia || 0,
+                            quadra_tenis: emp.quadra_tenis || 0,
+                            ciclovia: emp.ciclovia || 0,
+                            pista_cooper: emp.pista_cooper || 0,
+                            controle_acesso_automatizado: emp.controle_acesso_automatizado || 0,
+                            sala_encomendas_delivery: emp.sala_encomendas_delivery || 0,
+                            wi_fi_areas_comuns: emp.wi_fi_areas_comuns || 0
+                        });
 
                         // Delay removing initial load flag to let render loops finish
                         setTimeout(() => {
@@ -314,7 +382,9 @@ export default function EditarEmpreendimentoPage() {
                     estado_id: estadoId,
                     cidade_id: cidadeId,
                     bairro_id: bairroId,
-                    pais_id: paisId
+                    pais_id: paisId,
+                    possui_carac: possuiCarac,
+                    ...carac
                 })
             });
 
@@ -478,6 +548,174 @@ export default function EditarEmpreendimentoPage() {
                                         ))}
                                     </select>
                                 </div>
+
+                                <div className={styles.formGroup} style={{ marginTop: '1.5rem', marginBottom: '1.5rem', width: '100%' }}>
+                                    <label className={styles.checkboxCard}>
+                                        <input
+                                            type="checkbox"
+                                            className={styles.checkbox}
+                                            checked={possuiCarac}
+                                            onChange={(e) => setPossuiCarac(e.target.checked)}
+                                        />
+                                        <span>Habilitar características do empreendimento</span>
+                                    </label>
+                                </div>
+
+                                {possuiCarac && (
+                                    <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px dashed #e2e8f0', width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <Sparkles size={16} style={{ color: '#7F34E6' }} />
+                                            Área Comum e Lazer do Empreendimento
+                                        </h3>
+                                        
+                                        <div>
+                                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Social</h4>
+                                            <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.parque_aquatico} onChange={(e) => setCarac({...carac, parque_aquatico: e.target.checked})} />
+                                                    <span>Parque Aquático</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.salao_festas} onChange={(e) => setCarac({...carac, salao_festas: e.target.checked})} />
+                                                    <span>Salão de Festas</span>
+                                                </label>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.5rem 1rem', borderRadius: '0.75rem', border: '1px solid #e2e8f0', background: '#f8fafc', height: '56px', boxSizing: 'border-box' }}>
+                                                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569' }}>Espaço Gourmet (Qtd):</span>
+                                                    <input 
+                                                        type="number" 
+                                                        min="0"
+                                                        style={{ width: '50px', padding: '2px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.875rem', textAlign: 'right', marginLeft: 'auto' }} 
+                                                        value={carac.espaco_gourmet ?? 0} 
+                                                        onChange={(e) => setCarac({...carac, espaco_gourmet: parseInt(e.target.value) || 0})}
+                                                        onFocus={(e) => e.target.select()}
+                                                    />
+                                                </div>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.espaco_zen} onChange={(e) => setCarac({...carac, espaco_zen: e.target.checked})} />
+                                                    <span>Espaço Zen</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.coworking} onChange={(e) => setCarac({...carac, coworking: e.target.checked})} />
+                                                    <span>Coworking</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.piquenique} onChange={(e) => setCarac({...carac, piquenique: e.target.checked})} />
+                                                    <span>Piquenique</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.espaco_grill} onChange={(e) => setCarac({...carac, espaco_grill: e.target.checked})} />
+                                                    <span>Espaço Grill</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.pet_park} onChange={(e) => setCarac({...carac, pet_park: e.target.checked})} />
+                                                    <span>Pet Park</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.supermarket} onChange={(e) => setCarac({...carac, supermarket: e.target.checked})} />
+                                                    <span>Supermercado</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.espaco_gamer} onChange={(e) => setCarac({...carac, espaco_gamer: e.target.checked})} />
+                                                    <span>Espaço Gamer</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.salao_jogos} onChange={(e) => setCarac({...carac, salao_jogos: e.target.checked})} />
+                                                    <span>Salão de Jogos</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.sala_cinema} onChange={(e) => setCarac({...carac, sala_cinema: e.target.checked})} />
+                                                    <span>Sala de Cinema</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.playground} onChange={(e) => setCarac({...carac, playground: e.target.checked})} />
+                                                    <span>Playground</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bem-Estar</h4>
+                                            <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.sala_yoga} onChange={(e) => setCarac({...carac, sala_yoga: e.target.checked})} />
+                                                    <span>Sala de Yoga</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.redario} onChange={(e) => setCarac({...carac, redario: e.target.checked})} />
+                                                    <span>Redário</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.horta} onChange={(e) => setCarac({...carac, horta: e.target.checked})} />
+                                                    <span>Horta</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.area_convivencia} onChange={(e) => setCarac({...carac, area_convivencia: e.target.checked})} />
+                                                    <span>Área de Convivência</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Esportes</h4>
+                                            <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.academia} onChange={(e) => setCarac({...carac, academia: e.target.checked})} />
+                                                    <span>Academia</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.sala_funcional} onChange={(e) => setCarac({...carac, sala_funcional: e.target.checked})} />
+                                                    <span>Sala Funcional</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.quadra_poliesportiva} onChange={(e) => setCarac({...carac, quadra_poliesportiva: e.target.checked})} />
+                                                    <span>Quadra Poliesportiva</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.quadra_beach_tennis} onChange={(e) => setCarac({...carac, quadra_beach_tennis: e.target.checked})} />
+                                                    <span>Quadra Beach Tennis</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.campo_futebol_society} onChange={(e) => setCarac({...carac, campo_futebol_society: e.target.checked})} />
+                                                    <span>Campo Futebol Society</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.quadra_volei_praia} onChange={(e) => setCarac({...carac, quadra_volei_praia: e.target.checked})} />
+                                                    <span>Quadra Vôlei de Praia</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.quadra_tenis} onChange={(e) => setCarac({...carac, quadra_tenis: e.target.checked})} />
+                                                    <span>Quadra de Tênis</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.ciclovia} onChange={(e) => setCarac({...carac, ciclovia: e.target.checked})} />
+                                                    <span>Ciclovia</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.pista_cooper} onChange={(e) => setCarac({...carac, pista_cooper: e.target.checked})} />
+                                                    <span>Pista de Cooper</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#64748b', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Segurança e Conforto</h4>
+                                            <div className={styles.checkboxGrid} data-checkbox-grid="true">
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.controle_acesso_automatizado} onChange={(e) => setCarac({...carac, controle_acesso_automatizado: e.target.checked})} />
+                                                    <span>Acesso Automatizado</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.sala_encomendas_delivery} onChange={(e) => setCarac({...carac, sala_encomendas_delivery: e.target.checked})} />
+                                                    <span>Sala de Encomendas</span>
+                                                </label>
+                                                <label className={styles.checkboxCard}>
+                                                    <input type="checkbox" className={styles.checkbox} checked={!!carac.wi_fi_areas_comuns} onChange={(e) => setCarac({...carac, wi_fi_areas_comuns: e.target.checked})} />
+                                                    <span>Wi-Fi Áreas Comuns</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <button 
                                     type="submit" 

@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         await query('UPDATE users SET ativo = false WHERE id = $1', [decoded.id]);
 
         // Desativar todos os cards/imóveis publicados pelo usuário
-        await query('UPDATE produtos_servicos SET ativo = false WHERE user_id = $1', [decoded.id]);
+        await query('UPDATE public.produto_servico SET ativo = false WHERE user_id = $1', [decoded.id]);
 
         // Create response and clear auth token cookie
         const response = NextResponse.json({ success: true, message: 'Conta excluída com sucesso.' });

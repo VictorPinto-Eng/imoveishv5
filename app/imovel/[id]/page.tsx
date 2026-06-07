@@ -11,6 +11,34 @@ import ContactStickyCard from '@/components/ContactStickyCard'
 import ImovelCard from '@/components/ImovelCard'
 import BackButton from '@/components/BackButton'
 import { MapPin, ChevronRight } from 'lucide-react'
+import {
+  Waves,
+  GlassWater,
+  Utensils,
+  Flower2,
+  Laptop,
+  TreePine,
+  Flame,
+  Dog,
+  ShoppingCart,
+  Gamepad2,
+  Dices,
+  Clapperboard,
+  ToyBrick,
+  Heart,
+  Footprints,
+  Sprout,
+  Users,
+  Dumbbell,
+  Activity,
+  Trophy,
+  Sun,
+  CircleDot,
+  Bike,
+  KeyRound,
+  Package,
+  Wifi
+} from 'lucide-react'
 import AnalyticsTracker from '@/components/AnalyticsTracker'
 import { Metadata } from 'next'
 import SafePropertyMap from '@/components/SafePropertyMap'
@@ -55,10 +83,19 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
 
     const similarImoveis = await getFeaturedImoveis(4, id, imovel.imbtpimovel_id, imovel.imbtpoperacao_id, imovel.imbfinalidade_id)
 
+    const isEmpreendimento = imovel.imbtipoanuncio_id === 2;
+    const totalUnits = Number(imovel.emp_total_unidades) || 0;
+    const hasMultipleUnits = isEmpreendimento && totalUnits > 1;
+    const hasSingleUnit = isEmpreendimento && totalUnits === 1;
+
+    const displayPrice = ((hasMultipleUnits || hasSingleUnit) && imovel.emp_min_preco !== undefined && imovel.emp_min_preco !== null)
+        ? imovel.emp_min_preco
+        : imovel.preco_base;
+
     const priceFormatted = new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL'
-    }).format(imovel.preco_base)
+    }).format(displayPrice)
 
     const cf = typeof imovel.custom_fields === 'string'
         ? {} 
@@ -125,6 +162,69 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
             availability: 'https://schema.org/InStock',
         },
     }
+    
+    const categories = [
+        {
+            title: 'Lazer e Social',
+            items: [
+                { key: 'parque_aquatico', label: 'Parque Aquático', icon: Waves },
+                { key: 'salao_festas', label: 'Salão de Festas', icon: GlassWater },
+                { key: 'espaco_gourmet', label: 'Espaço Gourmet', icon: Utensils, isNumeric: true },
+                { key: 'espaco_zen', label: 'Espaço Zen', icon: Flower2 },
+                { key: 'coworking', label: 'Coworking', icon: Laptop },
+                { key: 'piquenique', label: 'Espaço Piquenique', icon: TreePine },
+                { key: 'espaco_grill', label: 'Espaço Grill', icon: Flame },
+                { key: 'pet_park', label: 'Pet Park', icon: Dog },
+                { key: 'supermarket', label: 'Supermercado', icon: ShoppingCart },
+                { key: 'espaco_gamer', label: 'Espaço Gamer', icon: Gamepad2 },
+                { key: 'salao_jogos', label: 'Salão de Jogos', icon: Dices },
+                { key: 'sala_cinema', label: 'Sala de Cinema', icon: Clapperboard },
+                { key: 'playground', label: 'Playground', icon: ToyBrick }
+            ]
+        },
+        {
+            title: 'Bem-Estar',
+            items: [
+                { key: 'sala_yoga', label: 'Sala de Yoga', icon: Heart },
+                { key: 'redario', label: 'Redário', icon: Footprints },
+                { key: 'horta', label: 'Horta', icon: Sprout },
+                { key: 'area_convivencia', label: 'Área de Convivência', icon: Users }
+            ]
+        },
+        {
+            title: 'Esportes',
+            items: [
+                { key: 'academia', label: 'Academia', icon: Dumbbell },
+                { key: 'sala_funcional', label: 'Sala Funcional', icon: Activity },
+                { key: 'quadra_poliesportiva', label: 'Quadra Poliesportiva', icon: Trophy },
+                { key: 'quadra_beach_tennis', label: 'Quadra Beach Tennis', icon: Sun },
+                { key: 'campo_futebol_society', label: 'Campo Futebol Society', icon: CircleDot },
+                { key: 'quadra_volei_praia', label: 'Quadra Vôlei de Praia', icon: Sun },
+                { key: 'quadra_tenis', label: 'Quadra de Tênis', icon: CircleDot },
+                { key: 'ciclovia', label: 'Ciclovia', icon: Bike },
+                { key: 'pista_cooper', label: 'Pista de Cooper', icon: Footprints }
+            ]
+        },
+        {
+            title: 'Segurança e Conforto',
+            items: [
+                { key: 'controle_acesso_automatizado', label: 'Acesso Automatizado', icon: KeyRound },
+                { key: 'sala_encomendas_delivery', label: 'Sala de Encomendas', icon: Package },
+                { key: 'wi_fi_areas_comuns', label: 'Wi-Fi Áreas Comuns', icon: Wifi }
+            ]
+        }
+    ];
+
+    const im = imovel as any;
+    const activeCategories = categories.map(cat => {
+        const activeItems = cat.items.filter(item => {
+            if (item.isNumeric) {
+                return Number(im[item.key]) > 0;
+            }
+            return !!im[item.key];
+        });
+        return { ...cat, items: activeItems };
+    }).filter(cat => cat.items.length > 0);
 
     return (
         <div className={styles.pageWrapper}>
@@ -170,22 +270,69 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             </div>
                         </div>
 
-                        <PropertyStats 
-                            area={
-                                Number(imovel.area_util) > 0 
-                                    ? imovel.area_util 
-                                    : (Number(imovel.area_terreno) > 0 
-                                        ? imovel.area_terreno 
-                                        : (imovel.dimensoes_terreno && imovel.dimensoes_terreno.trim() !== '0' && imovel.dimensoes_terreno.trim() !== '0.00'
-                                            ? imovel.dimensoes_terreno 
-                                            : undefined))
+                        {(() => {
+                            const minArea = ((hasMultipleUnits || hasSingleUnit) && imovel.emp_min_area !== undefined && imovel.emp_min_area !== null)
+                                ? imovel.emp_min_area
+                                : (Number(imovel.area_util) > 0 ? Number(imovel.area_util) : (Number(imovel.area_construida) > 0 ? Number(imovel.area_construida) : Number(imovel.area_terreno)));
+                            
+                            let areaVal: string | number = minArea;
+                            let areaLabel = 'Área total';
+
+                            if (hasMultipleUnits) {
+                                areaVal = `a partir de ${minArea} m²`;
+                                areaLabel = 'Tamanho das unidades';
+                            } else if (hasSingleUnit) {
+                                areaVal = `${minArea} m²`;
+                                areaLabel = 'Tamanho da última unidade';
                             }
-                            bedrooms={imovel.dormitorios}
-                            suites={imovel.suites}
-                            bathrooms={imovel.banheiros}
-                            lavabos={imovel.lavabo}
-                            parking={imovel.vagas}
-                        />
+
+                            return (
+                                <PropertyStats 
+                                    area={areaVal || undefined}
+                                    areaLabel={areaLabel}
+                                    bedrooms={imovel.dormitorios}
+                                    suites={imovel.suites}
+                                    bathrooms={imovel.banheiros}
+                                    lavabos={imovel.lavabo}
+                                    parking={imovel.vagas}
+                                />
+                            );
+                        })()}
+
+                        {imovel.descricao && (
+                            <section className={styles.section}>
+                                <h2 className={styles.sectionTitle}>Descrição</h2>
+                                <p className={styles.description}>{imovel.descricao}</p>
+                            </section>
+                        )}
+
+                        {activeCategories.length > 0 && (
+                            <section className={styles.section}>
+                                <h2 className={styles.sectionTitle}>Área Comum</h2>
+                                {activeCategories.map(cat => (
+                                    <div key={cat.title} className={styles.caracGroup}>
+                                        <h4 className={styles.caracGroupTitle}>{cat.title}</h4>
+                                        <div className={styles.caracGrid}>
+                                            {cat.items.map(item => {
+                                                const IconComponent = item.icon;
+                                                const qty = Number(im[item.key]);
+                                                const displayLabel = item.isNumeric
+                                                    ? (qty > 1 ? `${qty} Espaços Gourmet` : item.label)
+                                                    : item.label;
+                                                return (
+                                                    <div key={item.key} className={styles.caracItem}>
+                                                        <div className={styles.caracIconContainer}>
+                                                            <IconComponent size={18} className={styles.caracIcon} />
+                                                        </div>
+                                                        <span className={styles.caracText}>{displayLabel}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+                            </section>
+                        )}
 
                         <PropertyQuestions 
                             propertyId={id} 
@@ -218,6 +365,8 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
                             propertyId={id}
                             pub_price={imovel.pub_price}
                             isRental={!!imovel.is_locacao}
+                            isEmpreendimento={isEmpreendimento}
+                            totalUnits={totalUnits}
                         />
                     </div>
                 </div>

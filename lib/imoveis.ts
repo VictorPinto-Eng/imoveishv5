@@ -87,6 +87,9 @@ export interface Imovel {
   imbtpimovel_id?: number
   imbfinalidade_id?: number
   owner_phone?: string
+  emp_total_unidades?: number
+  emp_min_preco?: number
+  emp_min_area?: number
 }
 
 export interface ImovelFilters {
@@ -241,7 +244,10 @@ function parseImovel(item: any): Imovel {
     plus_code: item.plus_code || custom_fields.plus_code,
     uf_nome: item.uf_nome || custom_fields.uf || custom_fields.estado || '',
     cidade_nome: item.cidade_nome || custom_fields.cidade || '',
-    bairro_nome: item.bairro_nome || custom_fields.bairro || ''
+    bairro_nome: item.bairro_nome || custom_fields.bairro || '',
+    emp_total_unidades: item.emp_total_unidades !== null && item.emp_total_unidades !== undefined ? Number(item.emp_total_unidades) : undefined,
+    emp_min_preco: item.emp_min_preco !== null && item.emp_min_preco !== undefined ? Number(item.emp_min_preco) : undefined,
+    emp_min_area: item.emp_min_area !== null && item.emp_min_area !== undefined ? Number(item.emp_min_area) : undefined
   }
 }
 
@@ -253,6 +259,10 @@ function parseImoveis(data: any[]): Imovel[] {
 const BASE_SELECT = `
   SELECT 
     I.*, 
+    (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_total_unidades,
+    (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_min_preco,
+    (SELECT MIN(c.area_util) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_min_area,
+    carac.dormitorio, carac.suite, carac.varanda, carac.banheiro, carac.vaga, carac.areaservico, carac.quartoservico, carac.cozinha, carac.lavabo, carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno, carac.sala, carac.parque_aquatico, carac.salao_festas, carac.espaco_gourmet, carac.espaco_zen, carac.coworking, carac.piquenique, carac.espaco_grill, carac.pet_park, carac.supermarket, carac.espaco_gamer, carac.salao_jogos, carac.sala_cinema, carac.playground, carac.sala_yoga, carac.redario, carac.horta, carac.area_convivencia, carac.espacos_gourmet_multiplos, carac.academia, carac.sala_funcional, carac.quadra_poliesportiva, carac.quadra_beach_tennis, carac.campo_futebol_society, carac.quadra_volei_praia, carac.quadra_tenis, carac.ciclovia, carac.pista_cooper, carac.controle_acesso_automatizado, carac.sala_encomendas_delivery, carac.wi_fi_areas_comuns,
     COALESCE(
       NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC), '{}'),
       ARRAY(SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = I.imbempreendimento_id ORDER BY ordem_exibicao ASC, id ASC)
@@ -284,7 +294,8 @@ const BASE_SELECT = `
     COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) as imbfinalidade_id,
     COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) as imbtpimovel_id,
     U.phone as owner_phone
-  FROM produtos_servicos I
+  FROM public.produto_servico I
+  LEFT JOIN public.produto_servico_carac carac ON I.id = carac.produto_servico_id
   LEFT JOIN public.users U ON I.user_id = U.id
   LEFT JOIN imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
   LEFT JOIN public.produto_servicos_loca PL ON I.id = PL.produto_servico_id
@@ -382,6 +393,10 @@ export async function getImoveis(filters: ImovelFilters = {}) {
     let sql = `
       SELECT 
         I.*, 
+        (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_total_unidades,
+        (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_min_preco,
+        (SELECT MIN(c.area_util) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_min_area,
+        carac.dormitorio, carac.suite, carac.varanda, carac.banheiro, carac.vaga, carac.areaservico, carac.quartoservico, carac.cozinha, carac.lavabo, carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno, carac.sala, carac.parque_aquatico, carac.salao_festas, carac.espaco_gourmet, carac.espaco_zen, carac.coworking, carac.piquenique, carac.espaco_grill, carac.pet_park, carac.supermarket, carac.espaco_gamer, carac.salao_jogos, carac.sala_cinema, carac.playground, carac.sala_yoga, carac.redario, carac.horta, carac.area_convivencia, carac.espacos_gourmet_multiplos, carac.academia, carac.sala_funcional, carac.quadra_poliesportiva, carac.quadra_beach_tennis, carac.campo_futebol_society, carac.quadra_volei_praia, carac.quadra_tenis, carac.ciclovia, carac.pista_cooper, carac.controle_acesso_automatizado, carac.sala_encomendas_delivery, carac.wi_fi_areas_comuns,
         COALESCE(
           NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC), '{}'),
           ARRAY(SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = I.imbempreendimento_id ORDER BY ordem_exibicao ASC, id ASC)
@@ -413,7 +428,8 @@ export async function getImoveis(filters: ImovelFilters = {}) {
         COALESCE(PL.preco_base, PV.preco_base, 0) as preco_base,
         COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) as imbfinalidade_id,
         COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) as imbtpimovel_id
-      FROM produtos_servicos I
+      FROM public.produto_servico I
+      LEFT JOIN public.produto_servico_carac carac ON I.id = carac.produto_servico_id
       LEFT JOIN public.imbtpoperacao OP ON I.imbtpoperacao_id = OP.id
       LEFT JOIN public.produto_servicos_loca PL ON I.id = PL.produto_servico_id
       LEFT JOIN public.produto_servicos_venda PV ON I.id = PV.produto_servico_id

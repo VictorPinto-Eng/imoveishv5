@@ -21,10 +21,10 @@ export async function GET(req: NextRequest) {
     const ownersCountRes = await query('SELECT COUNT(*) FROM users WHERE id_tipo_usuario = 2');
     const adminsCountRes = await query('SELECT COUNT(*) FROM admin_users');
     
-    const salePropertiesRes = await query('SELECT COUNT(*) FROM produtos_servicos WHERE imbtpoperacao_id = 1');
-    const rentPropertiesRes = await query('SELECT COUNT(*) FROM produtos_servicos WHERE imbtpoperacao_id = 2');
-    const activePropertiesRes = await query("SELECT COUNT(*) FROM produtos_servicos WHERE status = 'ativo'");
-    const pendingPropertiesRes = await query("SELECT COUNT(*) FROM produtos_servicos WHERE status = 'Pendente'");
+    const salePropertiesRes = await query('SELECT COUNT(*) FROM public.produto_servico WHERE imbtpoperacao_id = 1');
+    const rentPropertiesRes = await query('SELECT COUNT(*) FROM public.produto_servico WHERE imbtpoperacao_id = 2');
+    const activePropertiesRes = await query("SELECT COUNT(*) FROM public.produto_servico WHERE status = 'ativo'");
+    const pendingPropertiesRes = await query("SELECT COUNT(*) FROM public.produto_servico WHERE status = 'Pendente'");
     
     const leadsCountRes = await query('SELECT COUNT(*) FROM leads');
     const questionsCountRes = await query('SELECT COUNT(*) FROM imovel_perguntas');
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     const recentPropertiesRes = await query(`
       SELECT p.id, p.nome, p.status, p.created_at, op.descricao as operacao_nome, tp.descricao as tipo_nome,
              COALESCE(pl.preco_base, pv.preco_base, 0) as preco_base
-      FROM produtos_servicos p
+      FROM public.produto_servico p
       LEFT JOIN imbtpoperacao op ON p.imbtpoperacao_id = op.id
       LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id
       LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id

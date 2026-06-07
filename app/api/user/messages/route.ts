@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
         COALESCE(PL.preco_base, PV.preco_base, 0) as preco_base,
         (SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = p.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 1) as photo
       FROM public.leads l
-      JOIN public.produtos_servicos p ON l.produto_servico_id = p.id
+      JOIN public.produto_servico p ON l.produto_servico_id = p.id
       LEFT JOIN public.imbtpoperacao OP ON p.imbtpoperacao_id = OP.id
       LEFT JOIN public.produto_servicos_loca PL ON p.id = PL.produto_servico_id
       LEFT JOIN public.produto_servicos_venda PV ON p.id = PV.produto_servico_id

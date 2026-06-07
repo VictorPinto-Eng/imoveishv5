@@ -8,11 +8,12 @@ export async function GET(req: NextRequest) {
         e.id, 
         e.descricao,
         e.cep,
+        e.possui_carac,
         b.descricao AS bairro_nome,
         c.descricao AS cidade_nome,
         est.nome AS estado_nome,
         est.sigla AS estado_sigla,
-        (SELECT COUNT(*)::int FROM public.produtos_servicos p WHERE p.imbempreendimento_id = e.id AND p.ativo = true) AS total_unidades,
+        (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = e.id AND p.ativo = true) AS total_unidades,
         (SELECT url_referencia FROM public.imbempreendimento_midia m WHERE m.imbempreendimento_id = e.id ORDER BY m.foto_principal DESC, m.ordem_exibicao ASC, m.id ASC LIMIT 1) AS foto_capa,
         ARRAY(SELECT url_referencia FROM public.imbempreendimento_midia m WHERE m.imbempreendimento_id = e.id ORDER BY m.ordem_exibicao ASC, m.id ASC) AS imagens_urls
       FROM public.imbempreendimento e

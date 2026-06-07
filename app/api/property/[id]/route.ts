@@ -24,6 +24,7 @@ export async function GET(
     const res = await query(`
       SELECT 
         p.*,
+        carac.dormitorio, carac.suite, carac.varanda, carac.banheiro, carac.vaga, carac.areaservico, carac.quartoservico, carac.cozinha, carac.lavabo, carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno, carac.sala, carac.parque_aquatico, carac.salao_festas, carac.espaco_gourmet, carac.espaco_zen, carac.coworking, carac.piquenique, carac.espaco_grill, carac.pet_park, carac.supermarket, carac.espaco_gamer, carac.salao_jogos, carac.sala_cinema, carac.playground, carac.sala_yoga, carac.redario, carac.horta, carac.area_convivencia, carac.espacos_gourmet_multiplos, carac.academia, carac.sala_funcional, carac.quadra_poliesportiva, carac.quadra_beach_tennis, carac.campo_futebol_society, carac.quadra_volei_praia, carac.quadra_tenis, carac.ciclovia, carac.pista_cooper, carac.controle_acesso_automatizado, carac.sala_encomendas_delivery, carac.wi_fi_areas_comuns,
         tp.descricao as tipo_nome,
         op.descricao as operacao_nome,
         est.sigla as uf_nome,
@@ -47,7 +48,8 @@ export async function GET(
         pv.pr_segincendio as venda_pr_segincendio,
         pv.vrtotal as venda_vrtotal,
         pv.preco_base as venda_preco_base
-      FROM produtos_servicos p
+      FROM public.produto_servico p
+      LEFT JOIN public.produto_servico_carac carac ON p.id = carac.produto_servico_id
       LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id
       LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id
       LEFT JOIN imbtpimovel tp ON COALESCE(pl.imbtpimovel_id, pv.imbtpimovel_id) = tp.id
@@ -220,7 +222,10 @@ export async function PUT(
 
     // 0. Fetch OLD data for diffing and partial update fallback
     const oldRes = await query(
-      'SELECT * FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+      `SELECT p.*, carac.* 
+       FROM public.produto_servico p
+       LEFT JOIN public.produto_servico_carac carac ON p.id = carac.produto_servico_id
+       WHERE p.id = $1 AND p.user_id = $2`,
       [id, userId]
     );
     const oldData = oldRes.rows[0];
@@ -516,7 +521,7 @@ export async function PUT(
 
     // Update query
     const updateRes = await query(`
-      UPDATE produtos_servicos 
+      UPDATE public.produto_servico 
       SET 
         nome = $1, 
         descricao = $2, 
@@ -532,37 +537,23 @@ export async function PUT(
         estado_id = $12,
         cidade_id = $13,
         bairro_id = $14,
-        dormitorio = $15, 
-        suite = $16, 
-        varanda = $17, 
-        banheiro = $18, 
-        vaga = $19,
-        areaservico = $20,
-        quartoservico = $21,
-        cozinha = $22,
-        lavabo = $23,
-        area_util = $24,
-        area_construida = $25,
-        area_terreno = $26,
-        imbtpoperacao_id = $27,
-        imbempreendimento_id = $28,
-        statusimovel = $29,
-        sala = $30,
-        dimensoes_terreno = $31,
-        latitude = $32,
-        longitude = $33,
-        plus_code = $34,
-        pub_site = $35,
-        pub_price = $36,
-        pub_facebook = $37,
-        pub_instagram = $38,
-        relimovel_id = $39,
-        prop_id = $40,
-        imbtipoanuncio_id = $44,
+        imbtpoperacao_id = $15,
+        imbempreendimento_id = $16,
+        statusimovel = $17,
+        latitude = $18,
+        longitude = $19,
+        plus_code = $20,
+        pub_site = $21,
+        pub_price = $22,
+        pub_facebook = $23,
+        pub_instagram = $24,
+        relimovel_id = $25,
+        prop_id = $26,
+        imbtipoanuncio_id = $30,
         updated_at = NOW(),
-        updated_by = $41,
+        updated_by = $27,
         organization_id = COALESCE(organization_id, '1')
-      WHERE id = $42 AND user_id = $43
+      WHERE id = $28 AND user_id = $29
       RETURNING id
     `, [
       title || oldData.nome || 'Imóvel sem título', 
@@ -579,23 +570,9 @@ export async function PUT(
       resolvedLocation.estadoId,
       resolvedLocation.cidadeId,
       resolvedLocation.bairroId,
-      dormitorio || 0,
-      suite || 0,
-      varanda || 0,
-      banheiro || 0,
-      vaga || 0,
-      areaservico || 0,
-      quartoservico || 0,
-      cozinha || 0,
-      lavabo || 0,
-      area_util || 0,
-      area_construida || 0,
-      area_terreno || 0,
       imbtpoperacao_id || null,
       empreendimento || null,
       statusimovel || null,
-      sala || 0,
-      dimensoes_terreno || null,
       latitude || null,
       longitude || null,
       plus_code || '',
@@ -614,6 +591,158 @@ export async function PUT(
   if (updateRes.rowCount === 0) {
     return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão para editar' }, { status: 404 });
   }
+
+  // Parse characteristics booleans
+  const parseBool = (val: any) => val === true || val === 'true';
+
+  const parque_aquatico = body.parque_aquatico !== undefined ? parseBool(body.parque_aquatico) : parseBool(oldData.parque_aquatico);
+  const salao_festas = body.salao_festas !== undefined ? parseBool(body.salao_festas) : parseBool(oldData.salao_festas);
+  const espaco_gourmet = body.espaco_gourmet !== undefined ? (parseInt(body.espaco_gourmet) || 0) : (parseInt(oldData.espaco_gourmet) || 0);
+  const espaco_zen = body.espaco_zen !== undefined ? parseBool(body.espaco_zen) : parseBool(oldData.espaco_zen);
+  const coworking = body.coworking !== undefined ? parseBool(body.coworking) : parseBool(oldData.coworking);
+  const piquenique = body.piquenique !== undefined ? parseBool(body.piquenique) : parseBool(oldData.piquenique);
+  const espaco_grill = body.espaco_grill !== undefined ? parseBool(body.espaco_grill) : parseBool(oldData.espaco_grill);
+  const pet_park = body.pet_park !== undefined ? parseBool(body.pet_park) : parseBool(oldData.pet_park);
+  const supermarket = body.supermarket !== undefined ? parseBool(body.supermarket) : parseBool(oldData.supermarket);
+  const espaco_gamer = body.espaco_gamer !== undefined ? parseBool(body.espaco_gamer) : parseBool(oldData.espaco_gamer);
+  const salao_jogos = body.salao_jogos !== undefined ? parseBool(body.salao_jogos) : parseBool(oldData.salao_jogos);
+  const sala_cinema = body.sala_cinema !== undefined ? parseBool(body.sala_cinema) : parseBool(oldData.sala_cinema);
+  const playground = body.playground !== undefined ? parseBool(body.playground) : parseBool(oldData.playground);
+
+  const sala_yoga = body.sala_yoga !== undefined ? parseBool(body.sala_yoga) : parseBool(oldData.sala_yoga);
+  const redario = body.redario !== undefined ? parseBool(body.redario) : parseBool(oldData.redario);
+  const horta = body.horta !== undefined ? parseBool(body.horta) : parseBool(oldData.horta);
+  const area_convivencia = body.area_convivencia !== undefined ? parseBool(body.area_convivencia) : parseBool(oldData.area_convivencia);
+  const espacos_gourmet_multiplos = body.espacos_gourmet_multiplos !== undefined ? parseBool(body.espacos_gourmet_multiplos) : parseBool(oldData.espacos_gourmet_multiplos);
+
+  const academia = body.academia !== undefined ? parseBool(body.academia) : parseBool(oldData.academia);
+  const sala_funcional = body.sala_funcional !== undefined ? parseBool(body.sala_funcional) : parseBool(oldData.sala_funcional);
+  const quadra_poliesportiva = body.quadra_poliesportiva !== undefined ? parseBool(body.quadra_poliesportiva) : parseBool(oldData.quadra_poliesportiva);
+  const quadra_beach_tennis = body.quadra_beach_tennis !== undefined ? parseBool(body.quadra_beach_tennis) : parseBool(oldData.quadra_beach_tennis);
+  const campo_futebol_society = body.campo_futebol_society !== undefined ? parseBool(body.campo_futebol_society) : parseBool(oldData.campo_futebol_society);
+  const quadra_volei_praia = body.quadra_volei_praia !== undefined ? parseBool(body.quadra_volei_praia) : parseBool(oldData.quadra_volei_praia);
+  const quadra_tenis = body.quadra_tenis !== undefined ? parseBool(body.quadra_tenis) : parseBool(oldData.quadra_tenis);
+  const ciclovia = body.ciclovia !== undefined ? parseBool(body.ciclovia) : parseBool(oldData.ciclovia);
+  const pista_cooper = body.pista_cooper !== undefined ? parseBool(body.pista_cooper) : parseBool(oldData.pista_cooper);
+
+  const controle_acesso_automatizado = body.controle_acesso_automatizado !== undefined ? parseBool(body.controle_acesso_automatizado) : parseBool(oldData.controle_acesso_automatizado);
+  const sala_encomendas_delivery = body.sala_encomendas_delivery !== undefined ? parseBool(body.sala_encomendas_delivery) : parseBool(oldData.sala_encomendas_delivery);
+  const wi_fi_areas_comuns = body.wi_fi_areas_comuns !== undefined ? parseBool(body.wi_fi_areas_comuns) : parseBool(oldData.wi_fi_areas_comuns);
+
+  // Update public.produto_servico_carac
+  await query(`
+    INSERT INTO public.produto_servico_carac (
+      produto_servico_id,
+      dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, sala,
+      area_util, area_construida, area_terreno, dimensoes_terreno,
+      parque_aquatico, salao_festas, espaco_gourmet, espaco_zen, coworking, piquenique, espaco_grill,
+      pet_park, supermarket, espaco_gamer, salao_jogos, sala_cinema, playground,
+      sala_yoga, redario, horta, area_convivencia, espacos_gourmet_multiplos,
+      academia, sala_funcional, quadra_poliesportiva, quadra_beach_tennis, campo_futebol_society,
+      quadra_volei_praia, quadra_tenis, ciclovia, pista_cooper,
+      controle_acesso_automatizado, sala_encomendas_delivery, wi_fi_areas_comuns,
+      created_by, updated_by, updated_at
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+      $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
+      $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42,
+      $43, $44, $45, $46, $46, NOW()
+    )
+    ON CONFLICT (produto_servico_id) DO UPDATE SET
+      dormitorio = EXCLUDED.dormitorio,
+      suite = EXCLUDED.suite,
+      varanda = EXCLUDED.varanda,
+      banheiro = EXCLUDED.banheiro,
+      vaga = EXCLUDED.vaga,
+      areaservico = EXCLUDED.areaservico,
+      quartoservico = EXCLUDED.quartoservico,
+      cozinha = EXCLUDED.cozinha,
+      lavabo = EXCLUDED.lavabo,
+      sala = EXCLUDED.sala,
+      area_util = EXCLUDED.area_util,
+      area_construida = EXCLUDED.area_construida,
+      area_terreno = EXCLUDED.area_terreno,
+      dimensoes_terreno = EXCLUDED.dimensoes_terreno,
+      parque_aquatico = EXCLUDED.parque_aquatico,
+      salao_festas = EXCLUDED.salao_festas,
+      espaco_gourmet = EXCLUDED.espaco_gourmet,
+      espaco_zen = EXCLUDED.espaco_zen,
+      coworking = EXCLUDED.coworking,
+      piquenique = EXCLUDED.piquenique,
+      espaco_grill = EXCLUDED.espaco_grill,
+      pet_park = EXCLUDED.pet_park,
+      supermarket = EXCLUDED.supermarket,
+      espaco_gamer = EXCLUDED.espaco_gamer,
+      salao_jogos = EXCLUDED.salao_jogos,
+      sala_cinema = EXCLUDED.sala_cinema,
+      playground = EXCLUDED.playground,
+      sala_yoga = EXCLUDED.sala_yoga,
+      redario = EXCLUDED.redario,
+      horta = EXCLUDED.horta,
+      area_convivencia = EXCLUDED.area_convivencia,
+      espacos_gourmet_multiplos = EXCLUDED.espacos_gourmet_multiplos,
+      academia = EXCLUDED.academia,
+      sala_funcional = EXCLUDED.sala_funcional,
+      quadra_poliesportiva = EXCLUDED.quadra_poliesportiva,
+      quadra_beach_tennis = EXCLUDED.quadra_beach_tennis,
+      campo_futebol_society = EXCLUDED.campo_futebol_society,
+      quadra_volei_praia = EXCLUDED.quadra_volei_praia,
+      quadra_tenis = EXCLUDED.quadra_tenis,
+      ciclovia = EXCLUDED.ciclovia,
+      pista_cooper = EXCLUDED.pista_cooper,
+      controle_acesso_automatizado = EXCLUDED.controle_acesso_automatizado,
+      sala_encomendas_delivery = EXCLUDED.sala_encomendas_delivery,
+      wi_fi_areas_comuns = EXCLUDED.wi_fi_areas_comuns,
+      updated_by = EXCLUDED.updated_by,
+      updated_at = NOW()
+  `, [
+    id,
+    dormitorio || 0,
+    suite || 0,
+    varanda || 0,
+    banheiro || 0,
+    vaga || 0,
+    areaservico || 0,
+    quartoservico || 0,
+    cozinha || 0,
+    lavabo || 0,
+    sala || 0,
+    area_util || 0,
+    area_construida || 0,
+    area_terreno || 0,
+    dimensoes_terreno || null,
+    parque_aquatico,
+    salao_festas,
+    espaco_gourmet,
+    espaco_zen,
+    coworking,
+    piquenique,
+    espaco_grill,
+    pet_park,
+    supermarket,
+    espaco_gamer,
+    salao_jogos,
+    sala_cinema,
+    playground,
+    sala_yoga,
+    redario,
+    horta,
+    area_convivencia,
+    espacos_gourmet_multiplos,
+    academia,
+    sala_funcional,
+    quadra_poliesportiva,
+    quadra_beach_tennis,
+    campo_futebol_society,
+    quadra_volei_praia,
+    quadra_tenis,
+    ciclovia,
+    pista_cooper,
+    controle_acesso_automatizado,
+    sala_encomendas_delivery,
+    wi_fi_areas_comuns,
+    userId
+  ]);
 
   // Se a operação for locação (imbtpoperacao_id === 2), salvar/atualizar na tabela acessória public.produto_servicos_loca
   if (imbtpoperacao_id === 2) {
@@ -803,7 +932,7 @@ export async function DELETE(
 
     // 1. Verify ownership and existence
     const res = await query(
-      'SELECT id, nome FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+      'SELECT id, nome FROM public.produto_servico WHERE id = $1 AND user_id = $2',
       [id, userId]
     );
 
@@ -842,7 +971,8 @@ export async function DELETE(
 
     // 3. Delete from DB
     await query('DELETE FROM produtos_servicos_midia WHERE produto_servico_id = $1', [id]);
-    await query('DELETE FROM produtos_servicos WHERE id = $1 AND user_id = $2', [id, userId]);
+    await query('DELETE FROM public.produto_servico_carac WHERE produto_servico_id = $1', [id]);
+    await query('DELETE FROM public.produto_servico WHERE id = $1 AND user_id = $2', [id, userId]);
 
     // 4. Log the deletion
     await recordAuditLog(Number(id), userId, 'EXCLUSAO', {

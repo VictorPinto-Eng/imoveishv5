@@ -1,11 +1,11 @@
 .statsContainer {
     display: flex;
     flex-wrap: wrap;
-    gap: 2rem;
-    padding: 1.5rem 0;
+    gap: 1.5rem;
+    padding: 1rem 0;
     border-top: 1px solid #f1f5f9;
     border-bottom: 1px solid #f1f5f9;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .statItem {
@@ -38,7 +38,7 @@
 
 @media (max-width: 640px) {
     .statsContainer {
-        gap: 1.5rem;
+        gap: 1rem;
         justify-content: flex-start;
     }
 }

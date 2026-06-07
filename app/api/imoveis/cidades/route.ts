@@ -4,13 +4,13 @@ import { query } from '@/lib/db';
 export async function GET() {
   try {
     const res = await query(`
-      SELECT DISTINCT (custom_fields->>'cidade') as cidade
-      FROM produtos_servicos
-      WHERE tipo = 'produto' 
-        AND categoria = 'Imovel' 
-        AND status = 'ativo' 
-        AND ativo = true
-        AND (custom_fields->>'cidade') IS NOT NULL
+      SELECT DISTINCT CID.descricao as cidade
+      FROM public.produto_servico p
+      JOIN public.apocidade CID ON p.cidade_id = CID.id
+      WHERE p.tipo = 'produto' 
+        AND p.categoria = 'Imovel' 
+        AND p.status = 'ativo' 
+        AND p.ativo = true
       ORDER BY cidade ASC
     `);
 

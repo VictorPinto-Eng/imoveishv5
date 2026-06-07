@@ -63,7 +63,7 @@ export async function calculateQualityScore(produtoServicoId: number): Promise<n
   try {
     const res = await query(`
       SELECT imagens_urls, descricao, logradouro, numero, cep, status
-      FROM produtos_servicos WHERE id = $1
+      FROM public.produto_servico WHERE id = $1
     `, [produtoServicoId]);
 
     if (res.rows.length === 0) return 0;

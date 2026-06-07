@@ -20,6 +20,8 @@ interface ContactStickyCardProps {
     propertyId: string;
     pub_price?: boolean;
     isRental?: boolean;
+    isEmpreendimento?: boolean;
+    totalUnits?: number;
 }
 
 export default function ContactStickyCard({ 
@@ -34,7 +36,9 @@ export default function ContactStickyCard({
     propertyLocation,
     propertyId,
     pub_price = true,
-    isRental = false
+    isRental = false,
+    isEmpreendimento = false,
+    totalUnits = 0
 }: ContactStickyCardProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProposalOpen, setIsProposalOpen] = useState(false);
@@ -56,7 +60,29 @@ export default function ContactStickyCard({
                             marginBottom: '1rem'
                         } : {}}
                     >
-                        {pub_price === false ? 'CONSULTAR PREÇO' : `${price}${isRental ? ' /mês' : ''}`}
+                        {pub_price === false ? 'CONSULTAR PREÇO' : (
+                            isEmpreendimento && totalUnits > 1 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'center', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500, textTransform: 'lowercase' }}>
+                                        unidades a partir de
+                                    </span>
+                                    <strong style={{ fontSize: '1.6rem', color: '#0f172a', fontWeight: 800 }}>
+                                        {price}{isRental ? ' /mês' : ''}
+                                    </strong>
+                                </div>
+                            ) : isEmpreendimento && totalUnits === 1 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'center', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '0.85rem', color: '#ea580c', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        última unidade disponível
+                                    </span>
+                                    <strong style={{ fontSize: '1.6rem', color: '#0f172a', fontWeight: 800 }}>
+                                        {price}{isRental ? ' /mês' : ''}
+                                    </strong>
+                                </div>
+                            ) : (
+                                `${price}${isRental ? ' /mês' : ''}`
+                            )
+                        )}
                     </span>
                     
                     {pub_price !== false && isRental && (

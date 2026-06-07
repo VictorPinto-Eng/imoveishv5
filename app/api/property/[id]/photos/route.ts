@@ -10,7 +10,7 @@ import { JWT_SECRET } from '@/lib/auth-config';
 // Helper to check ownership
 async function checkOwnership(imovelId: string, userId: number) {
     const res = await query(
-        'SELECT id FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+        'SELECT id FROM public.produto_servico WHERE id = $1 AND user_id = $2',
         [imovelId, userId]
     );
     return res.rowCount !== null && res.rowCount > 0;

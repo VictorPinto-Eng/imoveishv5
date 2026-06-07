@@ -17,11 +17,11 @@ export async function GET(req: NextRequest) {
         const res = await query(`
             SELECT 
                 p.*,
-                p.dormitorio as dormitorios,
-                p.suite as suites,
-                p.banheiro as banheiros,
-                p.vaga as vagas,
-                p.varanda as varandas,
+                carac.dormitorio as dormitorios,
+                carac.suite as suites,
+                carac.banheiro as banheiros,
+                carac.vaga as vagas,
+                carac.varanda as varandas,
                 p.pub_facebook,
                 p.pub_instagram,
                 COALESCE(
@@ -55,7 +55,8 @@ export async function GET(req: NextRequest) {
                 pv.pr_iptuanual as venda_pr_iptuanual,
                 pv.pr_segincendio as venda_pr_segincendio,
                 pv.vrtotal as venda_vrtotal
-            FROM produtos_servicos p
+            FROM public.produto_servico p
+            LEFT JOIN public.produto_servico_carac carac ON p.id = carac.produto_servico_id
             LEFT JOIN imbtpoperacao op ON p.imbtpoperacao_id = op.id
             LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id
             LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id

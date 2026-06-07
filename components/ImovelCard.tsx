@@ -133,11 +133,26 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     }
 
   // Format price
+  const isEmpreendimento = imovel.imbtipoanuncio_id === 2;
+  const totalUnits = Number(imovel.emp_total_unidades) || 0;
+  const hasMultipleUnits = isEmpreendimento && totalUnits > 1;
+  const hasSingleUnit = isEmpreendimento && totalUnits === 1;
+  const basePrice = ((hasMultipleUnits || hasSingleUnit) && imovel.emp_min_preco !== undefined && imovel.emp_min_preco !== null)
+    ? imovel.emp_min_preco
+    : preco_base;
+
   const priceFormatted = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
     minimumFractionDigits: 2,
-  }).format(preco_base)
+  }).format(basePrice)
+
+  const areaUtil = Number(imovel.area_util) || 0;
+  const areaConstruida = Number(imovel.area_construida) || 0;
+  const areaTerreno = Number(imovel.area_terreno) || 0;
+  const minArea = ((hasMultipleUnits || hasSingleUnit) && imovel.emp_min_area !== undefined && imovel.emp_min_area !== null)
+    ? imovel.emp_min_area
+    : (areaUtil > 0 ? areaUtil : (areaConstruida > 0 ? areaConstruida : areaTerreno));
 
   // Location logic
   const uf = imovel.uf_nome || '';
@@ -205,6 +220,33 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             logActivity('reveal_phone_modal_shown', '100');
         }
     };
+    // Dynamic top-left badges
+    const activeBadges: Array<{ text: string; bg: string; color: string; shadow?: string }> = [];
+    if (imovel.created_at) {
+        const createdDate = new Date(imovel.created_at);
+        const diffTime = Math.abs(new Date().getTime() - createdDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays <= 30) {
+            activeBadges.push({ text: 'NOVO', bg: '#ffffff', color: '#0f172a' });
+        }
+    }
+    if (isEmpreendimento) {
+        if (totalUnits === 1) {
+            activeBadges.push({ 
+                text: 'ÚLTIMA UNIDADE DISPONÍVEL', 
+                bg: '#ea580c', 
+                color: '#ffffff', 
+                shadow: '0 4px 12px rgba(234, 88, 12, 0.25)' 
+            });
+        } else {
+            activeBadges.push({ 
+                text: 'EMPREENDIMENTO', 
+                bg: '#7F34E6', 
+                color: '#ffffff', 
+                shadow: '0 4px 12px rgba(127, 52, 230, 0.25)' 
+            });
+        }
+    }
 
     return (
         <article className={styles.card} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
@@ -248,18 +290,24 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                 </div>
             </div>
         )}
-        
-        {/* New Listing Badge */}
-        {(() => {
-          if (!imovel.created_at) return null;
-          const createdDate = new Date(imovel.created_at);
-          const diffTime = Math.abs(new Date().getTime() - createdDate.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          if (diffDays <= 30) {
-            return <div className={styles.newBadge}>NOVO</div>;
-          }
-          return null;
-        })()}
+        {/* Dynamic Badges Container */}
+        {activeBadges.length > 0 && (
+          <div className={styles.badgesContainer}>
+            {activeBadges.map((badge, idx) => (
+              <div 
+                key={idx} 
+                className={styles.badgeItem} 
+                style={{ 
+                  backgroundColor: badge.bg, 
+                  color: badge.color,
+                  boxShadow: badge.shadow
+                }}
+              >
+                {badge.text}
+              </div>
+            ))}
+          </div>
+        )}
 
         {showStatus && (
           <div className={styles.statusBadge}>
@@ -287,9 +335,6 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         {logradouro && <p className={styles.addressSub}>{logradouro}</p>}
         
         {(() => {
-          const areaUtil = Number(imovel.area_util) || 0;
-          const areaConstruida = Number(imovel.area_construida) || 0;
-          const areaTerreno = Number(imovel.area_terreno) || 0;
           const dimensoesTerreno = (imovel.dimensoes_terreno || '').trim();
           
           const dormitorios = Number(imovel.dormitorios) || 0;
@@ -298,7 +343,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
           const lavabo = Number(imovel.lavabo) || 0;
           const vagas = Number(imovel.vagas) || 0;
           
-          const hasArea = areaUtil > 0 || areaConstruida > 0 || areaTerreno > 0 || !!dimensoesTerreno;
+          const hasArea = minArea > 0 || !!dimensoesTerreno;
           const hasAnyFeature = hasArea || dormitorios > 0 || suites > 0 || banheiros > 0 || lavabo > 0 || vagas > 0;
           
           if (!hasAnyFeature) return null;
@@ -308,21 +353,17 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
               {hasArea && (
                 <div 
                   className={styles.featureItem} 
-                  data-tooltip={areaUtil > 0 ? "Área Útil" : areaConstruida > 0 ? "Área Construída" : areaTerreno > 0 ? "Área Terreno" : "Dimensões do Terreno"} 
-                  title={areaUtil > 0 ? "Área Útil" : areaConstruida > 0 ? "Área Construída" : areaTerreno > 0 ? "Área Terreno" : "Dimensões do Terreno"}
+                  data-tooltip={hasMultipleUnits ? "Área a partir de" : hasSingleUnit ? "Área da última unidade" : (areaUtil > 0 ? "Área Útil" : areaConstruida > 0 ? "Área Construída" : areaTerreno > 0 ? "Área Terreno" : "Dimensões do Terreno")} 
+                  title={hasMultipleUnits ? "Área a partir de" : hasSingleUnit ? "Área da última unidade" : (areaUtil > 0 ? "Área Útil" : areaConstruida > 0 ? "Área Construída" : areaTerreno > 0 ? "Área Terreno" : "Dimensões do Terreno")}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 3v18h18" />
                     <rect x="7" y="3" width="14" height="14" rx="2" strokeDasharray="2 2" />
                   </svg>
                   <span>
-                    {areaUtil > 0 
-                      ? `${areaUtil} m²` 
-                      : areaConstruida > 0 
-                        ? `${areaConstruida} m²` 
-                        : areaTerreno > 0 
-                          ? `${areaTerreno} m²` 
-                          : dimensoesTerreno}
+                    {minArea > 0 
+                      ? `${minArea} m²` 
+                      : dimensoesTerreno}
                   </span>
                 </div>
               )}
@@ -395,25 +436,29 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
  
  
         <div className={styles.priceContainer}>
-          <div 
-            className={`${styles.priceValue} ${imovel.pub_price === false ? styles.priceValueMasked : ''}`}
-            style={imovel.pub_price === false ? { 
-              textAlign: 'center', 
-              width: '100%', 
-              display: 'block', 
-              color: '#c52222', 
-              fontSize: '1.25rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              margin: '0.5rem 0'
-            } : {}}
-          >
-            {imovel.pub_price === false ? 'CONSULTAR PREÇO' : (
-                isRental 
-                    ? <span className={styles.pricePrefix}><strong className={styles.priceMainVal}>{priceFormatted}</strong>/mês</span>
-                    : <strong className={styles.priceMainVal}>{priceFormatted}</strong>
-            )}
-          </div>
+          {imovel.pub_price === false ? (
+            <div className={styles.priceValueMasked}>CONSULTAR PREÇO</div>
+          ) : hasMultipleUnits ? (
+            <div className={styles.premiumDevBlock}>
+              <span className={styles.premiumDevLabel}>Unidades disponíveis a partir de:</span>
+              <div className={styles.premiumDevValues}>
+                <strong className={styles.premiumDevPrice}>
+                  {priceFormatted}
+                  {isRental && '/mês'}
+                </strong>
+              </div>
+            </div>
+          ) : (
+            <div 
+              className={styles.priceValue}
+              style={{ margin: '0.5rem 0' }}
+            >
+              {isRental 
+                ? <span className={styles.pricePrefix}><strong className={styles.priceMainVal}>{priceFormatted}</strong>/mês</span>
+                : <strong className={styles.priceMainVal}>{priceFormatted}</strong>
+              }
+            </div>
+          )}
 
           {isRental && imovel.pub_price !== false && (
             <div className={styles.rentalDetails}>

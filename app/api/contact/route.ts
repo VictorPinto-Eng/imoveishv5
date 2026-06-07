@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
                 u.name as owner_name,
                 OP.descricao as operacao,
                 TP.descricao as tipo_imovel
-            FROM produtos_servicos p
+            FROM public.produto_servico p
             JOIN users u ON p.user_id = u.id
             LEFT JOIN imbtpoperacao OP ON p.imbtpoperacao_id = OP.id
             LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id

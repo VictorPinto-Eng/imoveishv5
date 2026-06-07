@@ -52,7 +52,7 @@ export async function createImovel(formData: FormData) {
     // Inserir o registro e tratar o resultado corretamente (pg QueryResult)
     try {
         const insertResult = await query(
-            `INSERT INTO produtos_servicos (nome, tipo, categoria, preco_base, descricao, ativo, status, imagens_urls, tags, custom_fields, cobranca_tipo, estoque_quantidade, tem_estoque, estoque_minimo)
+            `INSERT INTO public.produto_servico (nome, tipo, categoria, preco_base, descricao, ativo, status, imagens_urls, tags, custom_fields, cobranca_tipo, estoque_quantidade, tem_estoque, estoque_minimo)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
             [
                 nome,
@@ -79,7 +79,19 @@ export async function createImovel(formData: FormData) {
             throw new Error('Failed to create imovel: no row returned');
         }
 
-        // Se precisar usar o insertedRow depois, você pode retornar ou processá-lo aqui.
+        // Garantir relacionamento de 1 para 1 na tabela de características
+        await query(`
+            INSERT INTO public.produto_servico_carac (
+                produto_servico_id,
+                dormitorio, banheiro, vaga, area_util
+            ) VALUES ($1, $2, $3, $4, $5)
+        `, [
+            insertedRow.id,
+            Number(formData.get('dormitorios')) || 0,
+            Number(formData.get('banheiros')) || 0,
+            Number(formData.get('vagas')) || 0,
+            Number(formData.get('area_total')) || 0
+        ]);
     } catch (error) {
         console.error('Error creating imovel:', error);
         throw new Error('Failed to create imovel');

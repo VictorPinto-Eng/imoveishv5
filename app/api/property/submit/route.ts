@@ -36,7 +36,14 @@ export async function POST(req: NextRequest) {
       condominio_incluso,
       iptu_incluso,
       seguro_incendio_incluso,
-      seguro_incendio
+      seguro_incendio,
+      // Boolean characteristics
+      parque_aquatico, salao_festas, espaco_gourmet, espaco_zen, coworking, piquenique,
+      espaco_grill, pet_park, supermarket, espaco_gamer, salao_jogos, sala_cinema, playground,
+      sala_yoga, redario, horta, area_convivencia, espacos_gourmet_multiplos,
+      academia, sala_funcional, quadra_poliesportiva, quadra_beach_tennis, campo_futebol_society,
+      quadra_volei_praia, quadra_tenis, ciclovia, pista_cooper,
+      controle_acesso_automatizado, sala_encomendas_delivery, wi_fi_areas_comuns
     } = data;
 
   const ufSigla = sanitizeLocationName(String(uf || ''));
@@ -224,12 +231,12 @@ export async function POST(req: NextRequest) {
     const relimovel_id = relMapping[relationship] || 3;
     const prop_id = relationship === 'Proprietário' ? userId : null;
 
-    // Insert into produtos_servicos
+    // Insert into public.produto_servico
     const insertResult = await query(`
-      INSERT INTO produtos_servicos 
-        (nome, descricao, status, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, prop_id, dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, area_util, area_construida, area_terreno, imbtpoperacao_id, statusimovel, imbempreendimento_id, sala, dimensoes_terreno, latitude, longitude, plus_code, pub_site, pub_price, pub_facebook, pub_instagram, relimovel_id, imbtipoanuncio_id, tipo, categoria, ativo, tags, organization_id)
+      INSERT INTO public.produto_servico 
+        (nome, descricao, status, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, prop_id, imbtpoperacao_id, statusimovel, imbempreendimento_id, latitude, longitude, plus_code, pub_site, pub_price, pub_facebook, pub_instagram, relimovel_id, imbtipoanuncio_id, tipo, categoria, ativo, tags, organization_id)
       VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, 'produto', 'Imovel', true, '[]', '1')
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, 'produto', 'Imovel', true, '[]', '1')
       RETURNING id
     `, [
       title || `${type} - ${rooms} quartos`,
@@ -248,23 +255,9 @@ export async function POST(req: NextRequest) {
       resolvedLocation.bairroId,
       userId,
       prop_id,
-      parseInt(rooms) || 0,
-      parseInt(suites) || 0,
-      parseInt(varandas) || 0,
-      parseInt(bathrooms) || 0,
-      parseInt(parking) || 0,
-      parseInt(areaservico) || 0,
-      parseInt(quartoservico) || 0,
-      parseInt(cozinha) || 0,
-      parseInt(lavabo) || 0,
-      parseFloat(area) || 0,
-      parseFloat(area_construida) || 0,
-      parseFloat(area_terreno) || 0,
       imbtpoperacao_id || null,
       statusimovel || 2,
       empreendimento || null,
-      parseInt(sala) || 0,
-      dimensoes_terreno || null,
       latitude || null,
       longitude || null,
       plus_code || '',
@@ -277,6 +270,75 @@ export async function POST(req: NextRequest) {
     ]);
 
     const produtoId = insertResult.rows[0].id;
+
+    // Insert into public.produto_servico_carac
+    await query(`
+      INSERT INTO public.produto_servico_carac (
+        produto_servico_id,
+        dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, sala,
+        area_util, area_construida, area_terreno, dimensoes_terreno,
+        parque_aquatico, salao_festas, espaco_gourmet, espaco_zen, coworking, piquenique, espaco_grill,
+        pet_park, supermarket, espaco_gamer, salao_jogos, sala_cinema, playground,
+        sala_yoga, redario, horta, area_convivencia, espacos_gourmet_multiplos,
+        academia, sala_funcional, quadra_poliesportiva, quadra_beach_tennis, campo_futebol_society,
+        quadra_volei_praia, quadra_tenis, ciclovia, pista_cooper,
+        controle_acesso_automatizado, sala_encomendas_delivery, wi_fi_areas_comuns,
+        created_by, updated_by
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28,
+        $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42,
+        $43, $44, $45, $46, $47
+      )
+    `, [
+      produtoId,
+      parseInt(rooms) || 0,
+      parseInt(suites) || 0,
+      parseInt(varandas) || 0,
+      parseInt(bathrooms) || 0,
+      parseInt(parking) || 0,
+      parseInt(areaservico) || 0,
+      parseInt(quartoservico) || 0,
+      parseInt(cozinha) || 0,
+      parseInt(lavabo) || 0,
+      parseInt(sala) || 0,
+      parseFloat(area) || 0,
+      parseFloat(area_construida) || 0,
+      parseFloat(area_terreno) || 0,
+      dimensoes_terreno || null,
+      parque_aquatico === true || parque_aquatico === 'true',
+      salao_festas === true || salao_festas === 'true',
+      parseInt(espaco_gourmet) || 0,
+      espaco_zen === true || espaco_zen === 'true',
+      coworking === true || coworking === 'true',
+      piquenique === true || piquenique === 'true',
+      espaco_grill === true || espaco_grill === 'true',
+      pet_park === true || pet_park === 'true',
+      supermarket === true || supermarket === 'true',
+      espaco_gamer === true || espaco_gamer === 'true',
+      salao_jogos === true || salao_jogos === 'true',
+      sala_cinema === true || sala_cinema === 'true',
+      playground === true || playground === 'true',
+      sala_yoga === true || sala_yoga === 'true',
+      redario === true || redario === 'true',
+      horta === true || horta === 'true',
+      area_convivencia === true || area_convivencia === 'true',
+      espacos_gourmet_multiplos === true || espacos_gourmet_multiplos === 'true',
+      academia === true || academia === 'true',
+      sala_funcional === true || sala_funcional === 'true',
+      quadra_poliesportiva === true || quadra_poliesportiva === 'true',
+      quadra_beach_tennis === true || quadra_beach_tennis === 'true',
+      campo_futebol_society === true || campo_futebol_society === 'true',
+      quadra_volei_praia === true || quadra_volei_praia === 'true',
+      quadra_tenis === true || quadra_tenis === 'true',
+      ciclovia === true || ciclovia === 'true',
+      pista_cooper === true || pista_cooper === 'true',
+      controle_acesso_automatizado === true || controle_acesso_automatizado === 'true',
+      sala_encomendas_delivery === true || sala_encomendas_delivery === 'true',
+      wi_fi_areas_comuns === true || wi_fi_areas_comuns === 'true',
+      userId,
+      userId
+    ]);
 
     // Se a operação for locação, salvar na tabela acessória public.produto_servicos_loca
     if (imbtpoperacao_id === 2) {

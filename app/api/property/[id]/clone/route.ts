@@ -9,7 +9,7 @@ import { recordAuditLog } from '@/lib/analytics-service';
 
 async function checkOwnership(imovelId: string, userId: number) {
     const res = await query(
-        'SELECT id FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+        'SELECT id FROM public.produto_servico WHERE id = $1 AND user_id = $2',
         [imovelId, userId]
     );
     return res.rows.length > 0;
@@ -31,7 +31,7 @@ export async function POST(
         }
 
         // 1. Fetch original property
-        const propRes = await query('SELECT * FROM produtos_servicos WHERE id = $1', [originalId]);
+        const propRes = await query('SELECT * FROM public.produto_servico WHERE id = $1', [originalId]);
         const original = propRes.rows[0];
 
         // 2. Create new property record
@@ -66,10 +66,29 @@ export async function POST(
         const columns = keys.join(', ');
 
         const insertRes = await query(
-            `INSERT INTO produtos_servicos (${columns}) VALUES (${placeholders}) RETURNING id`,
+            `INSERT INTO public.produto_servico (${columns}) VALUES (${placeholders}) RETURNING id`,
             values
         );
         const newId = insertRes.rows[0].id;
+
+        // Clone characteristics record (public.produto_servico_carac)
+        const caracRes = await query('SELECT * FROM public.produto_servico_carac WHERE produto_servico_id = $1', [originalId]);
+        if (caracRes.rows.length > 0) {
+            const { id: _, produto_servico_id: __, created_at: ___, updated_at: ____, ...caracData } = caracRes.rows[0];
+            const caracKeys = Object.keys(caracData);
+            const caracValues = Object.values(caracData);
+            const caracPlaceholders = caracKeys.map((_, i) => `$${i + 2}`).join(', ');
+            await query(
+                `INSERT INTO public.produto_servico_carac (produto_servico_id, ${caracKeys.join(', ')}) VALUES ($1, ${caracPlaceholders})`,
+                [newId, ...caracValues]
+            );
+        } else {
+            // Garantir relacionamento de 1 para 1
+            await query(
+                `INSERT INTO public.produto_servico_carac (produto_servico_id) VALUES ($1)`,
+                [newId]
+            );
+        }
 
         // Clone accessory table records (public.produto_servicos_loca or public.produto_servicos_venda)
         if (dataToClone.imbtpoperacao_id === 2) {

@@ -27,6 +27,7 @@ export default function IncluirEmpreendimentoPage() {
     const [cidadeId, setCidadeId] = useState<number | ''>('');
     const [bairroId, setBairroId] = useState<number | ''>('');
     const [paisId] = useState<number>(1); // Default Brasil
+    const [possuiCarac, setPossuiCarac] = useState(false);
 
     // Locations state
     const [estados, setEstados] = useState<LocationItem[]>([]);
@@ -247,7 +248,8 @@ export default function IncluirEmpreendimentoPage() {
                     estado_id: estadoId,
                     cidade_id: cidadeId,
                     bairro_id: bairroId,
-                    pais_id: paisId
+                    pais_id: paisId,
+                    possui_carac: possuiCarac
                 })
             });
 
@@ -305,6 +307,7 @@ export default function IncluirEmpreendimentoPage() {
                                     setEstadoId('');
                                     setCidadeId('');
                                     setBairroId('');
+                                    setPossuiCarac(false);
                                 }}
                             >
                                 Cadastrar Outro
@@ -420,6 +423,18 @@ export default function IncluirEmpreendimentoPage() {
                                     <option key={b.id} value={b.id}>{b.nome}</option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div className={styles.formGroup} style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                            <label className={styles.checkboxCard}>
+                                <input
+                                    type="checkbox"
+                                    className={styles.checkbox}
+                                    checked={possuiCarac}
+                                    onChange={(e) => setPossuiCarac(e.target.checked)}
+                                />
+                                <span>Habilitar características do empreendimento</span>
+                            </label>
                         </div>
 
                         <button 

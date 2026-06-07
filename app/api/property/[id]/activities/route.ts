@@ -17,7 +17,7 @@ export async function GET(
 
         // Verify ownership
         const ownerRes = await query(
-            'SELECT id FROM produtos_servicos WHERE id = $1 AND user_id = $2',
+            'SELECT id FROM public.produto_servico WHERE id = $1 AND user_id = $2',
             [propertyId, userId]
         );
         if (ownerRes.rowCount === 0) {
