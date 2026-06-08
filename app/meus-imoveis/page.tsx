@@ -612,18 +612,22 @@ function MeusImoveisContent() {
                                         </div>
                                         
                                         <div className={styles.cardCompactContent}>
-                                            <div className={styles.cardCompactIdRow}>
-                                                <div className={styles.cardCompactId}>
-                                                    Cód {imovel.id}
-                                                    {imovel.unidade ? ` • Un. ${imovel.unidade}` : ''}
-                                                </div>
-                                                {Number(imovel.pending_questions) > 0 && (
-                                                    <div className={styles.pendingBadge} title={`${imovel.pending_questions} pergunta(s) pendente(s)`}>
-                                                        <MessageSquare size={12} fill="white" />
-                                                        <span>{imovel.pending_questions}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                             <div className={styles.cardCompactIdRow}>
+                                                 <div className={styles.cardCompactId}>Cód {imovel.id}</div>
+                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                     {imovel.unidade && (
+                                                         <span style={{ fontSize: '9px', fontWeight: 600, color: '#475569', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px' }}>
+                                                             Un. {imovel.unidade}
+                                                         </span>
+                                                     )}
+                                                     {Number(imovel.pending_questions) > 0 && (
+                                                         <div className={styles.pendingBadge} title={`${imovel.pending_questions} pergunta(s) pendente(s)`}>
+                                                             <MessageSquare size={12} fill="white" />
+                                                             <span>{imovel.pending_questions}</span>
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                             </div>
                                             <h3 className={styles.cardCompactTitle}>
                                                 <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {(() => {
