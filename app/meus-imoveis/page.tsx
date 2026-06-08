@@ -460,7 +460,7 @@ function MeusImoveisContent() {
                 imovel.custom_fields?.bairro?.toLowerCase().includes(search) ||
                 imovel.tipo_nome?.toLowerCase().includes(search) ||
                 imovel.operacao_nome?.toLowerCase().includes(search) ||
-                imovel.unidade?.toLowerCase().includes(search);
+                (imovel.unidade ? String(imovel.unidade).toLowerCase().includes(search) : false);
             if (!matchesSearch) return false;
         }
 
