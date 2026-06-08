@@ -15,8 +15,9 @@ export async function POST(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; is_admin?: boolean };
     const userId = decoded.id;
+    const isAdmin = !!decoded.is_admin;
 
     // Fetch property details
     const res = await query(`
@@ -45,8 +46,8 @@ export async function POST(
       LEFT JOIN apoestado est ON p.estado_id = est.id
       LEFT JOIN apocidade cid ON p.cidade_id = cid.id
       LEFT JOIN apobairro bai ON p.bairro_id = bai.id
-      WHERE p.id = $1 AND p.user_id = $2
-    `, [id, userId]);
+      WHERE p.id = $1 AND ($3::boolean = true OR p.user_id = $2)
+    `, [id, userId, isAdmin]);
 
     if (res.rowCount === 0) {
       return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão' }, { status: 404 });

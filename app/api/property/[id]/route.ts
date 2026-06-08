@@ -18,8 +18,9 @@ export async function GET(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; is_admin?: boolean };
     const userId = decoded.id;
+    const isAdmin = !!decoded.is_admin;
 
     const res = await query(`
       SELECT 
@@ -57,8 +58,8 @@ export async function GET(
       LEFT JOIN apoestado est ON p.estado_id = est.id
       LEFT JOIN apocidade cid ON p.cidade_id = cid.id
       LEFT JOIN apobairro bai ON p.bairro_id = bai.id
-      WHERE p.id = $1 AND p.user_id = $2
-    `, [id, userId]);
+      WHERE p.id = $1 AND ($3::boolean = true OR p.user_id = $2)
+    `, [id, userId, isAdmin]);
 
     if (res.rowCount === 0) {
       return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão' }, { status: 404 });
@@ -217,16 +218,17 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; is_admin?: boolean };
     const userId = decoded.id;
+    const isAdmin = !!decoded.is_admin;
 
     // 0. Fetch OLD data for diffing and partial update fallback
     const oldRes = await query(
       `SELECT p.*, carac.* 
        FROM public.produto_servico p
        LEFT JOIN public.produto_servico_carac carac ON p.id = carac.produto_servico_id
-       WHERE p.id = $1 AND p.user_id = $2`,
-      [id, userId]
+       WHERE p.id = $1 AND ($3::boolean = true OR p.user_id = $2)`,
+      [id, userId, isAdmin]
     );
     const oldData = oldRes.rows[0];
     if (!oldData) {
@@ -553,7 +555,7 @@ export async function PUT(
         updated_at = NOW(),
         updated_by = $27,
         organization_id = COALESCE(organization_id, '1')
-      WHERE id = $28 AND user_id = $29
+      WHERE id = $28 AND ($31::boolean = true OR user_id = $29)
       RETURNING id
     `, [
       title || oldData.nome || 'Imóvel sem título', 
@@ -585,7 +587,8 @@ export async function PUT(
       userId,
       id,
       userId,
-      imbtipoanuncio_id || 1
+      imbtipoanuncio_id || 1,
+      isAdmin
     ]);
 
   if (updateRes.rowCount === 0) {
@@ -927,13 +930,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; is_admin?: boolean };
     const userId = decoded.id;
+    const isAdmin = !!decoded.is_admin;
 
     // 1. Verify ownership and existence
     const res = await query(
-      'SELECT id, nome FROM public.produto_servico WHERE id = $1 AND user_id = $2',
-      [id, userId]
+      'SELECT id, nome FROM public.produto_servico WHERE id = $1 AND ($3::boolean = true OR user_id = $2)',
+      [id, userId, isAdmin]
     );
 
     if (res.rowCount === 0) {
@@ -972,7 +976,7 @@ export async function DELETE(
     // 3. Delete from DB
     await query('DELETE FROM produtos_servicos_midia WHERE produto_servico_id = $1', [id]);
     await query('DELETE FROM public.produto_servico_carac WHERE produto_servico_id = $1', [id]);
-    await query('DELETE FROM public.produto_servico WHERE id = $1 AND user_id = $2', [id, userId]);
+    await query('DELETE FROM public.produto_servico WHERE id = $1 AND ($3::boolean = true OR user_id = $2)', [id, userId, isAdmin]);
 
     // 4. Log the deletion
     await recordAuditLog(Number(id), userId, 'EXCLUSAO', {

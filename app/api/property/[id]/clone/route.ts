@@ -7,10 +7,10 @@ import { join } from 'path';
 import { cp, mkdir } from 'fs/promises';
 import { recordAuditLog } from '@/lib/analytics-service';
 
-async function checkOwnership(imovelId: string, userId: number) {
+async function checkOwnership(imovelId: string, userId: number, isAdmin = false) {
     const res = await query(
-        'SELECT id FROM public.produto_servico WHERE id = $1 AND user_id = $2',
-        [imovelId, userId]
+        'SELECT id FROM public.produto_servico WHERE id = $1 AND ($3::boolean = true OR user_id = $2)',
+        [imovelId, userId, isAdmin]
     );
     return res.rows.length > 0;
 }
@@ -24,9 +24,9 @@ export async function POST(
         const token = req.cookies.get('token')?.value;
 
         if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
         
-        if (!(await checkOwnership(originalId, decoded.id))) {
+        if (!(await checkOwnership(originalId, decoded.id, !!decoded.is_admin))) {
             return NextResponse.json({ error: 'Proibido' }, { status: 403 });
         }
 

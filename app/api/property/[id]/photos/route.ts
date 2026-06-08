@@ -8,10 +8,10 @@ import crypto from 'crypto';
 import { JWT_SECRET } from '@/lib/auth-config';
 
 // Helper to check ownership
-async function checkOwnership(imovelId: string, userId: number) {
+async function checkOwnership(imovelId: string, userId: number, isAdmin = false) {
     const res = await query(
-        'SELECT id FROM public.produto_servico WHERE id = $1 AND user_id = $2',
-        [imovelId, userId]
+        'SELECT id FROM public.produto_servico WHERE id = $1 AND ($3::boolean = true OR user_id = $2)',
+        [imovelId, userId, isAdmin]
     );
     return res.rowCount !== null && res.rowCount > 0;
 }
@@ -25,9 +25,9 @@ export async function GET(
         const token = req.cookies.get('token')?.value;
 
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
         
-        if (!(await checkOwnership(imovelId, decoded.id))) {
+        if (!(await checkOwnership(imovelId, decoded.id, !!decoded.is_admin))) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -58,9 +58,9 @@ export async function POST(
         const token = req.cookies.get('token')?.value;
 
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
         
-        if (!(await checkOwnership(imovelId, decoded.id))) {
+        if (!(await checkOwnership(imovelId, decoded.id, !!decoded.is_admin))) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -132,9 +132,9 @@ export async function DELETE(
         const photoId = req.nextUrl.searchParams.get('photoId');
 
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
         
-        if (!(await checkOwnership(imovelId, decoded.id))) {
+        if (!(await checkOwnership(imovelId, decoded.id, !!decoded.is_admin))) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -185,9 +185,9 @@ export async function PATCH(
         const token = req.cookies.get('token')?.value;
 
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
         
-        if (!(await checkOwnership(imovelId, decoded.id))) {
+        if (!(await checkOwnership(imovelId, decoded.id, !!decoded.is_admin))) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -224,9 +224,9 @@ export async function PUT(
         const token = req.cookies.get('token')?.value;
 
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
         
-        if (!(await checkOwnership(imovelId, decoded.id))) {
+        if (!(await checkOwnership(imovelId, decoded.id, !!decoded.is_admin))) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 

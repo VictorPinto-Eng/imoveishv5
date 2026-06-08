@@ -12,13 +12,14 @@ export async function GET(
         const token = req.cookies.get('token')?.value;
 
         if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
         const userId = decoded.id;
+        const isAdmin = !!decoded.is_admin;
 
         // Verify ownership
         const ownerRes = await query(
-            'SELECT id FROM public.produto_servico WHERE id = $1 AND user_id = $2',
-            [propertyId, userId]
+            'SELECT id FROM public.produto_servico WHERE id = $1 AND ($3::boolean = true OR user_id = $2)',
+            [propertyId, userId, isAdmin]
         );
         if (ownerRes.rowCount === 0) {
             return NextResponse.json({ error: 'Proibido' }, { status: 403 });
