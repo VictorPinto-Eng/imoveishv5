@@ -623,8 +623,12 @@ function MeusImoveisContent() {
                                             </div>
                                             <h3 className={styles.cardCompactTitle}>
                                                 <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                    {imovel.operacao_nome ? `${imovel.operacao_nome} - ` : ''}
-                                                    {imovel.tipo_nome || (imovel.categoria === 'Imovel' ? 'Apartamento' : imovel.categoria)}
+                                                    {(() => {
+                                                        const parts = [];
+                                                        if (imovel.operacao_nome) parts.push(imovel.operacao_nome);
+                                                        if (imovel.tipo_nome) parts.push(imovel.tipo_nome);
+                                                        return parts.join(' - ');
+                                                    })()}
                                                 </div>
                                                 {imovel.status_imovel_nome && (
                                                     <span className={`${styles.statusBadgeCompact} ${getStatusClass(imovel.status_imovel_nome)}`}>
@@ -1093,8 +1097,12 @@ function MeusImoveisContent() {
                             <div className={styles.detailContent}>
                                 <div className={styles.detailTitleRow}>
                                     <h1 className={styles.detailMainTitle}>
-                                        {selectedImovel?.operacao_nome ? `${selectedImovel.operacao_nome} - ` : ''}
-                                        {selectedImovel?.tipo_nome || (selectedImovel?.categoria === 'Imovel' ? 'Apartamento' : selectedImovel?.categoria)}
+                                        {(() => {
+                                            const parts = [];
+                                            if (selectedImovel?.operacao_nome) parts.push(selectedImovel.operacao_nome);
+                                            if (selectedImovel?.tipo_nome) parts.push(selectedImovel.tipo_nome);
+                                            return parts.join(' - ');
+                                        })()}
                                     </h1>
                                     <p className={styles.detailSubTitle}>{selectedImovel?.nome}</p>
                                     <div style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.25rem' }}>

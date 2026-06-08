@@ -72,11 +72,11 @@ interface Imovel {
     lavabo: number;
     sala: number;
     dimensoes_terreno: string;
-    imbtpoperacao_id?: number;
-    imbfinalidade_id?: number;
-    imbtpimovel_id?: number;
-    statusimovel?: number;
-    empreendimento?: number;
+    imbtpoperacao_id?: number | null;
+    imbfinalidade_id?: number | null;
+    imbtpimovel_id?: number | null;
+    statusimovel?: number | null;
+    empreendimento?: number | null;
     imbtipoanuncio_id?: number;
     estado_id?: number;
     cidade_id?: number;
@@ -206,7 +206,7 @@ export default function EditarImovelPage() {
     };
 
     const handleEmpreendimentoChange = async (val: any) => {
-        setImovel(prev => prev ? ({ ...prev, empreendimento: val ? Number(val) : undefined }) : null);
+        setImovel(prev => prev ? ({ ...prev, empreendimento: val ? Number(val) : null }) : null);
         
         if (!val) return;
         
@@ -255,11 +255,18 @@ export default function EditarImovelPage() {
     }, []);
 
     useEffect(() => {
+        const idStr = Array.isArray(id) ? id[0] : id;
+        if (idStr === 'undefined') {
+            router.push('/meus-imoveis');
+            return;
+        }
+        if (!idStr) return;
+
         const fetchImovel = async () => {
             try {
-                const res = await fetch(`/api/property/${id}`);
+                const res = await fetch(`/api/property/${idStr}`);
                 if (!res.ok) {
-                    router.push('/meus-imoveis?id=' + id);
+                    router.push(`/meus-imoveis?id=${idStr}`);
                     return;
                 }
                 const data = await res.json();
@@ -293,7 +300,7 @@ export default function EditarImovelPage() {
             }
         };
 
-        if (id) fetchImovel();
+        fetchImovel();
     }, [id, router]);
 
     const generateAiTitle = async () => {
@@ -1533,11 +1540,11 @@ export default function EditarImovelPage() {
                                     <select
                                         value={imovel.imbtpoperacao_id || ''}
                                         onChange={(e) => {
-                                            const id = parseInt(e.target.value);
-                                            const opObj = operacoes.find(op => op.id === id);
+                                            const val = parseInt(e.target.value);
+                                            const opObj = operacoes.find(op => op.id === val);
                                             setImovel({
                                                 ...imovel,
-                                                imbtpoperacao_id: id || undefined,
+                                                imbtpoperacao_id: isNaN(val) ? null : val,
                                                 custom_fields: { ...imovel.custom_fields, objetivo: opObj ? opObj.descricao : '' }
                                             });
                                         }}
@@ -1573,12 +1580,17 @@ export default function EditarImovelPage() {
                                     <select
                                         value={imovel.imbfinalidade_id || ''}
                                         onChange={(e) => {
-                                            const id = parseInt(e.target.value);
-                                            const cat = categories.find(c => c.id === id);
+                                            const val = parseInt(e.target.value);
+                                            const cat = categories.find(c => c.id === val);
                                             setImovel({
                                                 ...imovel,
-                                                imbfinalidade_id: id || undefined,
-                                                custom_fields: { ...imovel.custom_fields, finalidade: cat ? cat.descricao : '' }
+                                                imbfinalidade_id: isNaN(val) ? null : val,
+                                                imbtpimovel_id: isNaN(val) ? null : imovel.imbtpimovel_id,
+                                                custom_fields: {
+                                                    ...imovel.custom_fields,
+                                                    finalidade: cat ? cat.descricao : '',
+                                                    tipo_imovel: isNaN(val) ? '' : imovel.custom_fields.tipo_imovel
+                                                }
                                             });
                                         }}
                                         className={styles.select}
@@ -1594,11 +1606,11 @@ export default function EditarImovelPage() {
                                     <select
                                         value={imovel.imbtpimovel_id || ''}
                                         onChange={(e) => {
-                                            const id = parseInt(e.target.value);
-                                            const typeObj = propertyTypesList.find(t => t.id === id);
+                                            const val = parseInt(e.target.value);
+                                            const typeObj = propertyTypesList.find(t => t.id === val);
                                             setImovel({
                                                 ...imovel,
-                                                imbtpimovel_id: id || undefined,
+                                                imbtpimovel_id: isNaN(val) ? null : val,
                                                 custom_fields: { ...imovel.custom_fields, tipo_imovel: typeObj ? typeObj.descricao : '' }
                                             });
                                         }}
@@ -1615,10 +1627,13 @@ export default function EditarImovelPage() {
                                     <label>Status do Imóvel</label>
                                     <select
                                         value={imovel.statusimovel || ''}
-                                        onChange={(e) => setImovel({
-                                            ...imovel,
-                                            statusimovel: parseInt(e.target.value) || undefined
-                                        })}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            setImovel({
+                                                ...imovel,
+                                                statusimovel: isNaN(val) ? null : val
+                                            });
+                                        }}
                                         className={styles.select}
                                     >
                                         <option value="">Selecione...</option>
