@@ -459,7 +459,8 @@ function MeusImoveisContent() {
                 imovel.logradouro?.toLowerCase().includes(search) ||
                 imovel.custom_fields?.bairro?.toLowerCase().includes(search) ||
                 imovel.tipo_nome?.toLowerCase().includes(search) ||
-                imovel.operacao_nome?.toLowerCase().includes(search);
+                imovel.operacao_nome?.toLowerCase().includes(search) ||
+                imovel.unidade?.toLowerCase().includes(search);
             if (!matchesSearch) return false;
         }
 
