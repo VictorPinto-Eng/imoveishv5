@@ -613,7 +613,10 @@ function MeusImoveisContent() {
                                         
                                         <div className={styles.cardCompactContent}>
                                             <div className={styles.cardCompactIdRow}>
-                                                <div className={styles.cardCompactId}>Cód {imovel.id}</div>
+                                                <div className={styles.cardCompactId}>
+                                                    Cód {imovel.id}
+                                                    {imovel.unidade ? ` • Un. ${imovel.unidade}` : ''}
+                                                </div>
                                                 {Number(imovel.pending_questions) > 0 && (
                                                     <div className={styles.pendingBadge} title={`${imovel.pending_questions} pergunta(s) pendente(s)`}>
                                                         <MessageSquare size={12} fill="white" />
@@ -638,7 +641,12 @@ function MeusImoveisContent() {
                                             </h3>
                                             
                                             <div className={styles.cardCompactAddress}>
-                                                {imovel.logradouro ? `${imovel.logradouro}${imovel.numero ? ', ' + imovel.numero : ''}` : 'Localização não informada'}
+                                                {imovel.logradouro ? (
+                                                    <>
+                                                        {imovel.logradouro}{imovel.numero ? `, ${imovel.numero}` : ''}
+                                                        {imovel.unidade ? ` - Un. ${imovel.unidade}` : ''}
+                                                    </>
+                                                ) : 'Localização não informada'}
                                             </div>
                                             <div className={styles.cardCompactAddress}>
                                                 {imovel.bairro_nome || imovel.custom_fields?.bairro || 'Bairro não informado'}
