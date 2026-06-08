@@ -1110,14 +1110,16 @@ function MeusImoveisContent() {
                             <div className={styles.detailContent}>
                                 <div className={styles.detailTitleRow}>
                                     <h1 className={styles.detailMainTitle}>
+                                        {selectedImovel?.nome}
+                                    </h1>
+                                    <p className={styles.detailSubTitle}>
                                         {(() => {
                                             const parts = [];
                                             if (selectedImovel?.operacao_nome) parts.push(selectedImovel.operacao_nome);
                                             if (selectedImovel?.tipo_nome) parts.push(selectedImovel.tipo_nome);
                                             return parts.join(' - ');
                                         })()}
-                                    </h1>
-                                    <p className={styles.detailSubTitle}>{selectedImovel?.nome}</p>
+                                    </p>
                                     <div style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.25rem' }}>
                                         Cód: {selectedImovel?.id}
                                     </div>
