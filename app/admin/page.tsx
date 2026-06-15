@@ -963,7 +963,14 @@ export default function AdminPage() {
                 </div>
 
                 {/* Document & Receita Federal */}
-                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
+                <div style={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  padding: '1.25rem',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)',
+                  gridColumn: (selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) ? 'span 1' : 'span 2'
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(13, 148, 136, 0.1)', color: '#0d9488' }}>
                       <ShieldCheck size={16} />
@@ -1016,56 +1023,41 @@ export default function AdminPage() {
                 </div>
 
                 {/* CRECI Info */}
-                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
-                    <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-                      <Award size={16} />
+                {(selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) && (
+                  <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+                      <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                        <Award size={16} />
+                      </div>
+                      <span style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CRECI</span>
                     </div>
-                    <span style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CRECI & Perfil</span>
-                  </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {(selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) ? (
-                      <>
-                        <div>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Perfil:</span>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>
-                            {selectedUser.user_roles_name || 'Corretor'}
-                          </div>
-                        </div>
-                        <div>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>CRECI:</span>
-                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>
-                            {selectedUser.creci_numero ? `${selectedUser.creci_numero} (${selectedUser.creci_tipo || 'Pessoa Física'})` : 'Não informado'}
-                          </div>
-                        </div>
-                        <div>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Status CRECI:</span>
-                          <div style={{ marginTop: '4px' }}>
-                            {selectedUser.creci_status ? (
-                              <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
-                                ✅ Homologado
-                              </span>
-                            ) : selectedUser.creci_numero ? (
-                              <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
-                                ⏳ Pendente
-                              </span>
-                            ) : (
-                              <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 500 }}>Sem CRECI</span>
-                            )}
-                          </div>
-                        </div>
-                      </>
-                    ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Perfil:</span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>CRECI:</span>
                         <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>
-                          {selectedUser.user_roles_name || 'Proprietário'}
+                          {selectedUser.creci_numero ? `${selectedUser.creci_numero} (${selectedUser.creci_tipo || 'Pessoa Física'})` : 'Não informado'}
                         </div>
                       </div>
-                    )}
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Status CRECI:</span>
+                        <div style={{ marginTop: '4px' }}>
+                          {selectedUser.creci_status ? (
+                            <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
+                              ✅ Homologado
+                            </span>
+                          ) : selectedUser.creci_numero ? (
+                            <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
+                              ⏳ Pendente
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 500 }}>Sem CRECI</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
 
               </div>
             </div>
