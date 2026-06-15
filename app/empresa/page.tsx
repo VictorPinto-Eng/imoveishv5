@@ -28,9 +28,10 @@ const jsonLd = {
     email: 'souhv5@gmail.com',
     address: {
         '@type': 'PostalAddress',
-        streetAddress: 'Avenida Campina Grande, 2227, Sala 01',
+        streetAddress: 'R. Jornalista Aníbal Fernandes, 16, Andar 3',
         addressLocality: 'Caruaru',
         addressRegion: 'PE',
+        postalCode: '55002-340',
         addressCountry: 'BR',
     },
     sameAs: [
@@ -168,7 +169,7 @@ export default function EmpresaPage() {
                                 { label: 'Telefone / WhatsApp', value: '(81) 99952-9391', icon: '📞', href: 'tel:5581999529391' },
                                 { label: 'Site', value: 'imoveis.hv5.com.br', icon: '🌐', href: 'https://imoveis.hv5.com.br' },
                                 { label: 'E-mail', value: 'souhv5@gmail.com', icon: '✉️', href: 'mailto:souhv5@gmail.com' },
-                                { label: 'Endereço', value: 'Av. Campina Grande, 2227, Sala 01 — Nova Caruaru, Caruaru/PE', icon: '📍' },
+                                { label: 'Endereço', value: 'R. Jornalista Aníbal Fernandes, 16, Andar 3 — Bairro Nossa Senhora das Dores, Caruaru/PE — CEP 55002-340', icon: '📍' },
                             ].map(({ label, value, icon, href }) => (
                                 <div key={label} style={{
                                     background: '#f8fafc',
