@@ -163,6 +163,11 @@ export default function MeuPerfilPage() {
             Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, insira a Data de Nascimento / Abertura para validação.' });
             return;
         }
+        const isCpf = cpfCnpj.replace(/\D/g, '').length === 11;
+        if (isCpf && (!razaoSocial || !razaoSocial.trim())) {
+            Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, insira o nome completo conforme consta na Receita Federal.' });
+            return;
+        }
         if (!user) return;
 
         setIsValidatingCpf(true);
@@ -170,7 +175,12 @@ export default function MeuPerfilPage() {
             const res = await fetch('/api/user/validate-cpf', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cpf: cpfCnpj, fullName: user.name, birthDate: dataNascimento })
+                body: JSON.stringify({ 
+                    cpf: cpfCnpj, 
+                    fullName: user.name, 
+                    birthDate: dataNascimento,
+                    razaoSocial: razaoSocial
+                })
             });
 
             const data = await res.json();

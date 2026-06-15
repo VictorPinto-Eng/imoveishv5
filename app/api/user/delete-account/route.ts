@@ -35,14 +35,14 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Desabilitar o acesso do usuário (marcar como ativo = false)
-        await query('UPDATE users SET ativo = false WHERE id = $1', [decoded.id]);
+        // Desabilitar o acesso do usuário (marcar como ativo = false e delete_requested = true)
+        await query('UPDATE users SET ativo = false, delete_requested = true WHERE id = $1', [decoded.id]);
 
         // Desativar todos os cards/imóveis publicados pelo usuário
         await query('UPDATE public.produto_servico SET ativo = false WHERE user_id = $1', [decoded.id]);
 
         // Create response and clear auth token cookie
-        const response = NextResponse.json({ success: true, message: 'Conta excluída com sucesso.' });
+        const response = NextResponse.json({ success: true, message: 'Conta desativada e solicitação de exclusão permanente enviada ao administrador.' });
         response.cookies.set('token', '', { expires: new Date(0), path: '/' });
 
         return response;

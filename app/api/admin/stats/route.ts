@@ -41,10 +41,24 @@ export async function GET(req: NextRequest) {
 
     // 2.5. Pending CPF list
     const pendingCpfRes = await query(`
-      SELECT u.id, u.name, u.email, u.phone, u.cpf_cnpj, u.data_nascimento
+      SELECT u.id, u.name, u.email, u.phone, u.cpf_cnpj, u.data_nascimento, u.razao_social
       FROM users u
       WHERE u.cpf_cnpj IS NOT NULL AND (u.cpf_validated = false OR u.cpf_validated IS NULL)
       ORDER BY u.updated_at ASC
+    `);
+
+    // 2.7. All users list with property counts and delete_requested flag
+    const usersListRes = await query(`
+      SELECT 
+        u.id, 
+        u.name, 
+        u.email, 
+        u.phone,
+        u.delete_requested,
+        (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 1) as venda_count,
+        (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 2) as locacao_count
+      FROM users u
+      ORDER BY u.name ASC
     `);
 
     // 3. Recent Properties list
@@ -77,6 +91,7 @@ export async function GET(req: NextRequest) {
       },
       pendingCreci: pendingCreciRes.rows,
       pendingCpf: pendingCpfRes.rows,
+      usersList: usersListRes.rows,
       recentProperties: recentPropertiesRes.rows
     });
   } catch (error: any) {

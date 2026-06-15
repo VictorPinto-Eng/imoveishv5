@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
         }
 
         const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string };
-        const { social_name, email, id_tipo_usuario, roles, phone, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento } = await req.json();
+        const { social_name, email, id_tipo_usuario, roles, phone, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento, razao_social } = await req.json();
 
         // Check if email is changing
         const userResult = await query('SELECT email, name, creci_document_url FROM users WHERE id = $1', [decoded.id]);
@@ -75,9 +75,9 @@ export async function POST(req: NextRequest) {
                 `UPDATE users 
                  SET social_name = $1, email = $2, email_verified = false, verification_token = $3, 
                      id_tipo_usuario = $4, phone = $5, creci_numero = $6, creci_apoestado_id = $7, creci_tipo = $8,
-                     cpf_cnpj = $9, data_nascimento = $10
-                 WHERE id = $11`,
-                [social_name || '', email, newToken, mainRoleId, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null, decoded.id]
+                     cpf_cnpj = $9, data_nascimento = $10, razao_social = $11
+                 WHERE id = $12`,
+                [social_name || '', email, newToken, mainRoleId, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null, razao_social || null, decoded.id]
             );
 
             // OPTIMIZATION: Send email in background AFTER response
@@ -94,9 +94,9 @@ export async function POST(req: NextRequest) {
             await query(
                 `UPDATE users 
                  SET social_name = $1, id_tipo_usuario = $2, phone = $3, creci_numero = $4, creci_apoestado_id = $5, creci_tipo = $6,
-                     cpf_cnpj = $7, data_nascimento = $8
-                 WHERE id = $9`,
-                [social_name || '', mainRoleId, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null, decoded.id]
+                     cpf_cnpj = $7, data_nascimento = $8, razao_social = $9
+                 WHERE id = $10`,
+                [social_name || '', mainRoleId, phone || null, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null, razao_social || null, decoded.id]
             );
         }
 
