@@ -119,10 +119,65 @@ export default function Header() {
             const res = await fetch('/api/auth/me');
             if (res.ok) {
                 const data = await res.json();
-                if (data.authenticated) {
+                if (data.authenticated && data.user) {
                     setUser(data.user);
                     if (data.user.is_admin) {
                         fetchPendingCreciCount();
+                    }
+
+                    // --- Alerta pós-login de dados pendentes (CPF / CRECI) ---
+                    const rolesData = data.user.roles || [];
+                    const roleIds = rolesData.map((r: any) => Number(r.id));
+                    const isProprietario = roleIds.includes(3);
+                    const isCorretor = roleIds.includes(2);
+
+                    const hasNotified = sessionStorage.getItem('hv5_notified_pending_docs');
+
+                    if (!hasNotified && !data.user.is_admin) {
+                        let needsAlert = false;
+                        let alertHtml = '';
+
+                        if (isProprietario && !data.user.cpf_validated) {
+                            needsAlert = true;
+                            alertHtml = `
+                                <p style="margin-bottom:12px; line-height: 1.5;">Como <strong>Proprietário(a)</strong>, você precisa validar seus dados cadastrais para começar a publicar anúncios.</p>
+                                <div style="background-color:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:12px; font-size:0.875rem; color:#92400e; text-align:left;">
+                                    ⚠️ <strong>Pendente:</strong> Validação de CPF ou CNPJ.
+                                </div>
+                            `;
+                        } else if (isCorretor && (!data.user.cpf_validated || !data.user.creci_status)) {
+                            needsAlert = true;
+                            const cpfText = data.user.cpf_validated ? '✅ CPF Validado' : '❌ CPF Pendente de Validação';
+                            const creciText = data.user.creci_status ? '✅ CRECI Homologado' : (data.user.creci_document_url ? '⏳ CRECI em Análise' : '❌ Comprovante do CRECI não enviado');
+
+                            alertHtml = `
+                                <p style="margin-bottom:12px; line-height: 1.5;">Como <strong>Corretor(a)</strong>, sua conta precisa ser homologada pelo administrador para liberar suas permissões.</p>
+                                <div style="background-color:#f5f3ff; border:1px solid #ddd6fe; border-radius:8px; padding:12px; font-size:0.875rem; color:#6d28d9; text-align:left; display:flex; flex-direction:column; gap:4px;">
+                                    <div>${cpfText}</div>
+                                    <div>${creciText}</div>
+                                </div>
+                            `;
+                        }
+
+                        if (needsAlert) {
+                            sessionStorage.setItem('hv5_notified_pending_docs', 'true');
+                            setTimeout(() => {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Perfil Incompleto ⚠️',
+                                    html: alertHtml,
+                                    confirmButtonText: 'Completar Perfil',
+                                    confirmButtonColor: '#7F34E6',
+                                    showCancelButton: true,
+                                    cancelButtonText: 'Depois',
+                                    cancelButtonColor: '#64748b'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = '/meu-perfil';
+                                    }
+                                });
+                            }, 500);
+                        }
                     }
                 } else {
                     setUser(null);
