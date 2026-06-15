@@ -685,6 +685,27 @@ export default function AdminPage() {
                                       ? item.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
                                       : item.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')}
                                   </div>
+                                  <div style={{ marginTop: '2px' }}>
+                                    <button
+                                      onClick={() => handleCpfAction(item.id, item.name, 'approve', item.razao_social)}
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#7F34E6',
+                                        fontWeight: 600,
+                                        fontSize: '0.75rem',
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                        textDecoration: 'underline'
+                                      }}
+                                    >
+                                      <Edit3 size={12} />
+                                      Homologar Nome Receita
+                                    </button>
+                                  </div>
                                 </td>
                                 <td>
                                   <div
