@@ -430,28 +430,7 @@ export default function AdminPage() {
                                       📋 Receita: {usr.razao_social}
                                     </div>
                                   )}
-                                  <div style={{ marginTop: '2px' }}>
-                                    <button
-                                      onClick={() => handleCpfAction(usr.id, usr.name, 'approve', usr.razao_social)}
-                                      style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '4px',
-                                        background: 'none',
-                                        border: 'none',
-                                        color: '#7F34E6',
-                                        fontWeight: 600,
-                                        fontSize: '0.75rem',
-                                        cursor: 'pointer',
-                                        padding: 0,
-                                        textDecoration: 'underline'
-                                      }}
-                                    >
-                                      <Edit3 size={12} />
-                                      {usr.cpf_validated ? 'Atualizar Nome Receita' : 'Homologar Nome Receita'}
-                                    </button>
                                   </div>
-                                </div>
                               ) : (
                                 <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Sem documento informado</span>
                               )}
