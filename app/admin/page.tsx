@@ -934,6 +934,12 @@ export default function AdminPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: 'calc(100% - 46px)', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Perfil:</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#7F34E6', backgroundColor: 'rgba(127, 52, 230, 0.08)', padding: '4px 10px', borderRadius: '6px' }}>
+                        {selectedUser.user_roles_name || (selectedUser.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário')}
+                      </span>
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                       <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #7F34E6 0%, #9851fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.3rem', fontWeight: 800 }}>
                         {(Number(selectedUser.venda_count) || 0) + (Number(selectedUser.locacao_count) || 0)}
