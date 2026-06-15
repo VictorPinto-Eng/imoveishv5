@@ -811,7 +811,7 @@ export default function AdminPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 9999
+          zIndex: 999999
         }}>
           <div style={{
             backgroundColor: '#ffffff',
