@@ -26,6 +26,11 @@ export const metadata: Metadata = {
         description: 'Encontre apartamentos, casas e imóveis comerciais para compra, venda e aluguel em Pernambuco.',
         images: ['/logo_hv5_1024.png'],
     },
+    verification: {
+        other: {
+            'facebook-domain-verification': ['8b5xlen91xgry7k2bhj7pz5ny93yv1'],
+        },
+    },
     robots: {
         index: true,
         follow: true,
