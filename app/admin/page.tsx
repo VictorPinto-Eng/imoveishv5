@@ -48,6 +48,7 @@ interface PendingCpf {
 interface UserListItem {
   id: number;
   name: string;
+  social_name?: string;
   email: string;
   phone: string;
   cpf_cnpj?: string;
@@ -56,6 +57,12 @@ interface UserListItem {
   delete_requested: boolean;
   venda_count: number;
   locacao_count: number;
+  creci_numero?: string;
+  creci_tipo?: string;
+  creci_status?: boolean;
+  data_nascimento?: string;
+  created_at?: string;
+  id_tipo_usuario?: number;
 }
 
 interface RecentProperty {
@@ -77,6 +84,7 @@ export default function AdminPage() {
   const [usersList, setUsersList] = useState<UserListItem[]>([]);
   const [recentProperties, setRecentProperties] = useState<RecentProperty[]>([]);
   const [currentView, setCurrentView] = useState<'dashboard' | 'users'>('dashboard');
+  const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -445,8 +453,28 @@ export default function AdminPage() {
                               {total}
                             </td>
                             <td style={{ textAlign: 'center' }}>
-                              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                {usr.delete_requested ? (
+                              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                                <button
+                                  onClick={() => setSelectedUser(usr)}
+                                  title="Visualizar todos os dados do usuário"
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    padding: '0.4rem 0.6rem',
+                                    backgroundColor: '#7F34E6',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    transition: 'background-color 0.2s'
+                                  }}
+                                >
+                                  <Eye size={14} /> Detalhes
+                                </button>
+                                {usr.delete_requested && (
                                   <>
                                     <button
                                       className={styles.btnApprove}
@@ -465,8 +493,6 @@ export default function AdminPage() {
                                       <Trash2 size={14} /> Excluir
                                     </button>
                                   </>
-                                ) : (
-                                  <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>-</span>
                                 )}
                               </div>
                             </td>
@@ -800,6 +826,231 @@ export default function AdminPage() {
           )}
         </div>
       </main>
+
+      {/* MODAL DETALHES DO USUÁRIO */}
+      {selectedUser && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '600px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden'
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid #f1f5f9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'linear-gradient(135deg, #7F34E6 0%, #6323be 100%)',
+              color: '#ffffff'
+            }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Detalhes do Usuário</h3>
+                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', opacity: 0.9 }}>
+                  ID: #{selectedUser.id} • {selectedUser.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário'}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedUser(null)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: 'none',
+                  color: '#ffffff',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                  lineHeight: 1,
+                  transition: 'background 0.2s'
+                }}
+                title="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: '1.5rem', maxHeight: '65vh', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                
+                {/* General Information */}
+                <div style={{ gridColumn: 'span 2' }}>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Dados Principais</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nome Completo:</span>
+                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.name}</div>
+                    </div>
+                    {selectedUser.social_name && (
+                      <div>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nome Social / Fantasia:</span>
+                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.social_name}</div>
+                      </div>
+                    )}
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>E-mail:</span>
+                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.email}</div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Telefone:</span>
+                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.phone || 'Não informado'}</div>
+                    </div>
+                    {selectedUser.created_at && (
+                      <div>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Data de Cadastro:</span>
+                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>
+                          {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')} às {new Date(selectedUser.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Document & Receita Federal */}
+                <div>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CPF / CNPJ & Receita</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: '100%' }}>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Número do Documento:</span>
+                      <div style={{ fontWeight: 600, fontFamily: 'monospace', color: '#0f172a', fontSize: '0.95rem' }}>
+                        {selectedUser.cpf_cnpj
+                          ? (selectedUser.cpf_cnpj.length === 11
+                            ? selectedUser.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                            : selectedUser.cpf_cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5'))
+                          : 'Não informado'}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Status de Homologação:</span>
+                      <div style={{ marginTop: '2px' }}>
+                        {selectedUser.cpf_validated ? (
+                          <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                            ✅ Validado
+                          </span>
+                        ) : selectedUser.cpf_cnpj ? (
+                          <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                            ⏳ Pendente
+                          </span>
+                        ) : (
+                          <span style={{ color: '#64748b', fontSize: '0.85rem' }}>-</span>
+                        )}
+                      </div>
+                    </div>
+                    {selectedUser.razao_social && (
+                      <div>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nome na Receita:</span>
+                        <div style={{ fontWeight: 600, color: '#7F34E6', fontSize: '0.9rem' }}>{selectedUser.razao_social}</div>
+                      </div>
+                    )}
+                    {selectedUser.data_nascimento && (
+                      <div>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nascimento / Abertura:</span>
+                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.9rem' }}>
+                          {new Date(selectedUser.data_nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* CRECI & Properties Info */}
+                <div>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CRECI & Imóveis</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: '100%' }}>
+                    {selectedUser.id_tipo_usuario === 1 ? (
+                      <>
+                        <div>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>CRECI:</span>
+                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>
+                            {selectedUser.creci_numero ? `${selectedUser.creci_numero} (${selectedUser.creci_tipo || 'Pessoa Física'})` : 'Não informado'}
+                          </div>
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Status CRECI:</span>
+                          <div style={{ marginTop: '2px' }}>
+                            {selectedUser.creci_status ? (
+                              <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                                ✅ Homologado
+                              </span>
+                            ) : selectedUser.creci_numero ? (
+                              <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                                ⏳ Pendente
+                              </span>
+                            ) : (
+                              <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Sem CRECI</span>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Perfil:</span>
+                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>Proprietário Comum</div>
+                      </div>
+                    )}
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Imóveis Cadastrados:</span>
+                      <div style={{ fontWeight: 600, color: '#0f172a', display: 'flex', gap: '12px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '0.85rem', color: '#0284c7' }}>Venda: {selectedUser.venda_count || 0}</span>
+                        <span style={{ fontSize: '0.85rem', color: '#0d9488' }}>Aluguel: {selectedUser.locacao_count || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{
+              padding: '1rem 1.5rem',
+              backgroundColor: '#f8fafc',
+              borderTop: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setSelectedUser(null)}
+                style={{
+                  padding: '0.5rem 1.25rem',
+                  backgroundColor: '#64748b',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  transition: 'background-color 0.2s'
+                }}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );

@@ -52,12 +52,19 @@ export async function GET(req: NextRequest) {
       SELECT 
         u.id, 
         u.name, 
+        u.social_name,
         u.email, 
         u.phone,
         u.cpf_cnpj,
         u.cpf_validated,
         u.razao_social,
         u.delete_requested,
+        u.creci_numero,
+        u.creci_tipo,
+        u.creci_status,
+        u.data_nascimento,
+        u.created_at,
+        u.id_tipo_usuario,
         (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 1) as venda_count,
         (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 2) as locacao_count
       FROM users u
