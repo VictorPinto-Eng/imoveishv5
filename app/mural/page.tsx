@@ -829,7 +829,7 @@ export default function MuralPage() {
           prev.map(p => p.proposal_id === proposalId ? { ...p, status: newStatus } : p)
         );
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
-          setSelectedProposal(prev => ({ ...prev, status: newStatus }));
+          setSelectedProposal((prev: any) => ({ ...prev, status: newStatus }));
         }
         Swal.fire({
           icon: 'success',
@@ -873,7 +873,7 @@ export default function MuralPage() {
           prev.map(p => p.proposal_id === proposalId ? { ...p, etapa: newEtapa } : p)
         );
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
-          setSelectedProposal(prev => ({ ...prev, etapa: newEtapa }));
+          setSelectedProposal((prev: any) => ({ ...prev, etapa: newEtapa }));
         }
       } else {
         Swal.fire({
@@ -911,7 +911,7 @@ export default function MuralPage() {
           prev.map(p => p.proposal_id === proposalId ? { ...p, anotacoes_internas: notes } : p)
         );
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
-          setSelectedProposal(prev => ({ ...prev, anotacoes_internas: notes }));
+          setSelectedProposal((prev: any) => ({ ...prev, anotacoes_internas: notes }));
         }
         Swal.fire({
           icon: 'success',
@@ -961,7 +961,7 @@ export default function MuralPage() {
           prev.map(p => p.proposal_id === proposalId ? { ...p, data_visita: dateStr || null, data_agendamento: dateStr || null, etapa: dateStr ? 'agendamento' : p.etapa } : p)
         );
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
-          setSelectedProposal(prev => ({ ...prev, data_visita: dateStr || null, data_agendamento: dateStr || null, etapa: dateStr ? 'agendamento' : prev.etapa }));
+          setSelectedProposal((prev: any) => ({ ...prev, data_visita: dateStr || null, data_agendamento: dateStr || null, etapa: dateStr ? 'agendamento' : prev.etapa }));
         }
         Swal.fire({
           icon: 'success',
@@ -1006,7 +1006,7 @@ export default function MuralPage() {
           prev.map(p => p.proposal_id === proposalId ? { ...p, data_agendamento: dateStr || null } : p)
         );
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
-          setSelectedProposal(prev => ({ ...prev, data_agendamento: dateStr || null }));
+          setSelectedProposal((prev: any) => ({ ...prev, data_agendamento: dateStr || null }));
         }
         Swal.fire({
           icon: 'success',
