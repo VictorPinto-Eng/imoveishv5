@@ -358,9 +358,14 @@
   color: #64748b;
   font-weight: 400;
   margin: 0 0 0.5rem 0;
-  white-space: nowrap;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-height: 2.4rem; /* Garante espaço para até 2 linhas mantendo o alinhamento */
+  line-height: 1.2rem;
   text-align: left;
 }
 
