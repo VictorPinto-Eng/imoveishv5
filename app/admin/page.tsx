@@ -866,9 +866,9 @@ export default function AdminPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                 
                 {/* General Information */}
-                <div style={{ gridColumn: 'span 2' }}>
+                <div>
                   <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Dados Principais</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: 'calc(100% - 26px)' }}>
                     <div>
                       <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nome Completo:</span>
                       <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.name}</div>
@@ -898,10 +898,31 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* Imóveis Cadastrados */}
+                <div>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Imóveis Cadastrados</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', height: 'calc(100% - 26px)', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500 }}>Total de Imóveis:</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7F34E6' }}>
+                        {(Number(selectedUser.venda_count) || 0) + (Number(selectedUser.locacao_count) || 0)}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#0284c7', fontWeight: 600 }}>Para Venda:</span>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0284c7' }}>{selectedUser.venda_count || 0}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#0d9488', fontWeight: 600 }}>Para Locação:</span>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{selectedUser.locacao_count || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Document & Receita Federal */}
                 <div>
                   <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CPF / CNPJ & Receita</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: 'calc(100% - 26px)' }}>
                     <div>
                       <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Número do Documento:</span>
                       <div style={{ fontWeight: 600, fontFamily: 'monospace', color: '#0f172a', fontSize: '0.95rem' }}>
@@ -945,10 +966,10 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* CRECI & Properties Info */}
+                {/* CRECI Info */}
                 <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CRECI & Imóveis</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: '100%' }}>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CRECI & Perfil</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: 'calc(100% - 26px)' }}>
                     {(selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) ? (
                       <>
                         <div>
@@ -988,13 +1009,6 @@ export default function AdminPage() {
                         </div>
                       </div>
                     )}
-                    <div>
-                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Imóveis Cadastrados:</span>
-                      <div style={{ fontWeight: 600, color: '#0f172a', display: 'flex', gap: '12px', marginTop: '2px' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#0284c7' }}>Venda: {selectedUser.venda_count || 0}</span>
-                        <span style={{ fontSize: '0.85rem', color: '#0d9488' }}>Aluguel: {selectedUser.locacao_count || 0}</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
