@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import {
-  Users, Building2, MessageSquare, Eye, FileText, Check, X, Loader2, AlertCircle, ExternalLink, Trash2, RotateCcw, Edit3
+  Users, Building2, MessageSquare, Eye, FileText, Check, X, Loader2, AlertCircle, ExternalLink, Trash2, RotateCcw, Edit3,
+  User, ShieldCheck, Award, Phone, Mail, Calendar
 } from 'lucide-react';
 import styles from './admin.module.css';
 import Swal from 'sweetalert2';
@@ -815,33 +816,35 @@ export default function AdminPage() {
         }}>
           <div style={{
             backgroundColor: '#ffffff',
-            borderRadius: '16px',
+            borderRadius: '24px',
             width: '90%',
-            maxWidth: '600px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            border: '1px solid #e2e8f0',
+            maxWidth: '650px',
+            boxShadow: '0 25px 50px -12px rgba(127, 52, 230, 0.25), 0 12px 30px rgba(0, 0, 0, 0.04)',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
             overflow: 'hidden'
           }}>
             {/* Header */}
             <div style={{
-              padding: '1.25rem 1.5rem',
+              padding: '1.5rem 2rem',
               borderBottom: '1px solid #f1f5f9',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'linear-gradient(135deg, #7F34E6 0%, #6323be 100%)',
+              background: 'linear-gradient(135deg, #7F34E6 0%, #9851fe 100%)',
               color: '#ffffff'
             }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Detalhes do Usuário</h3>
-                <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', opacity: 0.9 }}>
+                <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <User size={22} /> Detalhes do Usuário
+                </h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', opacity: 0.95, fontWeight: 500 }}>
                   ID: #{selectedUser.id} • {selectedUser.user_roles_name || (selectedUser.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário')}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedUser(null)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(255, 255, 255, 0.15)',
                   border: 'none',
                   color: '#ffffff',
                   borderRadius: '50%',
@@ -853,7 +856,15 @@ export default function AdminPage() {
                   cursor: 'pointer',
                   fontSize: '1.2rem',
                   lineHeight: 1,
-                  transition: 'background 0.2s'
+                  transition: 'background 0.2s, transform 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
                 title="Fechar"
               >
@@ -862,36 +873,51 @@ export default function AdminPage() {
             </div>
 
             {/* Content */}
-            <div style={{ padding: '1.5rem', maxHeight: '65vh', overflowY: 'auto' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div style={{ padding: '2rem', maxHeight: '65vh', overflowY: 'auto', backgroundColor: '#f8fafc' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 
                 {/* General Information */}
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Dados Principais</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: 'calc(100% - 26px)' }}>
+                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(127, 52, 230, 0.1)', color: '#7F34E6' }}>
+                      <User size={16} />
+                    </div>
+                    <span style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dados Principais</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nome Completo:</span>
-                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.name}</div>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Nome Completo:</span>
+                      <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>{selectedUser.name}</div>
                     </div>
                     {selectedUser.social_name && (
                       <div>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nome Social / Fantasia:</span>
-                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.social_name}</div>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Nome Social / Fantasia:</span>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>{selectedUser.social_name}</div>
                       </div>
                     )}
-                    <div>
-                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>E-mail:</span>
-                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.email}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                      <Mail size={14} style={{ color: '#94a3b8' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>E-mail</span>
+                        <span style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600 }}>{selectedUser.email}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Telefone:</span>
-                      <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>{selectedUser.phone || 'Não informado'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Phone size={14} style={{ color: '#94a3b8' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Telefone</span>
+                        <span style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600 }}>{selectedUser.phone || 'Não informado'}</span>
+                      </div>
                     </div>
                     {selectedUser.created_at && (
-                      <div>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Data de Cadastro:</span>
-                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>
-                          {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')} às {new Date(selectedUser.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Calendar size={14} style={{ color: '#94a3b8' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Data de Cadastro</span>
+                          <span style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: 600 }}>
+                            {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')} às {new Date(selectedUser.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -899,33 +925,50 @@ export default function AdminPage() {
                 </div>
 
                 {/* Imóveis Cadastrados */}
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Imóveis Cadastrados</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', height: 'calc(100% - 26px)', justifyContent: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 500 }}>Total de Imóveis:</span>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7F34E6' }}>
+                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7' }}>
+                      <Building2 size={16} />
+                    </div>
+                    <span style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Imóveis</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: 'calc(100% - 46px)', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #7F34E6 0%, #9851fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.3rem', fontWeight: 800 }}>
                         {(Number(selectedUser.venda_count) || 0) + (Number(selectedUser.locacao_count) || 0)}
-                      </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Total de Imóveis</div>
+                        <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 800 }}>Cadastrados no portal</div>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#0284c7', fontWeight: 600 }}>Para Venda:</span>
-                      <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0284c7' }}>{selectedUser.venda_count || 0}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.85rem', color: '#0d9488', fontWeight: 600 }}>Para Locação:</span>
-                      <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0d9488' }}>{selectedUser.locacao_count || 0}</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                      <div style={{ background: '#f0f9ff', border: '1px solid #e0f2fe', padding: '8px 12px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#0369a1', fontWeight: 700, textTransform: 'uppercase' }}>Venda</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0284c7', marginTop: '2px' }}>{selectedUser.venda_count || 0}</div>
+                      </div>
+                      <div style={{ background: '#f0fdf4', border: '1px solid #dcfce7', padding: '8px 12px', borderRadius: '8px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#15803d', fontWeight: 700, textTransform: 'uppercase' }}>Locação</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0d9488', marginTop: '2px' }}>{selectedUser.locacao_count || 0}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Document & Receita Federal */}
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CPF / CNPJ & Receita</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: 'calc(100% - 26px)' }}>
+                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(13, 148, 136, 0.1)', color: '#0d9488' }}>
+                      <ShieldCheck size={16} />
+                    </div>
+                    <span style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPF / CNPJ & Receita</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Número do Documento:</span>
-                      <div style={{ fontWeight: 600, fontFamily: 'monospace', color: '#0f172a', fontSize: '0.95rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Número do Documento:</span>
+                      <div style={{ fontWeight: 700, fontFamily: 'monospace', color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>
                         {selectedUser.cpf_cnpj
                           ? (selectedUser.cpf_cnpj.length === 11
                             ? selectedUser.cpf_cnpj.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
@@ -934,31 +977,31 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div>
-                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Status de Homologação:</span>
-                      <div style={{ marginTop: '2px' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Status de Homologação:</span>
+                      <div style={{ marginTop: '4px' }}>
                         {selectedUser.cpf_validated ? (
-                          <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                          <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
                             ✅ Validado
                           </span>
                         ) : selectedUser.cpf_cnpj ? (
-                          <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                          <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
                             ⏳ Pendente
                           </span>
                         ) : (
-                          <span style={{ color: '#64748b', fontSize: '0.85rem' }}>-</span>
+                          <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 500 }}>Sem documento</span>
                         )}
                       </div>
                     </div>
                     {selectedUser.razao_social && (
                       <div>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nome na Receita:</span>
-                        <div style={{ fontWeight: 600, color: '#7F34E6', fontSize: '0.9rem' }}>{selectedUser.razao_social}</div>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Nome na Receita:</span>
+                        <div style={{ fontWeight: 700, color: '#7F34E6', fontSize: '0.9rem', marginTop: '2px' }}>{selectedUser.razao_social}</div>
                       </div>
                     )}
                     {selectedUser.data_nascimento && (
                       <div>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Nascimento / Abertura:</span>
-                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.9rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Nascimento / Abertura:</span>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.9rem', marginTop: '2px' }}>
                           {new Date(selectedUser.data_nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                         </div>
                       </div>
@@ -967,44 +1010,50 @@ export default function AdminPage() {
                 </div>
 
                 {/* CRECI Info */}
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CRECI & Perfil</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: 'calc(100% - 26px)' }}>
+                <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+                    <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                      <Award size={16} />
+                    </div>
+                    <span style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CRECI & Perfil</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {(selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) ? (
                       <>
                         <div>
-                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Perfil:</span>
-                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Perfil:</span>
+                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>
                             {selectedUser.user_roles_name || 'Corretor'}
                           </div>
                         </div>
                         <div>
-                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>CRECI:</span>
-                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>CRECI:</span>
+                          <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>
                             {selectedUser.creci_numero ? `${selectedUser.creci_numero} (${selectedUser.creci_tipo || 'Pessoa Física'})` : 'Não informado'}
                           </div>
                         </div>
                         <div>
-                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Status CRECI:</span>
-                          <div style={{ marginTop: '2px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Status CRECI:</span>
+                          <div style={{ marginTop: '4px' }}>
                             {selectedUser.creci_status ? (
-                              <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                              <span style={{ backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
                                 ✅ Homologado
                               </span>
                             ) : selectedUser.creci_numero ? (
-                              <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                              <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
                                 ⏳ Pendente
                               </span>
                             ) : (
-                              <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Sem CRECI</span>
+                              <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 500 }}>Sem CRECI</span>
                             )}
                           </div>
                         </div>
                       </>
                     ) : (
                       <div>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Perfil:</span>
-                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Perfil:</span>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', marginTop: '2px' }}>
                           {selectedUser.user_roles_name || 'Proprietário'}
                         </div>
                       </div>
@@ -1017,8 +1066,8 @@ export default function AdminPage() {
 
             {/* Footer */}
             <div style={{
-              padding: '1rem 1.5rem',
-              backgroundColor: '#f8fafc',
+              padding: '1.25rem 2rem',
+              backgroundColor: '#ffffff',
               borderTop: '1px solid #e2e8f0',
               display: 'flex',
               justifyContent: 'flex-end'
@@ -1026,15 +1075,24 @@ export default function AdminPage() {
               <button
                 onClick={() => setSelectedUser(null)}
                 style={{
-                  padding: '0.5rem 1.25rem',
-                  backgroundColor: '#64748b',
+                  padding: '0.6rem 2rem',
+                  background: 'linear-gradient(135deg, #7F34E6 0%, #6323be 100%)',
                   color: '#ffffff',
                   border: 'none',
-                  borderRadius: '6px',
-                  fontWeight: 600,
+                  borderRadius: '8px',
+                  fontWeight: 700,
                   cursor: 'pointer',
                   fontSize: '0.9rem',
-                  transition: 'background-color 0.2s'
+                  boxShadow: '0 4px 12px rgba(127, 52, 230, 0.25)',
+                  transition: 'opacity 0.2s, transform 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                  e.currentTarget.style.opacity = '0.95';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.opacity = '1';
                 }}
               >
                 Fechar
