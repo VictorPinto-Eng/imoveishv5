@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import {
-  Users, Building2, MessageSquare, Eye, FileText, Check, X, Loader2, AlertCircle, ExternalLink, Trash2, RotateCcw
+  Users, Building2, MessageSquare, Eye, FileText, Check, X, Loader2, AlertCircle, ExternalLink, Trash2, RotateCcw, Edit3
 } from 'lucide-react';
 import styles from './admin.module.css';
 import Swal from 'sweetalert2';
@@ -50,6 +50,9 @@ interface UserListItem {
   name: string;
   email: string;
   phone: string;
+  cpf_cnpj?: string;
+  cpf_validated?: boolean;
+  razao_social?: string;
   delete_requested: boolean;
   venda_count: number;
   locacao_count: number;
@@ -159,12 +162,12 @@ export default function AdminPage() {
   const handleCpfAction = async (userId: number, userName: string, action: 'approve' | 'reject', currentRazaoSocial?: string) => {
     const isApprove = action === 'approve';
 
-    // --- Fluxo de APROVAÇÃO: pede o nome da Receita Federal antes de confirmar ---
+    // --- Fluxo de APROVAÇÃO/ATUALIZAÇÃO: pede o nome da Receita Federal antes de confirmar ---
     if (isApprove) {
       const inputResult = await Swal.fire({
-        title: 'Aprovar CPF/CNPJ',
+        title: 'Homologar / Atualizar Nome Receita Federal',
         html: `
-          <p style="margin-bottom:12px">Você está homologando o CPF/CNPJ de <strong>${userName}</strong>.</p>
+          <p style="margin-bottom:12px">Você está definindo o nome oficial do CPF/CNPJ de <strong>${userName}</strong>.</p>
           <p style="font-size:0.875rem;color:#64748b;margin-bottom:4px">
             📋 Cole abaixo o nome completo conforme consta na <strong>Receita Federal</strong>:
           </p>`,
@@ -176,7 +179,7 @@ export default function AdminPage() {
         showCancelButton: true,
         confirmButtonColor: '#10b981',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'Homologar',
+        confirmButtonText: 'Salvar / Homologar',
         cancelButtonText: 'Cancelar',
         preConfirm: (value: string) => {
           if (!value || !value.trim()) {
@@ -197,7 +200,7 @@ export default function AdminPage() {
 
         const data = await res.json();
         if (res.ok && data.success) {
-          Swal.fire({ title: 'Homologado!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+          Swal.fire({ title: 'Salvo com sucesso!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
           loadDashboardData();
         } else {
           Swal.fire({ title: 'Erro!', text: data.error || 'Erro ao processar ação.', icon: 'error' });
@@ -373,6 +376,7 @@ export default function AdminPage() {
                   <thead>
                     <tr>
                       <th>Usuário</th>
+                      <th>Documento & Receita</th>
                       <th style={{ textAlign: 'center' }}>A Venda</th>
                       <th style={{ textAlign: 'center' }}>Locação</th>
                       <th style={{ textAlign: 'center' }}>Total Imóveis</th>
@@ -382,13 +386,14 @@ export default function AdminPage() {
                   <tbody>
                     {usersList.length === 0 ? (
                       <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                           Nenhum usuário cadastrado encontrado.
                         </td>
                       </tr>
                     ) : (
                       usersList.map((usr) => {
                         const total = (Number(usr.venda_count) || 0) + (Number(usr.locacao_count) || 0);
+                        const isCpfCnpj = !!usr.cpf_cnpj;
                         return (
                           <tr key={usr.id} style={usr.delete_requested ? { backgroundColor: '#fef2f2' } : {}}>
                             <td>
@@ -402,6 +407,54 @@ export default function AdminPage() {
                                   </span>
                                 )}
                               </div>
+                            </td>
+                            <td>
+                              {isCpfCnpj ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <div style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.85rem' }}>
+                                    {usr.cpf_cnpj!.length === 11
+                                      ? usr.cpf_cnpj!.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+                                      : usr.cpf_cnpj!.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')}
+                                    {usr.cpf_validated ? (
+                                      <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700, marginLeft: '8px' }}>
+                                        ✅ Validado
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, marginLeft: '8px' }}>
+                                        ⏳ Pendente
+                                      </span>
+                                    )}
+                                  </div>
+                                  {usr.razao_social && (
+                                    <div style={{ fontSize: '0.8rem', color: '#7F34E6', fontWeight: 600 }}>
+                                      📋 Receita: {usr.razao_social}
+                                    </div>
+                                  )}
+                                  <div style={{ marginTop: '2px' }}>
+                                    <button
+                                      onClick={() => handleCpfAction(usr.id, usr.name, 'approve', usr.razao_social)}
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#7F34E6',
+                                        fontWeight: 600,
+                                        fontSize: '0.75rem',
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                        textDecoration: 'underline'
+                                      }}
+                                    >
+                                      <Edit3 size={12} />
+                                      {usr.cpf_validated ? 'Atualizar Nome Receita' : 'Homologar Nome Receita'}
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Sem documento informado</span>
+                              )}
                             </td>
                             <td style={{ textAlign: 'center', fontWeight: 500 }}>
                               {usr.venda_count || 0}

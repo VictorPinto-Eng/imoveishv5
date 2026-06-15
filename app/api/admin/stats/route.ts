@@ -47,13 +47,16 @@ export async function GET(req: NextRequest) {
       ORDER BY u.updated_at ASC
     `);
 
-    // 2.7. All users list with property counts and delete_requested flag
+    // 2.7. All users list with property counts, delete_requested, and CPF/CNPJ details
     const usersListRes = await query(`
       SELECT 
         u.id, 
         u.name, 
         u.email, 
         u.phone,
+        u.cpf_cnpj,
+        u.cpf_validated,
+        u.razao_social,
         u.delete_requested,
         (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 1) as venda_count,
         (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 2) as locacao_count
