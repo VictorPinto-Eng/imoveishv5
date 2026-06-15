@@ -384,7 +384,6 @@ export default function AdminPage() {
                   <thead>
                     <tr>
                       <th>Usuário</th>
-                      <th>Documento & Receita</th>
                       <th style={{ textAlign: 'center' }}>A Venda</th>
                       <th style={{ textAlign: 'center' }}>Locação</th>
                       <th style={{ textAlign: 'center' }}>Total Imóveis</th>
@@ -394,7 +393,7 @@ export default function AdminPage() {
                   <tbody>
                     {usersList.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                           Nenhum usuário cadastrado encontrado.
                         </td>
                       </tr>
@@ -415,33 +414,6 @@ export default function AdminPage() {
                                   </span>
                                 )}
                               </div>
-                            </td>
-                            <td>
-                              {isCpfCnpj ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                  <div style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.85rem' }}>
-                                    {usr.cpf_cnpj!.length === 11
-                                      ? usr.cpf_cnpj!.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-                                      : usr.cpf_cnpj!.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')}
-                                    {usr.cpf_validated ? (
-                                      <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700, marginLeft: '8px' }}>
-                                        ✅ Validado
-                                      </span>
-                                    ) : (
-                                      <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, marginLeft: '8px' }}>
-                                        ⏳ Pendente
-                                      </span>
-                                    )}
-                                  </div>
-                                  {usr.razao_social && (
-                                    <div style={{ fontSize: '0.8rem', color: '#7F34E6', fontWeight: 600 }}>
-                                      📋 Receita: {usr.razao_social}
-                                    </div>
-                                  )}
-                                  </div>
-                              ) : (
-                                <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Sem documento informado</span>
-                              )}
                             </td>
                             <td style={{ textAlign: 'center', fontWeight: 500 }}>
                               {usr.venda_count || 0}
