@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
         u.creci_numero,
         u.creci_tipo,
         u.creci_status,
+        u.creci_document_url,
         u.data_nascimento,
         u.created_at,
         u.id_tipo_usuario,

@@ -61,6 +61,7 @@ interface UserListItem {
   creci_numero?: string;
   creci_tipo?: string;
   creci_status?: boolean;
+  creci_document_url?: string;
   data_nascimento?: string;
   created_at?: string;
   id_tipo_usuario?: number;
@@ -386,6 +387,7 @@ export default function AdminPage() {
                   <thead>
                     <tr>
                       <th>Usuário</th>
+                      <th>Perfil</th>
                       <th style={{ textAlign: 'center' }}>A Venda</th>
                       <th style={{ textAlign: 'center' }}>Locação</th>
                       <th style={{ textAlign: 'center' }}>Total Imóveis</th>
@@ -395,7 +397,7 @@ export default function AdminPage() {
                   <tbody>
                     {usersList.length === 0 ? (
                       <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                           Nenhum usuário cadastrado encontrado.
                         </td>
                       </tr>
@@ -416,6 +418,19 @@ export default function AdminPage() {
                                   </span>
                                 )}
                               </div>
+                            </td>
+                            <td>
+                              <span style={{
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                color: '#7F34E6',
+                                backgroundColor: 'rgba(127, 52, 230, 0.08)',
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                display: 'inline-block'
+                              }}>
+                                {usr.user_roles_name || (usr.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário')}
+                              </span>
                             </td>
                             <td style={{ textAlign: 'center', fontWeight: 500 }}>
                               {usr.venda_count || 0}
@@ -1005,18 +1020,62 @@ export default function AdminPage() {
                         )}
                       </div>
                     </div>
-                    {selectedUser.razao_social && (
-                      <div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Nome na Receita:</span>
-                        <div style={{ fontWeight: 700, color: '#7F34E6', fontSize: '0.9rem', marginTop: '2px' }}>{selectedUser.razao_social}</div>
-                      </div>
-                    )}
                     {selectedUser.data_nascimento && (
                       <div>
                         <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Nascimento / Abertura:</span>
                         <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.9rem', marginTop: '2px' }}>
                           {new Date(selectedUser.data_nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                         </div>
+                      </div>
+                    )}
+                    {!selectedUser.cpf_validated && selectedUser.cpf_cnpj && (
+                      <div style={{ marginTop: '8px', paddingTop: '12px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={async () => {
+                            await handleCpfAction(selectedUser.id, selectedUser.name, 'approve', selectedUser.razao_social);
+                            setSelectedUser(null);
+                            loadDashboardData();
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#10b981',
+                            border: 'none',
+                            color: '#ffffff',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 4px rgba(16, 185, 129, 0.15)'
+                          }}
+                        >
+                          <Check size={12} /> Homologar CPF/CNPJ
+                        </button>
+                        <button
+                          onClick={async () => {
+                            await handleCpfAction(selectedUser.id, selectedUser.name, 'reject');
+                            setSelectedUser(null);
+                            loadDashboardData();
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#ef4444',
+                            border: 'none',
+                            color: '#ffffff',
+                            fontWeight: 700,
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.15)'
+                          }}
+                        >
+                          <X size={12} /> Rejeitar
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1055,6 +1114,79 @@ export default function AdminPage() {
                           )}
                         </div>
                       </div>
+                      {selectedUser.creci_document_url && (
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Comprovante:</span>
+                          <div style={{ marginTop: '2px' }}>
+                            <a
+                              href={selectedUser.creci_document_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: '#7F34E6',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                textDecoration: 'underline'
+                              }}
+                            >
+                              <ExternalLink size={14} /> Ver Comprovante
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {!selectedUser.creci_status && selectedUser.creci_numero && (
+                        <div style={{ marginTop: '8px', paddingTop: '12px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={async () => {
+                              await handleAction(selectedUser.id, selectedUser.name, 'approve');
+                              setSelectedUser(null);
+                              loadDashboardData();
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: '#10b981',
+                              border: 'none',
+                              color: '#ffffff',
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 4px rgba(16, 185, 129, 0.15)'
+                            }}
+                          >
+                            <Check size={12} /> Homologar CRECI
+                          </button>
+                          <button
+                            onClick={async () => {
+                              await handleAction(selectedUser.id, selectedUser.name, 'reject');
+                              setSelectedUser(null);
+                              loadDashboardData();
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: '#ef4444',
+                              border: 'none',
+                              color: '#ffffff',
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.15)'
+                            }}
+                          >
+                            <X size={12} /> Rejeitar
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
