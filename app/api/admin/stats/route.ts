@@ -65,6 +65,10 @@ export async function GET(req: NextRequest) {
         u.data_nascimento,
         u.created_at,
         u.id_tipo_usuario,
+        (SELECT COALESCE(STRING_AGG(tu.nome, ', '), '')
+         FROM public.user_roles ur
+         JOIN public.tipo_usuario tu ON ur.role_id = tu.id
+         WHERE ur.user_id = u.id) as user_roles_name,
         (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 1) as venda_count,
         (SELECT COUNT(*)::int FROM public.produto_servico WHERE user_id = u.id AND imbtpoperacao_id = 2) as locacao_count
       FROM users u

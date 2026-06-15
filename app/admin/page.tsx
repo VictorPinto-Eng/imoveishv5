@@ -63,6 +63,7 @@ interface UserListItem {
   data_nascimento?: string;
   created_at?: string;
   id_tipo_usuario?: number;
+  user_roles_name?: string;
 }
 
 interface RecentProperty {
@@ -836,7 +837,7 @@ export default function AdminPage() {
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Detalhes do Usuário</h3>
                 <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', opacity: 0.9 }}>
-                  ID: #{selectedUser.id} • {selectedUser.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário'}
+                  ID: #{selectedUser.id} • {selectedUser.user_roles_name || (selectedUser.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário')}
                 </p>
               </div>
               <button
@@ -950,8 +951,14 @@ export default function AdminPage() {
                 <div>
                   <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>CRECI & Imóveis</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', height: '100%' }}>
-                    {selectedUser.id_tipo_usuario === 1 ? (
+                    {(selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) ? (
                       <>
+                        <div>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Perfil:</span>
+                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem', marginBottom: '8px' }}>
+                            {selectedUser.user_roles_name || 'Corretor'}
+                          </div>
+                        </div>
                         <div>
                           <span style={{ fontSize: '0.8rem', color: '#64748b' }}>CRECI:</span>
                           <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>
@@ -978,7 +985,9 @@ export default function AdminPage() {
                     ) : (
                       <div>
                         <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Perfil:</span>
-                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>Proprietário Comum</div>
+                        <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.95rem' }}>
+                          {selectedUser.user_roles_name || 'Proprietário'}
+                        </div>
                       </div>
                     )}
                     <div>
