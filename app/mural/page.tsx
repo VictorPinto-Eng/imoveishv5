@@ -1926,7 +1926,7 @@ export default function MuralPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {stage === 'novo' && (
                           <button
-                            onClick={handleOpenCreateLeadModal}
+                            onClick={() => handleOpenCreateLeadModal()}
                             title="Novo Atendimento Manual"
                             style={{
                               border: 'none',
