@@ -30,7 +30,7 @@ export default function Footer() {
                     <div className={styles.column}>
                         <h3>Institucional</h3>
                         <ul className={styles.list}>
-                            <li><Link href="#" className={styles.link}>Sobre nós</Link></li>
+                            <li><Link href="/empresa" className={styles.link}>Sobre nós</Link></li>
                             <li><Link href="/contato" className={styles.link}>Contato</Link></li>
                             <li><Link href="#" className={styles.link}>Central de Ajuda</Link></li>
                             <li><Link href="/manual" className={styles.link}>Manual do usuário</Link></li>
