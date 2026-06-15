@@ -69,11 +69,11 @@ export default function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Configura o middleware para rodar em todas as páginas públicas e privadas
+// Configura o proxy para rodar em todas as páginas, exceto assets estáticos
 export const config = {
   matcher: [
     /*
-     * Aplica o middleware em todas as rotas de páginas, exceto:
+     * Aplica o proxy em todas as rotas de páginas, exceto:
      * - api (rotas de API internas)
      * - _next/static (arquivos estáticos do Next.js)
      * - _next/image (serviço de otimização de imagens)

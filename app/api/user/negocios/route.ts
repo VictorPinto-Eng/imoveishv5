@@ -263,7 +263,7 @@ export async function POST(req: NextRequest) {
     let clientUserId = null;
     if (email) {
       const userRes = await query(`SELECT id FROM public.users WHERE email = $1 LIMIT 1`, [email]);
-      if (userRes.rowCount > 0) {
+      if ((userRes.rowCount ?? 0) > 0) {
         clientUserId = userRes.rows[0].id;
       }
     }
