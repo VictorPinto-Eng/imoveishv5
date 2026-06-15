@@ -32,16 +32,32 @@ export async function GET(
         }
 
         const res = await query(
-            'SELECT * FROM produtos_servicos_midia WHERE produto_servico_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
+            'SELECT * FROM public.produtos_servicos_midia WHERE produto_servico_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
             [imovelId]
         );
 
-        console.log(`[API Debug] Fotos encontradas para o imovel ${imovelId}:`, res.rowCount);
+        let photosList = res.rows;
+        let count = res.rowCount || 0;
+
+        if (count === 0) {
+            const propRes = await query(
+                'SELECT imbempreendimento_id FROM public.produto_servico WHERE id = $1',
+                [imovelId]
+            );
+            const empId = propRes.rows[0]?.imbempreendimento_id;
+            if (empId) {
+                const empPhotosRes = await query(
+                    'SELECT * FROM public.imbempreendimento_midia WHERE imbempreendimento_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
+                    [empId]
+                );
+                photosList = empPhotosRes.rows;
+                count = empPhotosRes.rowCount || 0;
+            }
+        }
 
         return NextResponse.json({ 
             success: true, 
-            photos: res.rows || [],
-            debug_count: res.rowCount 
+            photos: photosList || []
         });
     } catch (error: any) {
         console.error(`[API Error] Erro ao buscar fotos:`, error);
@@ -81,11 +97,9 @@ export async function POST(
         const uploadDir = join(baseDir, imovelId);
         
         try {
-            console.log(`Attempting to create directory: ${uploadDir}`);
             await mkdir(uploadDir, { recursive: true });
             
             const filePath = join(uploadDir, filename);
-            console.log(`Attempting to write file: ${filePath}`);
             await writeFile(filePath, buffer);
         } catch (fsError: any) {
             console.error('File system error during upload:', fsError);

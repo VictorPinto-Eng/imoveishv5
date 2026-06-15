@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
 import { JWT_SECRET } from '@/lib/auth-config';
 
+export const dynamic = 'force-dynamic';
+
 async function getUserIdFromRequest(req: NextRequest): Promise<number | null> {
   try {
     const token = req.cookies.get('token')?.value;
@@ -23,9 +25,9 @@ export async function GET(req: NextRequest) {
   try {
     const res = await query(`
       SELECT 
-        l.id as lead_id,
-        l.mensagem,
-        l.created_at,
+        a.id as lead_id,
+        a.mensagem,
+        a.created_at,
         p.id as property_id,
         p.nome as property_name,
         OP.descricao as operacao_nome,
@@ -34,9 +36,10 @@ export async function GET(req: NextRequest) {
         BAI.descricao as bairro_nome,
         EST.sigla as uf_nome,
         COALESCE(PL.preco_base, PV.preco_base, 0) as preco_base,
-        (SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = p.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 1) as photo
-      FROM public.leads l
-      JOIN public.produto_servico p ON l.produto_servico_id = p.id
+        (SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = p.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 1) as photo,
+        (SELECT COUNT(m.id)::int FROM public.atendimento_mensagens m WHERE m.atendimento_id = a.id AND m.sender_type = 'corretor' AND m.lida = FALSE) AS unread_messages
+      FROM public.atendimento a
+      JOIN public.produto_servico p ON a.produto_servico_id = p.id
       LEFT JOIN public.imbtpoperacao OP ON p.imbtpoperacao_id = OP.id
       LEFT JOIN public.produto_servicos_loca PL ON p.id = PL.produto_servico_id
       LEFT JOIN public.produto_servicos_venda PV ON p.id = PV.produto_servico_id
@@ -44,8 +47,9 @@ export async function GET(req: NextRequest) {
       LEFT JOIN public.apocidade CID ON p.cidade_id = CID.id
       LEFT JOIN public.apobairro BAI ON p.bairro_id = BAI.id
       LEFT JOIN public.apoestado EST ON p.estado_id = EST.id
-      WHERE l.user_id = $1
-      ORDER BY l.created_at DESC
+      WHERE (a.user_id = $1 OR a.email = (SELECT email FROM public.users WHERE id = $1 LIMIT 1))
+        AND a.tipo = 'contato'
+      ORDER BY a.created_at DESC
     `, [userId]);
 
     return NextResponse.json({ success: true, messages: res.rows });

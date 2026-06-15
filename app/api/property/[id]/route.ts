@@ -366,9 +366,6 @@ export async function PUT(
       let resolvedCidadeId = Number(cidade_id) || null;
       let resolvedBairroId = Number(bairro_id) || null;
 
-      console.log(`[DEBUG Location] Input IDs: EF=${resolvedEstadoId}, CID=${resolvedCidadeId}, BAI=${resolvedBairroId}`);
-      console.log(`[DEBUG Location] Input Names: UF=${ufSigla}, CID=${cidadeNome}, BAI=${bairroNome}`);
-
       // Helper to standardise matching with accents and trim spaces
       const fuzzyMatchSql = (col: string, idx: number) => `(TRIM(UPPER(${col})) = $${idx} OR translate(TRIM(UPPER(${col})), 'ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ', 'AAAAAEEEEIIIIOOOOOUUUUC') = $${idx})`;
 
@@ -384,20 +381,16 @@ export async function PUT(
         
         // Auto-update master table if name is not standardized
         if (estadoRes.rows[0].sigla !== ufSigla) {
-          console.log(`[DEBUG Location] Standardizing Estado Sigla: ${estadoRes.rows[0].sigla} -> ${ufSigla}`);
           await query('UPDATE public.apoestado SET sigla = $1 WHERE id = $2', [ufSigla, resolvedEstadoId]);
         }
-        console.log(`[DEBUG Location] Resolved Estado ID: ${resolvedEstadoId}`);
       } else {
         // Create Estado if not found (fallback)
-        console.log(`[DEBUG Location] Creating Estado: ${ufSigla}`);
         const insertEstado = await query(
           'INSERT INTO public.apoestado (nome, sigla, pais_id) VALUES ($1, $2, $3) RETURNING id',
           [ufSigla, ufSigla, resolvedPaisId || 1]
         );
         if (insertEstado.rows.length > 0) {
           resolvedEstadoId = Number(insertEstado.rows[0].id);
-          console.log(`[DEBUG Location] Created Estado ID: ${resolvedEstadoId}`);
         }
       }
     }
@@ -413,20 +406,16 @@ export async function PUT(
         
         // Auto-update master table if name is not standardized
         if (cidadeRes.rows[0].descricao !== cidadeNome) {
-          console.log(`[DEBUG Location] Standardizing Cidade: ${cidadeRes.rows[0].descricao} -> ${cidadeNome}`);
           await query('UPDATE public.apocidade SET descricao = $1 WHERE id = $2', [cidadeNome, resolvedCidadeId]);
         }
-        console.log(`[DEBUG Location] Resolved Cidade ID: ${resolvedCidadeId}`);
       } else {
         // Auto-create Cidade
-        console.log(`[DEBUG Location] Creating Cidade: ${cidadeNome}`);
         const insertCidade = await query(
           'INSERT INTO public.apocidade (descricao, estado_id, pais_id) VALUES ($1, $2, 1) RETURNING id',
           [cidadeNome, resolvedEstadoId]
         );
         if (insertCidade.rows.length > 0) {
           resolvedCidadeId = Number(insertCidade.rows[0].id);
-          console.log(`[DEBUG Location] Created Cidade ID: ${resolvedCidadeId}`);
         }
       }
     }
@@ -443,10 +432,8 @@ export async function PUT(
         
         // Auto-update master table if name is not standardized
         if (bairroRes.rows[0].descricao !== bairroNome) {
-          console.log(`[DEBUG Location] Standardizing Bairro: ${bairroRes.rows[0].descricao} -> ${bairroNome}`);
           await query('UPDATE public.apobairro SET descricao = $1 WHERE id = $2', [bairroNome, resolvedBairroId]);
         }
-        console.log(`[DEBUG Location] Resolved Bairro ID: ${resolvedBairroId}`);
       } else {
         // Bairro resolution (Pure lookup)
         const bairroRes = await query(
@@ -456,7 +443,6 @@ export async function PUT(
         if (bairroRes.rows.length > 0) {
           resolvedBairroId = Number(bairroRes.rows[0].id);
         }
-        console.log(`[DEBUG Location] Resolved Bairro ID: ${resolvedBairroId}`);
       }
     }
 

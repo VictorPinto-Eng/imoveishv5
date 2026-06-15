@@ -112,7 +112,7 @@ export interface ImovelFilters {
 }
 
 // Helpers
-function parseImovel(item: any): Imovel {
+export function parseImovel(item: any): Imovel {
   let custom_fields = item.custom_fields
   if (typeof custom_fields === 'string') {
     try {
@@ -251,7 +251,7 @@ function parseImovel(item: any): Imovel {
   }
 }
 
-function parseImoveis(data: any[]): Imovel[] {
+export function parseImoveis(data: any[]): Imovel[] {
   return data.map(parseImovel)
 }
 

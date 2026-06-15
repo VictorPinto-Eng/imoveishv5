@@ -34,25 +34,34 @@ export default function middleware(request: NextRequest) {
 
   const token = request.cookies.get('token')?.value;
 
-  console.log(`[Middleware DEBUG] Path: ${pathname}, Token: ${!!token}`);
-
   // 2. Protege a rota /meus-imoveis e sub-rotas
   if (pathname.startsWith('/meus-imoveis')) {
     if (!token) {
-      console.log(`[Middleware DEBUG] Redirecting ${pathname} -> /`);
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
-  // 3. Protege a rota /admin e sub-rotas (exige ser administrador)
+  // 3. Protege painel do corretor: /mural e /negocios
+  if (pathname.startsWith('/mural') || pathname.startsWith('/negocios')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  // 4. Protege painel do cliente: /meus-favoritos
+  if (pathname.startsWith('/meus-favoritos')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  // 5. Protege a rota /admin e sub-rotas (exige ser administrador)
   if (pathname.startsWith('/admin')) {
     if (!token) {
-      console.log(`[Middleware DEBUG] Redirecting ${pathname} -> /`);
       return NextResponse.redirect(new URL('/', request.url));
     }
     const payload = decodeJwtPayload(token);
     if (!payload || !payload.is_admin) {
-      console.log(`[Middleware DEBUG] Non-admin access block on ${pathname}. Redirecting -> /`);
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

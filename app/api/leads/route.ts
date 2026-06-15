@@ -20,14 +20,28 @@ export async function POST(request: NextRequest) {
       // Ignore auth errors, just record as anonymous
     }
 
-    // 1. Record the lead in the local application database (leads table)
+    // 1. Record the lead in the local application database (leads table and public.atendimento table)
     try {
       if (codigo && name && email) {
+        // Record in historical leads table
         await query(`
           INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [Number(codigo), userId, name, email, whatsapp, mensagem]);
-        console.log('[Leads Proxy] Lead recorded in local DB.');
+        console.log('[Leads Proxy] Lead recorded in local DB (leads).');
+
+        // Record in public.atendimento to generate a Kanban card
+        await query(`
+          INSERT INTO public.atendimento (
+            produto_servico_id, user_id, nome, email, telefone, mensagem, tipo, etapa_id, valor_proposta, status_proposta
+          )
+          VALUES (
+            $1, $2, $3, $4, $5, $6, 'contato',
+            (SELECT id FROM public.atendimento_etapa WHERE sigla = 'novo' LIMIT 1),
+            0, 'pendente'
+          )
+        `, [Number(codigo), userId, name, email, whatsapp, mensagem]);
+        console.log('[Leads Proxy] Lead recorded in local DB (atendimento).');
       }
     } catch (dbError) {
       // Log database error but don't block the webhook forwarding

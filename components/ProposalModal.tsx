@@ -39,7 +39,7 @@ export default function ProposalModal({
   useEffect(() => {
     if (isOpen) {
       checkAuth();
-      setProposedValue(formatCurrency(propertyPrice.toString()));
+      setProposedValue(Number(propertyPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
       setConditions('');
       setIsSuccess(false);
     }
@@ -204,7 +204,7 @@ export default function ProposalModal({
                 />
               </div>
               <p className={styles.helperText}>
-                Valor de referência anunciado: {propertyPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                Valor de referência anunciado: {Number(propertyPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}{operationType.toLowerCase() === 'locação' ? ' /mês' : ''}
               </p>
             </div>
 
@@ -221,13 +221,12 @@ export default function ProposalModal({
                   value={conditions}
                   onChange={(e) => setConditions(e.target.value)}
                   rows={4}
-                  required
                 />
               </div>
             </div>
 
             <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-              {isSubmitting ? 'Enviando Proposta...' : 'Enviar Proposta Oficial'}
+              {isSubmitting ? 'Enviando...' : 'Enviar Proposta'}
             </button>
           </form>
         )}

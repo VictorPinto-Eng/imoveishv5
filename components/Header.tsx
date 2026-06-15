@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGrid, LogOut, ChevronDown, PlusCircle, ShieldCheck, Heart } from 'lucide-react'
+import { Menu, X, UserCircle2, Home, MessageSquare, Users, HelpCircle, LayoutGrid, LogOut, ChevronDown, PlusCircle, ShieldCheck, Heart, Briefcase, Kanban } from 'lucide-react'
 import styles from './header.module.css'
 import LoginModal from './LoginModal'
 import ProfileModal from './ProfileModal'
@@ -31,6 +31,32 @@ export default function Header() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [pendingCount, setPendingCount] = useState<number>(0)
     const dropdownRef = useRef<HTMLDivElement>(null)
+
+    const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
+
+    const fetchUnreadMessagesCount = async () => {
+        try {
+            const res = await fetch('/api/user/messages/unread');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    setUnreadMessagesCount(data.unreadCount || 0);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            fetchUnreadMessagesCount();
+            const interval = setInterval(fetchUnreadMessagesCount, 30000);
+            return () => clearInterval(interval);
+        } else {
+            setUnreadMessagesCount(0);
+        }
+    }, [user]);
 
     const userRoles = user?.roles || [];
     const hasAdvertiserRole = userRoles.some((r: any) => Number(r.id) === 2 || Number(r.id) === 3);
@@ -262,23 +288,59 @@ export default function Header() {
                                             <span>Meu Perfil</span>
                                         </Link>
                                         {showMeusImoveis && (
-                                            <Link
-                                                href="/meus-imoveis"
-                                                className={styles.dropdownItem}
-                                                onClick={() => setIsDropdownOpen(false)}
-                                            >
-                                                <LayoutGrid size={18} />
-                                                <span>Meus Imóveis</span>
-                                            </Link>
+                                            <>
+                                                <Link
+                                                    href="/meus-imoveis"
+                                                    className={styles.dropdownItem}
+                                                    onClick={() => setIsDropdownOpen(false)}
+                                                >
+                                                    <LayoutGrid size={18} />
+                                                    <span>Meus Imóveis</span>
+                                                </Link>
+                                                <Link
+                                                    href="/negocios"
+                                                    className={styles.dropdownItem}
+                                                    onClick={() => setIsDropdownOpen(false)}
+                                                >
+                                                    <Briefcase size={18} />
+                                                    <span>Negócios</span>
+                                                </Link>
+                                                <Link
+                                                    href="/mural"
+                                                    className={styles.dropdownItem}
+                                                    onClick={() => setIsDropdownOpen(false)}
+                                                >
+                                                    <Kanban size={18} />
+                                                    <span>Mural</span>
+                                                </Link>
+                                            </>
                                         )}
-                                        <Link
-                                            href="/meus-favoritos"
-                                            className={styles.dropdownItem}
-                                            onClick={() => setIsDropdownOpen(false)}
-                                        >
-                                            <Heart size={18} />
-                                            <span>Meu Painel</span>
-                                        </Link>
+                                         <Link
+                                             href={unreadMessagesCount > 0 ? "/meus-favoritos?tab=propostas" : "/meus-favoritos"}
+                                             className={styles.dropdownItem}
+                                             onClick={() => setIsDropdownOpen(false)}
+                                             style={{ display: 'flex', alignItems: 'center', width: '100%' }}
+                                         >
+                                             <Heart size={18} />
+                                             <span>Meu Painel</span>
+                                             {unreadMessagesCount > 0 && (
+                                                 <span style={{ 
+                                                     backgroundColor: '#ef4444', 
+                                                     color: 'white', 
+                                                     borderRadius: '9999px', 
+                                                     padding: '2px 7px', 
+                                                     fontSize: '11px', 
+                                                     fontWeight: 'bold', 
+                                                     marginLeft: 'auto',
+                                                     display: 'inline-flex',
+                                                     alignItems: 'center',
+                                                     justifyContent: 'center',
+                                                     lineHeight: 1
+                                                 }}>
+                                                     {unreadMessagesCount}
+                                                 </span>
+                                             )}
+                                         </Link>
                                         {user.is_admin && (
                                             <Link
                                                 href="/admin"
@@ -377,15 +439,47 @@ export default function Header() {
                                 <span>Meu Perfil</span>
                             </Link>
                             {showMeusImoveis && (
-                                <Link href="/meus-imoveis" className={styles.mobileNavLink} onClick={toggleMenu}>
-                                    <LayoutGrid size={20} />
-                                    <span>Meus Imóveis</span>
-                                </Link>
+                                <>
+                                    <Link href="/meus-imoveis" className={styles.mobileNavLink} onClick={toggleMenu}>
+                                        <LayoutGrid size={20} />
+                                        <span>Meus Imóveis</span>
+                                    </Link>
+                                    <Link href="/negocios" className={styles.mobileNavLink} onClick={toggleMenu}>
+                                        <Briefcase size={20} />
+                                        <span>Negócios</span>
+                                    </Link>
+                                    <Link href="/mural" className={styles.mobileNavLink} onClick={toggleMenu}>
+                                        <Kanban size={20} />
+                                        <span>Mural</span>
+                                    </Link>
+                                </>
                             )}
-                            <Link href="/meus-favoritos" className={styles.mobileNavLink} onClick={toggleMenu}>
-                                <Heart size={20} />
-                                <span>Meu Painel</span>
-                            </Link>
+                             <Link 
+                                 href={unreadMessagesCount > 0 ? "/meus-favoritos?tab=propostas" : "/meus-favoritos"}
+                                 className={styles.mobileNavLink} 
+                                 onClick={toggleMenu}
+                                 style={{ display: 'flex', alignItems: 'center', width: '100%' }}
+                             >
+                                 <Heart size={20} />
+                                 <span>Meu Painel</span>
+                                 {unreadMessagesCount > 0 && (
+                                     <span style={{ 
+                                         backgroundColor: '#ef4444', 
+                                         color: 'white', 
+                                         borderRadius: '9999px', 
+                                         padding: '2px 7px', 
+                                         fontSize: '11px', 
+                                         fontWeight: 'bold', 
+                                         marginLeft: 'auto',
+                                         display: 'inline-flex',
+                                         alignItems: 'center',
+                                         justifyContent: 'center',
+                                         lineHeight: 1
+                                     }}>
+                                         {unreadMessagesCount}
+                                     </span>
+                                 )}
+                             </Link>
                             {user.is_admin && (
                                 <Link 
                                     href="/admin" 

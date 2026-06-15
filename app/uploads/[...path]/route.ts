@@ -18,7 +18,9 @@ export async function GET(
         const absolutePath = join(baseDir, relativePath);
 
         // Prevenção básica contra Directory Traversal (segurança)
-        if (!absolutePath.startsWith(baseDir)) {
+        const normalizedBase = baseDir.replace(/\\/g, '/').toLowerCase();
+        const normalizedAbsolute = absolutePath.replace(/\\/g, '/').toLowerCase();
+        if (!normalizedAbsolute.startsWith(normalizedBase)) {
             return new NextResponse('Forbidden', { status: 403 });
         }
 

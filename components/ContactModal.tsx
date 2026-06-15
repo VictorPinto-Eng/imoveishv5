@@ -66,7 +66,7 @@ export default function ContactModal({
             const user = data.user
             console.log('[ContactModal] User found via /api/auth/me:', user.email)
             initialData.email = user.email || ''
-            initialData.name = user.name || user.social_name || ''
+            initialData.name = user.social_name || user.name || ''
             initialData.phone = user.phone || ''
           }
 

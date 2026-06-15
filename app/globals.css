@@ -112,6 +112,7 @@ button {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -121,5 +122,26 @@ button {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Ensure SweetAlert modals sit above the fixed header and other elements */
+.swal2-container {
+  z-index: 35000 !important;
+}
+
+/* Responsive adjustments for SweetAlert */
+@media (max-width: 600px) {
+  .swal2-popup {
+    padding: 12px 8px !important;
+    width: 95% !important;
+  }
+  .swal2-popup div[style*="display: grid"],
+  .swal2-popup .swal2-grid-mobile {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .swal2-html-container {
+    margin: 10px 4px !important;
   }
 }

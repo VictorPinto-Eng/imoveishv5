@@ -50,11 +50,11 @@ export async function POST(req: NextRequest) {
 
         const { property_name, owner_email, owner_name, operacao, tipo_imovel } = res.rows[0];
 
-        // 1. Save to Database (Leads)
+        // 1. Save to Database (Atendimento)
         await query(`
-            INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
-            VALUES ($1, $2, $3, $4, $5, $6)
-        `, [propertyId, userId, name, email, phone, message]);
+            INSERT INTO public.atendimento (produto_servico_id, user_id, nome, email, telefone, mensagem, tipo, etapa_id, valor_proposta, status_proposta)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM public.atendimento_etapa WHERE sigla = $8 LIMIT 1), $9, $10)
+        `, [propertyId, userId, name, email, phone, message, 'contato', 'novo', 0, 'pendente']);
 
         // 2. Send Email
         const emailRes = await sendPropertyContactEmail(
