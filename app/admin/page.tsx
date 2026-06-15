@@ -433,18 +433,17 @@ export default function AdminPage() {
                                   style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
-                                    gap: '4px',
+                                    justifyContent: 'center',
                                     background: 'none',
                                     border: 'none',
                                     color: '#7F34E6',
-                                    fontWeight: 600,
-                                    fontSize: '0.75rem',
                                     cursor: 'pointer',
-                                    padding: 0,
-                                    textDecoration: 'underline'
+                                    padding: '6px',
+                                    borderRadius: '50%',
+                                    transition: 'background-color 0.2s'
                                   }}
                                 >
-                                  <Eye size={12} /> Detalhes
+                                  <Eye size={18} />
                                 </button>
                                 {usr.delete_requested && (
                                   <>
