@@ -575,12 +575,33 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
                 // Dispara o alerta após o fechamento do modal
                 setTimeout(async () => {
+                    const selectedId = Number(formData.idTipoUsuario);
+                    let warningText = 'Verifique seu e-mail e clique no link de ativação antes de fazer login.';
+                    
+                    if (selectedId === 3) {
+                        // Proprietário
+                        warningText = `
+                            <p style="margin: 0 0 10px; line-height: 1.5;">1. Verifique seu e-mail e clique no link de ativação enviado.</p>
+                            <p style="margin: 0 0 10px; line-height: 1.5; color: #ef4444; font-weight: 600;">2. Importante: Para liberar o menu "Meus Imóveis" e anunciar, após ativar a conta você deve acessar o menu "Meu Perfil" no painel e efetuar a validação do seu CPF/CNPJ.</p>
+                        `;
+                    } else if (selectedId === 2) {
+                        // Corretor
+                        warningText = `
+                            <p style="margin: 0 0 10px; line-height: 1.5;">1. Verifique seu e-mail e clique no link de ativação enviado.</p>
+                            <p style="margin: 0 0 10px; line-height: 1.5; color: #7F34E6; font-weight: 600;">2. Importante: Para homologar seu perfil, após ativar a conta, acesse "Meu Perfil" para validar seu CPF e enviar a foto/documento do seu CRECI no sistema para liberação dos seus acessos.</p>
+                        `;
+                    } else {
+                        warningText = `<p style="margin: 0; line-height: 1.5;">Verifique seu e-mail e clique no link de ativação enviado para liberar sua conta.</p>`;
+                    }
+
                     await Swal.fire({
                         icon: 'success',
                         title: 'Cadastro realizado! 🎉',
                         html: `
-                            <p style="margin:0 0 8px">${data.message || 'Conta criada com sucesso!'}</p>
-                            <p style="font-size:0.875rem;color:#64748b">Verifique seu e-mail e clique no link de ativação antes de fazer login.</p>
+                            <p style="margin:0 0 16px; font-weight: 500;">${data.message || 'Conta criada com sucesso!'}</p>
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: left; font-size: 0.875rem; color: #334155;">
+                                ${warningText}
+                            </div>
                         `,
                         confirmButtonText: 'Ir para o login',
                         confirmButtonColor: '#7F34E6',
