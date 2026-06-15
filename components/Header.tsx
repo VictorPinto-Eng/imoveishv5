@@ -245,10 +245,6 @@ export default function Header() {
                             <span>Contato</span>
                         </Link>
                         <Link href="#" className={styles.navLink}>
-                            <Users size={18} />
-                            <span>Sobre nós</span>
-                        </Link>
-                        <Link href="#" className={styles.navLink}>
                             <HelpCircle size={18} />
                             <span>Central de Ajuda</span>
                         </Link>
@@ -514,10 +510,6 @@ export default function Header() {
                     <Link href="/contato" className={styles.mobileNavLink} onClick={toggleMenu}>
                         <MessageSquare size={20} />
                         <span>Contato</span>
-                    </Link>
-                    <Link href="#" className={styles.mobileNavLink} onClick={toggleMenu}>
-                        <Users size={20} />
-                        <span>Sobre nós</span>
                     </Link>
                     <Link href="#" className={styles.mobileNavLink} onClick={toggleMenu}>
                         <HelpCircle size={20} />
