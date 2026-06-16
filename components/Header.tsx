@@ -128,26 +128,35 @@ export default function Header() {
                     // --- Alerta pós-login de dados pendentes (CPF / CRECI) ---
                     const rolesData = data.user.roles || [];
                     const roleIds = rolesData.map((r: any) => Number(r.id));
-                    const isProprietario = roleIds.includes(3);
-                    const isCorretor = roleIds.includes(2);
+                    const isProprietario = roleIds.includes(2);
+                    const isCorretor = roleIds.includes(3);
 
                     const hasNotified = sessionStorage.getItem('hv5_notified_pending_docs');
 
                     if (!hasNotified && !data.user.is_admin) {
                         let needsAlert = false;
                         let alertHtml = '';
-
                         if (isProprietario && !data.user.cpf_validated) {
                             needsAlert = true;
-                            alertHtml = `
-                                <p style="margin-bottom:12px; line-height: 1.5;">Como <strong>Proprietário(a)</strong>, você precisa validar seus dados cadastrais para começar a publicar anúncios.</p>
-                                <div style="background-color:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:12px; font-size:0.875rem; color:#92400e; text-align:left;">
-                                    ⚠️ <strong>Pendente:</strong> Validação de CPF ou CNPJ.
-                                </div>
-                            `;
+                            const isCpfFilled = !!data.user.cpf_cnpj;
+                            if (isCpfFilled) {
+                                alertHtml = `
+                                    <p style="margin-bottom:12px; line-height: 1.5;">Você já enviou seus dados cadastrais, agora basta <strong>aguardar a confirmação do seu CPF</strong> pelo administrador para a liberação de anúncios de imóveis na plataforma.</p>
+                                    <div style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:0.875rem; color:#475569; text-align:left;">
+                                        ⏳ <strong>Status:</strong> Aguardando Confirmação do CPF
+                                    </div>
+                                `;
+                            } else {
+                                alertHtml = `
+                                    <p style="margin-bottom:12px; line-height: 1.5;">Como <strong>Proprietário(a)</strong>, você precisa da confirmação do seu CPF para começar a publicar anúncios.</p>
+                                    <div style="background-color:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:12px; font-size:0.875rem; color:#92400e; text-align:left;">
+                                        ⚠️ <strong>Pendente:</strong> Cadastro de CPF ou CNPJ.
+                                    </div>
+                                `;
+                            }
                         } else if (isCorretor && (!data.user.cpf_validated || !data.user.creci_status)) {
                             needsAlert = true;
-                            const cpfText = data.user.cpf_validated ? '✅ CPF Validado' : '❌ CPF Pendente de Validação';
+                            const cpfText = data.user.cpf_validated ? '✅ CPF Confirmado' : '❌ CPF Pendente de Confirmação';
                             const creciText = data.user.creci_status ? '✅ CRECI Homologado' : (data.user.creci_document_url ? '⏳ CRECI em Análise' : '❌ Comprovante do CRECI não enviado');
 
                             alertHtml = `
@@ -161,18 +170,21 @@ export default function Header() {
 
                         if (needsAlert) {
                             sessionStorage.setItem('hv5_notified_pending_docs', 'true');
+                            const isCpfFilled = !!data.user.cpf_cnpj;
+                            const isOnlyProprietarioWaiting = isProprietario && isCpfFilled;
+
                             setTimeout(() => {
                                 Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Perfil Incompleto ⚠️',
+                                    icon: isOnlyProprietarioWaiting ? 'info' : 'warning',
+                                    title: isOnlyProprietarioWaiting ? 'Aguardando Confirmação do CPF ⏳' : 'Perfil Incompleto ⚠️',
                                     html: alertHtml,
-                                    confirmButtonText: 'Completar Perfil',
+                                    confirmButtonText: isOnlyProprietarioWaiting ? 'Entendi' : 'Completar Perfil',
                                     confirmButtonColor: '#7F34E6',
-                                    showCancelButton: true,
+                                    showCancelButton: !isOnlyProprietarioWaiting,
                                     cancelButtonText: 'Depois',
                                     cancelButtonColor: '#64748b'
                                 }).then((result) => {
-                                    if (result.isConfirmed) {
+                                    if (result.isConfirmed && !isOnlyProprietarioWaiting) {
                                         window.location.href = '/meu-perfil';
                                     }
                                 });
@@ -205,6 +217,7 @@ export default function Header() {
     const handleLogout = async () => {
         try {
             await fetch('/api/auth/logout', { method: 'POST' });
+            sessionStorage.removeItem('hv5_notified_pending_docs');
             setUser(null);
             setIsDropdownOpen(false);
             setIsProfileOpen(false);
@@ -240,18 +253,91 @@ export default function Header() {
 
         if (hasAdvertiserRole) {
             const isProp = userRoles.some((r: any) => Number(r.id) === 2);
+            const isCorretor = userRoles.some((r: any) => Number(r.id) === 3);
             const isCpfValidated = (user as any).cpf_validated;
+            const isCreciValidated = (user as any).creci_status;
 
-            if (isProp && !isCpfValidated) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Validação de CPF Pendente ⚠️',
-                    text: 'Como proprietário, você precisa validar seu CPF antes de começar a anunciar seus imóveis.',
-                    confirmButtonColor: '#7F34E6',
-                    confirmButtonText: 'Validar CPF Agora'
-                }).then(() => {
-                    window.location.href = '/meu-perfil';
-                });
+            // If it's a Corretor and either CPF or CRECI is not validated
+            if (isCorretor && (!isCpfValidated || !isCreciValidated)) {
+                const isCpfFilled = !!(user as any).cpf_cnpj;
+                const isCreciFilled = !!(user as any).creci_document_url;
+
+                if (isCpfFilled && isCreciFilled) {
+                    const cpfText = isCpfValidated ? '✅ CPF Confirmado' : '⏳ CPF Aguardando Confirmação';
+                    const creciText = isCreciValidated ? '✅ CRECI Homologado' : '⏳ CRECI em Análise';
+
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Aguardando Homologação do Perfil ⏳',
+                        html: `
+                            <p style="margin-bottom:12px; line-height: 1.5;">Você já enviou seus dados e comprovantes. Agora basta <strong>aguardar a validação e homologação do seu perfil</strong> pelo administrador para anunciar seus imóveis.</p>
+                            <div style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:0.875rem; color:#475569; text-align:left; display:flex; flex-direction:column; gap:4px;">
+                                <div>${cpfText}</div>
+                                <div>${creciText}</div>
+                            </div>
+                        `,
+                        confirmButtonColor: '#7F34E6',
+                        confirmButtonText: 'Entendi'
+                    });
+                } else {
+                    const pendingItems = [];
+                    if (!isCpfFilled) pendingItems.push('Cadastro de CPF');
+                    if (!isCreciFilled) pendingItems.push('Upload do Comprovante do CRECI');
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Homologação de CRECI/CPF Pendente ⚠️',
+                        html: `
+                            <p style="margin-bottom:12px; line-height: 1.5;">Como corretor, você precisa cadastrar seu CPF e enviar o comprovante do seu CRECI para poder anunciar imóveis na plataforma.</p>
+                            <div style="background-color:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:12px; font-size:0.875rem; color:#92400e; text-align:left;">
+                                ⚠️ <strong>Pendente:</strong> ${pendingItems.join(' e ')}.
+                            </div>
+                        `,
+                        confirmButtonColor: '#7F34E6',
+                        confirmButtonText: 'Completar Perfil Agora'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/meu-perfil';
+                        }
+                    });
+                }
+                return;
+            }
+
+            // If it's ONLY an Owner and CPF is not validated
+            if (isProp && !isCorretor && !isCpfValidated) {
+                const isCpfFilled = !!(user as any).cpf_cnpj;
+                if (isCpfFilled) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Aguardando Confirmação do CPF ⏳',
+                        html: `
+                            <p style="margin-bottom:12px; line-height: 1.5;">Você já enviou seus dados cadastrais, agora basta <strong>aguardar a confirmação do seu CPF</strong> pelo administrador para a liberação de anúncios de imóveis na plataforma.</p>
+                            <div style="background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:0.875rem; color:#475569; text-align:left;">
+                                ⏳ <strong>Status:</strong> Aguardando Confirmação do CPF
+                            </div>
+                        `,
+                        confirmButtonColor: '#7F34E6',
+                        confirmButtonText: 'Entendi'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Confirmação de CPF Pendente ⚠️',
+                        html: `
+                            <p style="margin-bottom:12px; line-height: 1.5;">Como proprietário, você precisa cadastrar e confirmar seu CPF antes de começar a anunciar seus imóveis.</p>
+                            <div style="background-color:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:12px; font-size:0.875rem; color:#92400e; text-align:left;">
+                                ⚠️ <strong>Pendente:</strong> Cadastro de CPF ou CNPJ.
+                            </div>
+                        `,
+                        confirmButtonColor: '#7F34E6',
+                        confirmButtonText: 'Confirmar CPF Agora'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/meu-perfil';
+                        }
+                    });
+                }
                 return;
             }
             window.location.href = '/meus-imoveis/incluir';

@@ -466,3 +466,96 @@
 .requirementIcon {
     flex-shrink: 0;
 }
+
+/* Country Picker Styles */
+.countryPicker {
+    position: absolute;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px 0 6px;
+    border-right: 1px solid #cbd5e1;
+    cursor: pointer;
+    z-index: 10;
+    height: 60%;
+    user-select: none;
+    transition: background-color 0.2s;
+    border-radius: 4px 0 0 4px;
+}
+
+.countryPicker:hover {
+    background-color: #f8fafc;
+}
+
+.countryFlag {
+    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.countryCode {
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.countryDropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    max-height: 220px;
+    background-color: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.countrySearch {
+    padding: 8px;
+    border-bottom: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+}
+
+.countrySearch input {
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.countrySearch input:focus {
+    border-color: #7F34E6;
+}
+
+.countryOption {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #334155;
+    transition: background-color 0.15s;
+}
+
+.countryOption:hover {
+    background-color: #f1f5f9;
+}
+
+.fieldIconRight {
+    position: absolute;
+    right: 1rem;
+    color: #7F34E6;
+    pointer-events: none;
+    z-index: 10;
+}
+

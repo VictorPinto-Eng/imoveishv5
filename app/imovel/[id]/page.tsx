@@ -237,13 +237,37 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
             
             <main className="container" style={{ paddingTop: '2rem' }}>
                 {/* Breadcrumbs (Simplified) */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem', color: '#64748b' }}>
-                    <span>Imóveis</span>
-                    <ChevronRight size={14} />
-                    <span>{cf.cidade || 'Pernambuco'}</span>
-                    <ChevronRight size={14} />
-                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{imovel.tipo_imovel_nome}</span>
-                </div>
+                {(() => {
+                    const stateMap: Record<string, string> = {
+                        'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 'BA': 'Bahia',
+                        'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás',
+                        'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul', 'MG': 'Minas Gerais',
+                        'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná', 'PE': 'Pernambuco', 'PI': 'Piauí',
+                        'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte', 'RS': 'Rio Grande do Sul',
+                        'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina', 'SP': 'São Paulo',
+                        'SE': 'Sergipe', 'TO': 'Tocantins'
+                    };
+                    const stateName = imovel.uf_nome 
+                        ? (stateMap[imovel.uf_nome.toUpperCase()] || imovel.uf_nome)
+                        : 'Pernambuco';
+                    const cityName = imovel.cidade_nome || cf.cidade || '';
+                    
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem', color: '#64748b', flexWrap: 'wrap' }}>
+                            <span>Imóveis</span>
+                            <ChevronRight size={14} />
+                            <span>{stateName}</span>
+                            {cityName && (
+                                <>
+                                    <ChevronRight size={14} />
+                                    <span>{cityName}</span>
+                                </>
+                            )}
+                            <ChevronRight size={14} />
+                            <span style={{ fontWeight: 600, color: '#0f172a' }}>{imovel.tipo_imovel_nome}</span>
+                        </div>
+                    );
+                })()}
 
                 <PropertyGallery images={imovel.imagens_urls} alt={imovel.nome} />
 

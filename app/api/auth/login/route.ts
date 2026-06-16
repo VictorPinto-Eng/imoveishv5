@@ -7,7 +7,8 @@ import { JWT_SECRET } from '@/lib/auth-config';
 
 export async function POST(request: Request) {
     try {
-        const { email, password } = await request.json();
+        const { email: rawEmail, password } = await request.json();
+        const email = (rawEmail || '').trim().toLowerCase();
 
         if (!email || !password) {
             return NextResponse.json(

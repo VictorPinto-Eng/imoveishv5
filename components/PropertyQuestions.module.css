@@ -63,11 +63,11 @@
 }
 
 .chip:hover {
-    border-color: #e30613;
-    color: #e30613;
-    background: #fff5f5;
+    border-color: #7F34E6;
+    color: #7F34E6;
+    background: #f5f3ff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(227, 6, 19, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(127, 52, 230, 0.1);
 }
 
 .inputGroup {
@@ -82,8 +82,8 @@
 }
 
 .inputGroup:focus-within {
-    border-color: #e30613;
-    box-shadow: 0 10px 15px -3px rgba(227, 6, 19, 0.1);
+    border-color: #7F34E6;
+    box-shadow: 0 10px 15px -3px rgba(127, 52, 230, 0.1);
 }
 
 .textarea {
@@ -100,7 +100,7 @@
 }
 
 .sendBtn {
-    background: linear-gradient(135deg, #e30613 0%, #c50510 100%);
+    background: linear-gradient(135deg, #7F34E6 0%, #6322c2 100%);
     color: white;
     border: none;
     border-radius: 12px;
@@ -113,12 +113,12 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(227, 6, 19, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(127, 52, 230, 0.2);
 }
 
 .sendBtn:hover:not(:disabled) {
     transform: scale(1.02);
-    box-shadow: 0 10px 15px -3px rgba(227, 6, 19, 0.3);
+    box-shadow: 0 10px 15px -3px rgba(127, 52, 230, 0.3);
 }
 
 .sendBtn:disabled {
@@ -167,7 +167,7 @@
 }
 
 .aIcon {
-    color: #e30613;
+    color: #7F34E6;
     margin-top: 2px;
 }
 

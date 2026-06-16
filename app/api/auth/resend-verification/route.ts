@@ -6,7 +6,8 @@ import { sendActivationEmail } from '@/lib/resend';
 
 export async function POST(request: Request) {
     try {
-        const { email } = await request.json();
+        const { email: rawEmail } = await request.json();
+        const email = (rawEmail || '').trim().toLowerCase();
 
         if (!email) {
             return NextResponse.json({ error: 'E-mail é obrigatório.' }, { status: 400 });
@@ -34,8 +35,16 @@ export async function POST(request: Request) {
             [newToken, user.id]
         );
 
-        // Send email
-        await sendActivationEmail(email, user.name, newToken);
+        // Send email and check status
+        const emailResult = await sendActivationEmail(email, user.name, newToken);
+        if (!emailResult.success) {
+            console.error('❌ Resend verification email failed:', emailResult.error);
+            const errMsg = (emailResult.error as any)?.message || 'Erro de envio.';
+            return NextResponse.json(
+                { error: `Erro ao reenviar e-mail de ativação: ${errMsg}. Verifique se o e-mail digitado é válido.` },
+                { status: 400 }
+            );
+        }
 
         return NextResponse.json({ 
             message: 'E-mail de ativação reenviado com sucesso!' 

@@ -69,8 +69,8 @@
 }
 
 .input:focus {
-    border-color: #e30613;
-    box-shadow: 0 0 0 1px rgba(227, 6, 19, 0.1);
+    border-color: #7f34e6;
+    box-shadow: 0 0 0 1px rgba(127, 52, 230, 0.1);
 }
 
 .textarea {
@@ -88,8 +88,8 @@
 }
 
 .textarea:focus {
-    border-color: #e30613;
-    box-shadow: 0 0 0 1px rgba(227, 6, 19, 0.1);
+    border-color: #7f34e6;
+    box-shadow: 0 0 0 1px rgba(127, 52, 230, 0.1);
 }
 
 .extraCosts {
@@ -119,77 +119,83 @@
     gap: 0.75rem;
 }
 
+.topActionsRow {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 0.6rem;
+    width: 100%;
+}
+
 .primaryBtn {
     width: 100%;
-    padding: 1.1rem;
-    background-color: #e30613;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.05rem;
+    padding: 0.75rem 1rem;
+    background-color: transparent;
+    color: #7f34e6;
+    border: 1.5px solid #7f34e6;
+    border-radius: 10px;
+    font-size: 0.875rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(227, 6, 19, 0.2);
 }
 
 .primaryBtn:hover {
-    background-color: #c50510;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(227, 6, 19, 0.3);
+    background-color: #f5f3ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(127, 52, 230, 0.08);
 }
 
 .proposalBtn {
     width: 100%;
-    padding: 1.1rem;
-    background-color: #7f34e6;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7f34e6 100%);
     color: white;
     border: none;
-    border-radius: 12px;
-    font-size: 1.05rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(127, 52, 230, 0.2);
+    box-shadow: 0 4px 10px rgba(127, 52, 230, 0.2);
 }
 
 .proposalBtn:hover {
-    background-color: #6d28d9;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(127, 52, 230, 0.3);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(127, 52, 230, 0.3);
 }
 
 .whatsappBtn {
     width: 100%;
-    padding: 1.1rem;
-    background-color: #25d366;
+    padding: 0.8rem 1rem;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     color: white;
     border: none;
-    border-radius: 12px;
-    font-size: 1.05rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2);
 }
 
 .whatsappBtn:hover {
-    background-color: #22c35e;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
 }
 
 .footer {
@@ -221,7 +227,7 @@
 .priceValueMasked {
     text-align: center;
     font-size: 1.25rem;
-    color: #e30613;
+    color: #7f34e6;
     width: 100%;
     margin-bottom: 1rem;
 }

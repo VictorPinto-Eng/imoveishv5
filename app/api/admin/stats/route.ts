@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
 
     // 1. General Stats Counts
     const usersCountRes = await query('SELECT COUNT(*) FROM users');
-    const brokersCountRes = await query('SELECT COUNT(*) FROM users WHERE id_tipo_usuario = 1');
-    const ownersCountRes = await query('SELECT COUNT(*) FROM users WHERE id_tipo_usuario = 2');
+    const brokersCountRes = await query('SELECT COUNT(DISTINCT user_id) FROM public.user_roles WHERE role_id = 3');
+    const ownersCountRes = await query('SELECT COUNT(DISTINCT user_id) FROM public.user_roles WHERE role_id = 2');
     const adminsCountRes = await query('SELECT COUNT(*) FROM admin_users');
     
     const salePropertiesRes = await query('SELECT COUNT(*) FROM public.produto_servico WHERE imbtpoperacao_id = 1');
@@ -35,7 +35,9 @@ export async function GET(req: NextRequest) {
       SELECT u.id, u.name, u.email, u.phone, u.creci_numero, u.creci_tipo, u.creci_document_url, est.sigla as state_sigla
       FROM users u
       LEFT JOIN apoestado est ON u.creci_apoestado_id = est.id
-      WHERE u.id_tipo_usuario = 1 AND u.creci_status = false AND u.creci_document_url IS NOT NULL
+      WHERE EXISTS(SELECT 1 FROM public.user_roles WHERE user_id = u.id AND role_id = 3) 
+        AND u.creci_status = false 
+        AND u.creci_document_url IS NOT NULL
       ORDER BY u.updated_at ASC
     `);
 
@@ -65,7 +67,6 @@ export async function GET(req: NextRequest) {
         u.creci_document_url,
         u.data_nascimento,
         u.created_at,
-        u.id_tipo_usuario,
         (SELECT COALESCE(STRING_AGG(tu.nome, ', '), '')
          FROM public.user_roles ur
          JOIN public.tipo_usuario tu ON ur.role_id = tu.id

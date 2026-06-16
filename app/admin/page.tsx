@@ -64,7 +64,6 @@ interface UserListItem {
   creci_document_url?: string;
   data_nascimento?: string;
   created_at?: string;
-  id_tipo_usuario?: number;
   user_roles_name?: string;
 }
 
@@ -429,7 +428,7 @@ export default function AdminPage() {
                                 borderRadius: '6px',
                                 display: 'inline-block'
                               }}>
-                                {usr.user_roles_name || (usr.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário')}
+                                {usr.user_roles_name || 'Consumidor'}
                               </span>
                             </td>
                             <td style={{ textAlign: 'center', fontWeight: 500 }}>
@@ -853,7 +852,7 @@ export default function AdminPage() {
                   <User size={22} /> Detalhes do Usuário
                 </h3>
                 <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', opacity: 0.95, fontWeight: 500 }}>
-                  ID: #{selectedUser.id} • {selectedUser.user_roles_name || (selectedUser.id_tipo_usuario === 1 ? 'Corretor' : 'Proprietário')}
+                  ID: #{selectedUser.id} • {selectedUser.user_roles_name || 'Consumidor'}
                 </p>
               </div>
               <button
@@ -978,7 +977,7 @@ export default function AdminPage() {
                   padding: '1.25rem',
                   borderRadius: '16px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)',
-                  gridColumn: (selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) ? 'span 1' : 'span 2'
+                  gridColumn: (selectedUser.user_roles_name?.includes('Corretor') || selectedUser.creci_numero) ? 'span 1' : 'span 2'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
                     <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(13, 148, 136, 0.1)', color: '#0d9488' }}>
@@ -1076,7 +1075,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* CRECI Info */}
-                {(selectedUser.id_tipo_usuario === 1 || selectedUser.creci_numero) && (
+                {(selectedUser.user_roles_name?.includes('Corretor') || selectedUser.creci_numero) && (
                   <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '1.25rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
                       <div style={{ display: 'flex', padding: '6px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>

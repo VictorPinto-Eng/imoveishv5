@@ -137,19 +137,21 @@ export default function ContactStickyCard({
                 </div>
 
                 <div className={styles.actions}>
-                    <button 
-                        className={styles.primaryBtn}
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        Contatar <Mail size={18} />
-                    </button>
+                    <div className={styles.topActionsRow}>
+                        <button 
+                            className={styles.primaryBtn}
+                            onClick={() => setIsModalOpen(true)}
+                        >
+                            Contatar <Mail size={16} />
+                        </button>
 
-                    <button 
-                        className={styles.proposalBtn}
-                        onClick={() => setIsProposalOpen(true)}
-                    >
-                        Enviar Proposta <FileText size={18} />
-                    </button>
+                        <button 
+                            className={styles.proposalBtn}
+                            onClick={() => setIsProposalOpen(true)}
+                        >
+                            Proposta <FileText size={16} />
+                        </button>
+                    </div>
                     
                     <WhatsAppLink
                         messageOrImovel={propertyName}

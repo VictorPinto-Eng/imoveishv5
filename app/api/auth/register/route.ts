@@ -1,5 +1,5 @@
 
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import crypto from 'crypto';
@@ -7,10 +7,25 @@ import { sendActivationEmail } from '@/lib/resend';
 
 export async function POST(request: Request) {
     try {
-        const { name, social_name, email, phone, password, confirmPassword, idTipoUsuario, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento } = await request.json();
+        const { name, social_name, email: rawEmail, phone, password, confirmPassword, idTipoUsuario, roles, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento } = await request.json();
+        const email = (rawEmail || '').trim().toLowerCase();
 
-        const isCorretor = Number(idTipoUsuario) === 2;
-        const isProprietario = Number(idTipoUsuario) === 3;
+        // Convert roles to array of numbers
+        // In the database: 1 = Consumidor, 2 = Proprietário, 3 = Corretor
+        // If the old idTipoUsuario was passed, map it to the correct new ID:
+        // old idTipoUsuario: 1 -> 1 (Consumidor), 2 -> 3 (Corretor), 3 -> 2 (Proprietário)
+        let rolesToSave: number[] = [];
+        if (Array.isArray(roles)) {
+            rolesToSave = roles.map(Number);
+        } else if (idTipoUsuario) {
+            const mappedId = Number(idTipoUsuario) === 2 ? 3 : Number(idTipoUsuario) === 3 ? 2 : 1;
+            rolesToSave = [mappedId];
+        } else {
+            rolesToSave = [1];
+        }
+
+        const isCorretor = rolesToSave.includes(3);
+        const isProprietario = rolesToSave.includes(2);
         
         const valCreciNumero = isCorretor ? (creci_numero || null) : null;
         const valCreciEstadoId = isCorretor ? (Number(creci_apoestado_id) || null) : null;
@@ -82,27 +97,27 @@ export async function POST(request: Request) {
 
         // Insert user (email_verified defaults to FALSE) and get new ID
         const result = await query(
-            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, id_tipo_usuario, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id',
-            [name, social_name || '', email, phone, passwordHash, verificationToken, idTipoUsuario || 1, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null]
+            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
+            [name, social_name || '', email, phone, passwordHash, verificationToken, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null]
         );
         const newUserId = result.rows[0].id;
 
-        // Automatically assign role 1 (Consumidor)
-        await query('INSERT INTO public.user_roles (user_id, role_id) VALUES ($1, 1) ON CONFLICT DO NOTHING', [newUserId]);
-
-        // If they chose another role (2: Corretor, 3: Proprietário), assign it as well
-        const selectedRole = Number(idTipoUsuario);
-        if (selectedRole === 2 || selectedRole === 3) {
-            await query('INSERT INTO public.user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [newUserId, selectedRole]);
+        // Insert all selected roles into public.user_roles
+        for (const roleId of rolesToSave) {
+            await query('INSERT INTO public.user_roles (user_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [newUserId, roleId]);
         }
 
-        // Send email asynchronously and log status
-        try {
-            await sendActivationEmail(email, name, verificationToken);
-            console.log(`Activation email sent successfully to ${email}`);
-        } catch (emailError) {
-            console.error('Email sending failed:', emailError);
+        // Send email and check status
+        const emailResult = await sendActivationEmail(email, name, verificationToken);
+        if (!emailResult.success) {
+            console.error('❌ Email sending failed:', emailResult.error);
+            const errMsg = (emailResult.error as any)?.message || 'Erro de envio.';
+            return NextResponse.json(
+                { error: `Erro ao enviar e-mail de ativação: ${errMsg}. Verifique se o e-mail digitado é válido.` },
+                { status: 400 }
+            );
         }
+        console.log(`✅ Activation email sent successfully to ${email}`);
 
         return NextResponse.json({ 
             message: 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.' 

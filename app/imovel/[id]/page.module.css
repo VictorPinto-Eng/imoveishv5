@@ -140,7 +140,7 @@
   content: '';
   width: 60px;
   height: 4px;
-  background: #e30613;
+  background: #7F34E6;
   border-radius: 2px;
 }
 
@@ -153,8 +153,8 @@
 
 .questionBtn {
   background: white;
-  border: 1px solid #e30613;
-  color: #e30613;
+  border: 1px solid #7F34E6;
+  color: #7F34E6;
   padding: 0.6rem 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -164,7 +164,7 @@
 }
 
 .questionBtn:hover {
-  background-color: #ffefe5;
+  background-color: #f5f3ff;
 }
 
 .inquiryBox {
@@ -187,11 +187,11 @@
 }
 
 .inquiryTextarea:focus {
-  border-color: #e30613;
+  border-color: #7F34E6;
 }
 
 .sendBtn {
-  background-color: #e30613;
+  background-color: #7F34E6;
   color: white;
   border: none;
   border-radius: 10px;
@@ -203,7 +203,7 @@
 }
 
 .sendBtn:hover {
-  background-color: #c50510;
+  background-color: #6322c2;
 }
 
 .mapContainer {

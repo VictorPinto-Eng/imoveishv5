@@ -245,7 +245,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         confirmPassword: '',
         phone: '',
         country_code: '+55',
-        idTipoUsuario: 1, // 1: Consumidor, 2: Corretor/Imobiliária, 3: Proprietário
+        roles: [1], // 1: Consumidor, 2: Proprietário, 3: Corretor
         creci_numero: '',
         creci_tipo: 'F',
         creci_apoestado_id: '' as number | '',
@@ -461,14 +461,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     };
 
     const handleUserTypeChange = (id: number) => {
-        setFormData({ ...formData, idTipoUsuario: id })
-        // Fetch estados if not loaded yet
-        if (id === 2 && estados.length === 0) {
-            fetch('/api/property/estados')
-                .then(r => r.ok ? r.json() : [])
-                .then(data => { if (Array.isArray(data)) setEstados(data); })
-                .catch(() => {});
-        }
+        setFormData(prev => {
+            let newRoles: number[];
+            if (prev.roles.includes(id)) {
+                if (prev.roles.length === 1) return prev;
+                newRoles = prev.roles.filter(r => r !== id);
+            } else {
+                newRoles = [...prev.roles, id];
+            }
+            // Fetch estados if Corretor (3) is active and estados list is empty
+            if (newRoles.includes(3) && estados.length === 0) {
+                fetch('/api/property/estados')
+                    .then(r => r.ok ? r.json() : [])
+                    .then(data => { if (Array.isArray(data)) setEstados(data); })
+                    .catch(() => {});
+            }
+            return { ...prev, roles: newRoles };
+        });
     }
 
     const handleResendEmail = async () => {
@@ -565,6 +574,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 setSuccess('Se o e-mail estiver cadastrado, você receberá instruções para recuperar sua senha.')
             } else if (viewMode === 'signup') {
                 const emailCadastrado = formData.email;
+                const selectedRoles = formData.roles;
                 
                 // Limpa os campos de senha/confirmação
                 setFormData(prev => ({ ...prev, password: '', confirmPassword: '', confirmEmail: '' }));
@@ -575,23 +585,32 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
                 // Dispara o alerta após o fechamento do modal
                 setTimeout(async () => {
-                    const selectedId = Number(formData.idTipoUsuario);
-                    let warningText = 'Verifique seu e-mail e clique no link de ativação antes de fazer login.';
+                    let warningText = '';
                     
-                    if (selectedId === 3) {
+                    if (selectedRoles.includes(2) && selectedRoles.includes(3)) {
+                        // Proprietário e Corretor
+                        warningText = `
+                            <p style="margin: 0 0 10px; line-height: 1.5;">1. Verifique seu e-mail e clique no link de ativação enviado.</p>
+                            <p style="margin: 0 0 10px; line-height: 1.5; color: #7F34E6; font-weight: 600;">2. Importante: Após ativar a conta, acesse "Meu Perfil" para enviar o comprovante do seu CRECI. Os acessos para anunciar serão liberados após a homologação do seu CRECI e a confirmação do seu CPF/CNPJ (um aviso será enviado ao seu e-mail).</p>
+                        `;
+                    } else if (selectedRoles.includes(2)) {
                         // Proprietário
                         warningText = `
                             <p style="margin: 0 0 10px; line-height: 1.5;">1. Verifique seu e-mail e clique no link de ativação enviado.</p>
-                            <p style="margin: 0 0 10px; line-height: 1.5; color: #ef4444; font-weight: 600;">2. Importante: Para liberar o menu "Meus Imóveis" e anunciar, após ativar a conta você deve acessar o menu "Meu Perfil" no painel e efetuar a validação do seu CPF/CNPJ.</p>
+                            <p style="margin: 0 0 10px; line-height: 1.5; color: #ef4444; font-weight: 600;">2. Importante: Após ativar a conta por e-mail, basta aguardar o aviso que chegará no seu e-mail com a confirmação do seu CPF/CNPJ pela administração para poder anunciar seus imóveis.</p>
                         `;
-                    } else if (selectedId === 2) {
+                    } else if (selectedRoles.includes(3)) {
                         // Corretor
                         warningText = `
                             <p style="margin: 0 0 10px; line-height: 1.5;">1. Verifique seu e-mail e clique no link de ativação enviado.</p>
-                            <p style="margin: 0 0 10px; line-height: 1.5; color: #7F34E6; font-weight: 600;">2. Importante: Para homologar seu perfil, após ativar a conta, acesse "Meu Perfil" para validar seu CPF e enviar a foto/documento do seu CRECI no sistema para liberação dos seus acessos.</p>
+                            <p style="margin: 0 0 10px; line-height: 1.5; color: #7F34E6; font-weight: 600;">2. Importante: Para homologar seu perfil, após ativar a conta, acesse "Meu Perfil" para enviar a foto/documento do seu CRECI no sistema. A liberação dos acessos ocorrerá após a validação do seu CPF e do seu CRECI pela administração.</p>
                         `;
                     } else {
-                        warningText = `<p style="margin: 0; line-height: 1.5;">Verifique seu e-mail e clique no link de ativação enviado para liberar sua conta.</p>`;
+                        // Apenas Consumidor
+                        warningText = `
+                            <p style="margin: 0 0 10px; line-height: 1.5;">1. Verifique seu e-mail e clique no link de ativação enviado.</p>
+                            <p style="margin: 0; line-height: 1.5; color: #10b981; font-weight: 600;">2. Pronto! Após ativar sua conta pelo e-mail, você já poderá buscar imóveis, favoritar e enviar propostas imediatamente.</p>
+                        `;
                     }
 
                     await Swal.fire({
@@ -626,6 +645,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 setSuccess(data.message || 'Operação realizada com sucesso!')
                 if (viewMode === 'login') {
                     // Recarrega a página após login bem-sucedido
+                    sessionStorage.removeItem('hv5_notified_pending_docs');
                     window.location.reload()
                 }
             }
@@ -685,73 +705,86 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                             <>
                                 <p className={styles.formNote}>Todos os campos são obrigatórios para finalizar o seu cadastro.</p>
                                 
-                                <label className={styles.fieldLabel}>Você é:</label>
+                                <label className={styles.fieldLabel}>Você é (selecione todas que se aplicam):</label>
                                 <div className={styles.userTypeSelector} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                                     <button 
                                         type="button"
-                                        className={`${styles.typeOption} ${formData.idTipoUsuario === 1 ? styles.activeType : ''}`}
+                                        className={`${styles.typeOption} ${formData.roles.includes(1) ? styles.activeType : ''}`}
                                         onClick={() => handleUserTypeChange(1)}
                                     >
                                         Consumidor
                                     </button>
                                     <button 
                                         type="button"
-                                        className={`${styles.typeOption} ${formData.idTipoUsuario === 3 ? styles.activeType : ''}`}
-                                        onClick={() => handleUserTypeChange(3)}
+                                        className={`${styles.typeOption} ${formData.roles.includes(2) ? styles.activeType : ''}`}
+                                        onClick={() => handleUserTypeChange(2)}
                                     >
                                         Proprietário(a)
                                     </button>
                                     <button 
                                         type="button"
-                                        className={`${styles.typeOption} ${formData.idTipoUsuario === 2 ? styles.activeType : ''}`}
-                                        onClick={() => handleUserTypeChange(2)}
+                                        className={`${styles.typeOption} ${formData.roles.includes(3) ? styles.activeType : ''}`}
+                                        onClick={() => handleUserTypeChange(3)}
                                     >
                                         Corretor(a)
                                     </button>
                                 </div>
                                 
                                 {/* CPF/CNPJ and Birth Date fields for Owner/Broker */}
-                                {(formData.idTipoUsuario === 2 || formData.idTipoUsuario === 3) && (
+                                {(formData.roles.includes(2) || formData.roles.includes(3)) && (
                                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', marginBottom: '0.25rem' }}>
-                                        <div className={styles.inputWrapper} style={{ flex: 1, marginBottom: 0 }}>
-                                            <input
-                                                type="text"
-                                                placeholder={formData.idTipoUsuario === 3 ? "CPF ou CNPJ" : "CPF"}
-                                                className={styles.input}
-                                                style={{ height: '48px' }}
-                                                value={formData.cpf_cnpj}
-                                                onChange={e => setFormData(prev => ({ ...prev, cpf_cnpj: maskCpfCnpj(e.target.value) }))}
-                                                required
-                                            />
+                                                                        <div style={{ flex: 1 }}>
+                                            <label className={styles.fieldLabel} style={{ fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>
+                                                {(formData.roles.includes(2) && !formData.roles.includes(3)) ? "CPF ou CNPJ" : "CPF"}
+                                            </label>
+                                            <div className={styles.inputWrapper} style={{ marginBottom: 0 }}>
+                                                <input
+                                                    type="text"
+                                                    placeholder={(formData.roles.includes(2) && !formData.roles.includes(3)) ? "Digite seu CPF/CNPJ" : "Digite seu CPF"}
+                                                    className={styles.input}
+                                                    style={{ height: '48px', paddingLeft: '1rem', paddingRight: '1rem', textAlign: 'center' }}
+                                                    value={formData.cpf_cnpj}
+                                                    onChange={e => setFormData(prev => ({ ...prev, cpf_cnpj: maskCpfCnpj(e.target.value) }))}
+                                                    required
+                                                />
+                                            </div>
                                         </div>
-                                        <div className={styles.inputWrapper} style={{ flex: 1, marginBottom: 0 }}>
-                                            <input
-                                                type="date"
-                                                className={styles.input}
-                                                style={{ height: '48px' }}
-                                                value={formData.data_nascimento}
-                                                onChange={e => setFormData(prev => ({ ...prev, data_nascimento: e.target.value }))}
-                                                required
-                                            />
+                                        <div style={{ flex: 1 }}>
+                                            <label className={styles.fieldLabel} style={{ fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>
+                                                Data de Nascimento
+                                            </label>
+                                            <div className={styles.inputWrapper} style={{ marginBottom: 0 }}>
+                                                <input
+                                                    type="date"
+                                                    className={styles.input}
+                                                    style={{ height: '48px', paddingLeft: '1rem', paddingRight: '1rem', textAlign: 'center' }}
+                                                    value={formData.data_nascimento}
+                                                    onChange={e => setFormData(prev => ({ ...prev, data_nascimento: e.target.value }))}
+                                                    max="9999-12-31"
+                                                    required
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 )}
-
+ 
                                 {/* CRECI fields — visible only when Corretor is selected */}
-                                {formData.idTipoUsuario === 2 && (
+                                {formData.roles.includes(3) && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem', backgroundColor: 'rgba(127,52,230,0.06)', borderRadius: '10px', border: '1px solid rgba(127,52,230,0.2)', marginTop: '0.5rem' }}>
                                         <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: '#7F34E6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dados do CRECI</p>
-
+ 
                                         <div className={styles.inputWrapper}>
                                             <input
                                                 type="text"
                                                 placeholder="Número do CRECI (ex: 12345)"
                                                 className={styles.input}
+                                                style={{ paddingLeft: '1rem' }}
                                                 value={formData.creci_numero}
                                                 onChange={e => setFormData(prev => ({ ...prev, creci_numero: e.target.value }))}
+                                                required
                                             />
                                         </div>
-
+ 
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <div className={styles.inputWrapper} style={{ flex: 1 }}>
                                                 <select
@@ -759,6 +792,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                                     style={{ height: '48px', padding: '0 0.75rem', backgroundColor: 'white', cursor: 'pointer' }}
                                                     value={formData.creci_apoestado_id}
                                                     onChange={e => setFormData(prev => ({ ...prev, creci_apoestado_id: e.target.value ? Number(e.target.value) : '' }))}
+                                                    required
                                                 >
                                                     <option value="">UF do CRECI</option>
                                                     {estados.map(est => (
@@ -772,13 +806,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                                     style={{ height: '48px', padding: '0 0.75rem', backgroundColor: 'white', cursor: 'pointer' }}
                                                     value={formData.creci_tipo}
                                                     onChange={e => setFormData(prev => ({ ...prev, creci_tipo: e.target.value }))}
+                                                    required
                                                 >
                                                     <option value="F">Física (F)</option>
                                                     <option value="J">Jurídica (J)</option>
                                                 </select>
                                             </div>
                                         </div>
-
+ 
                                         <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
                                             ⚠️ Você poderá enviar o comprovante do CRECI após o cadastro, no seu perfil.
                                         </p>
@@ -863,12 +898,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                             name="phone"
                                             placeholder="(00) 00000-0000" 
                                             className={styles.input} 
-                                            style={{ paddingLeft: '8.5rem' }}
+                                            style={{ paddingLeft: '4.75rem', paddingRight: '2.75rem' }}
                                             value={formData.phone}
                                             onChange={handlePhoneChange}
                                             onKeyDown={(e) => handleKeyDown(e, emailRef)}
                                         />
-                                        <Phone className={styles.fieldIcon} size={20} strokeWidth={2.5} />
+                                        <Phone className={styles.fieldIconRight} size={20} strokeWidth={2.5} />
                                     </div>
                                 </>
                             )}

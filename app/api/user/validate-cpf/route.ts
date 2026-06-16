@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
             success: true,
             isCpfPending: isCpf,
             message: isCpf 
-                ? 'Solicitação de validação do CPF enviada! Aguarde a homologação do administrador.'
+                ? 'Solicitação de validação do CPF enviada! Aguarde a confirmação do CPF pelo administrador.'
                 : 'CNPJ validado com sucesso na base cadastral!',
             data_nascimento: dataNascimento
         });

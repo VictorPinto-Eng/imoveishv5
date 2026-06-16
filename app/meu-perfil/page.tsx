@@ -14,7 +14,6 @@ interface UserProfile {
     email: string;
     avatar_url?: string;
     email_verified: boolean;
-    id_tipo_usuario: number;
     roles: Array<{ id: number; nome: string }>;
     phone?: string;
     creci_numero?: string;
@@ -117,7 +116,7 @@ export default function MeuPerfilPage() {
                 setEmail(data.user.email || '');
                 const rolesData = data.user.roles || [];
                 const roleIds = rolesData.map((r: any) => Number(r.id));
-                setSelectedRoles(roleIds.length > 0 ? roleIds : [Number(data.user.id_tipo_usuario || 1)]);
+                setSelectedRoles(roleIds.length > 0 ? roleIds : [1]);
                 setCreciNumero(data.user.creci_numero || '');
                 setCreciApoestadoId(data.user.creci_apoestado_id || '');
                 setCreciTipo(data.user.creci_tipo || 'Física');
@@ -190,7 +189,7 @@ export default function MeuPerfilPage() {
                     Swal.fire({
                         icon: 'info',
                         title: 'Solicitação Enviada! ⏳',
-                        text: data.message || 'Seu CPF foi enviado para análise e homologação do administrador.',
+                        text: data.message || 'Seu CPF foi enviado para análise e confirmação do CPF pelo administrador.',
                         confirmButtonColor: '#7F34E6'
                     });
                 } else {
@@ -663,7 +662,7 @@ export default function MeuPerfilPage() {
                                                         {cpfValidated ? (
                                                             <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>✅ Validado Receita</span>
                                                         ) : (!!user?.cpf_cnpj && !user?.cpf_validated) ? (
-                                                            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>⏳ Aguardando Homologação</span>
+                                                            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>⏳ Aguardando Confirmação do CPF</span>
                                                         ) : (
                                                             <span style={{ fontSize: '0.75rem', color: '#f59e0b', fontWeight: 600 }}>⚠️ Não Validado</span>
                                                         )}
@@ -693,6 +692,7 @@ export default function MeuPerfilPage() {
                                                             className={(cpfValidated || (!!user?.cpf_cnpj && !user?.cpf_validated)) ? styles.inputDisabled : styles.input} 
                                                             disabled={cpfValidated || (!!user?.cpf_cnpj && !user?.cpf_validated)}
                                                             style={{ flex: 1, height: '45px' }}
+                                                            max="9999-12-31"
                                                         />
                                                         {!cpfValidated && !(!!user?.cpf_cnpj && !user?.cpf_validated) && (
                                                             <button

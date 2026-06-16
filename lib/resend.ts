@@ -9,7 +9,7 @@ export async function sendActivationEmail(email: string, name: string, token: st
   const activationLink = `${appUrl}/api/auth/verify?token=${token}`;
 
   try {
-    const data = await resend.emails.send({
+    const result = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'souhv5@gmail.com',
       to: email,
       subject: 'Bem-vindo ao ecossistema HV5 - Ative sua conta',
@@ -29,7 +29,12 @@ export async function sendActivationEmail(email: string, name: string, token: st
       `,
     });
 
-    return { success: true, data };
+    if (result.error) {
+      console.error('Resend returned error sending activation email:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, data: result.data };
   } catch (error) {
     console.error('Error sending activation email:', error);
     return { success: false, error };
@@ -49,7 +54,7 @@ export async function sendPropertyContactEmail(
   tipoImovel: string
 ) {
   try {
-    const data = await resend.emails.send({
+    const result = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'souhv5@gmail.com',
       to: ownerEmail,
       subject: `Cod ${propertyId} - ${operacao} - ${tipoImovel}`,
@@ -81,7 +86,12 @@ export async function sendPropertyContactEmail(
       `,
     });
 
-    return { success: true, data };
+    if (result.error) {
+      console.error('Resend returned error sending property contact email:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, data: result.data };
   } catch (error) {
     console.error('Error sending property contact email:', error);
     return { success: false, error };
@@ -91,9 +101,8 @@ export async function sendPropertyContactEmail(
 export async function sendPasswordResetEmail(email: string, name: string, token: string) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
   const resetLink = `${appUrl}/recuperar-senha?token=${token}`;
-
   try {
-    const data = await resend.emails.send({
+    const result = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'souhv5@gmail.com',
       to: email,
       subject: 'Recuperação de Senha - HV5',
@@ -114,7 +123,12 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
       `,
     });
 
-    return { success: true, data };
+    if (result.error) {
+      console.error('Resend returned error sending password reset email:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, data: result.data };
   } catch (error) {
     console.error('Error sending password reset email:', error);
     return { success: false, error };
@@ -158,14 +172,19 @@ export async function sendCreciStatusEmail(email: string, name: string, approved
     `;
 
   try {
-    const data = await resend.emails.send({
+    const result = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'souhv5@gmail.com',
       to: email,
       subject: subject,
       html: htmlContent,
     });
 
-    return { success: true, data };
+    if (result.error) {
+      console.error('Resend returned error sending CRECI status email:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, data: result.data };
   } catch (error) {
     console.error('Error sending CRECI status email:', error);
     return { success: false, error };
@@ -209,14 +228,19 @@ export async function sendCpfStatusEmail(email: string, name: string, approved: 
     `;
 
   try {
-    const data = await resend.emails.send({
+    const result = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'souhv5@gmail.com',
       to: email,
       subject: subject,
       html: htmlContent,
     });
 
-    return { success: true, data };
+    if (result.error) {
+      console.error('Resend returned error sending CPF status email:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, data: result.data };
   } catch (error) {
     console.error('Error sending CPF status email:', error);
     return { success: false, error };

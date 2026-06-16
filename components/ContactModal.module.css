@@ -71,7 +71,7 @@
 }
 
 .inputGroup:focus-within {
-  border-color: #e30613;
+  border-color: #7f34e6;
   background: white;
 }
 
@@ -98,7 +98,7 @@
 
 .submitBtn {
   margin-top: 0.5rem;
-  background-color: #e30613;
+  background-color: #7f34e6;
   color: white;
   border: none;
   border-radius: 8px;
@@ -114,7 +114,7 @@
 }
 
 .submitBtn:hover {
-  background-color: #c50510;
+  background-color: #6322c2;
 }
 
 .footer {

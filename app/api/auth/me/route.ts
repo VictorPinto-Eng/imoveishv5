@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
         const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; name: string };
 
         const res = await query(
-            `SELECT u.id, u.email, u.name, u.social_name, u.avatar_url, u.email_verified, u.id_tipo_usuario, u.phone, 
+            `SELECT u.id, u.email, u.name, u.social_name, u.avatar_url, u.email_verified, u.phone, 
                     u.creci_numero, u.creci_apoestado_id, u.creci_tipo, u.creci_status, u.creci_document_url,
                     u.cpf_cnpj, u.data_nascimento, u.cpf_validated, u.razao_social, u.ativo,
                     EXISTS(SELECT 1 FROM public.admin_users WHERE user_id = u.id) as is_admin,
@@ -45,7 +45,6 @@ export async function GET(req: NextRequest) {
                 social_name: user.social_name,
                 avatar_url: user.avatar_url,
                 email_verified: user.email_verified,
-                id_tipo_usuario: user.id_tipo_usuario,
                 roles: roles,
                 user_type_name: roles.map((r: any) => r.nome).join(', '),
                 phone: user.phone,

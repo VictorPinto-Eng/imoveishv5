@@ -196,7 +196,7 @@ function MeusImoveisContent() {
 
     const checkCreciApproval = () => {
         const roles = currentUser?.roles || [];
-        const isCorretor = Number(currentUser?.id_tipo_usuario) === 2 || roles.some((r: any) => Number(r.id) === 2);
+        const isCorretor = roles.some((r: any) => Number(r.id) === 3);
         if (currentUser && isCorretor && !currentUser.creci_status) {
             const hasSentDoc = !!currentUser.creci_document_url;
             Swal.fire({

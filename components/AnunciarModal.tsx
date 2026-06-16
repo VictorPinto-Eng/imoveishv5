@@ -297,6 +297,7 @@ export default function AnunciarModal({ isOpen, onClose, user, onSuccess }: Anun
                                 onChange={(e) => setDataNascimento(e.target.value)}
                                 className={styles.input}
                                 style={{ height: '45px' }}
+                                max="9999-12-31"
                             />
                         </div>
                     </div>

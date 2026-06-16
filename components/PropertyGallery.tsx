@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import styles from './propertyGalleryMobileFixed.module.css';
-import { Camera, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Camera, Image as ImageIcon, ChevronLeft, ChevronRight, Heart, Share2 } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
 
 interface PropertyGalleryProps {
@@ -13,7 +13,57 @@ interface PropertyGalleryProps {
 export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isFavorited, setIsFavorited] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const favorites = JSON.parse(localStorage.getItem('hv5_favorites') || '[]');
+            setIsFavorited(favorites.includes(window.location.pathname));
+        }
+    }, []);
+
+    const toggleFavorite = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (typeof window !== 'undefined') {
+            const path = window.location.pathname;
+            let favorites = JSON.parse(localStorage.getItem('hv5_favorites') || '[]');
+            if (favorites.includes(path)) {
+                favorites = favorites.filter((p: string) => p !== path);
+                setIsFavorited(false);
+            } else {
+                favorites.push(path);
+                setIsFavorited(true);
+            }
+            localStorage.setItem('hv5_favorites', JSON.stringify(favorites));
+        }
+    };
+
+    const handleShare = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (typeof window !== 'undefined') {
+            const shareData = {
+                title: alt,
+                text: `Confira este imóvel no HV5: ${alt}`,
+                url: window.location.href,
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    alert('Link do imóvel copiado para a área de transferência!');
+                } catch (err) {
+                    console.log('Error copying link:', err);
+                }
+            }
+        }
+    };
 
     const openLightbox = (index: number) => {
         setCurrentIndex(index);
@@ -45,6 +95,22 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
 
     return (
         <div className={styles.galleryContainer}>
+            <div className={styles.topActions}>
+                <button 
+                    className={`${styles.actionBtn} ${isFavorited ? styles.favorited : ''}`} 
+                    onClick={toggleFavorite}
+                    title={isFavorited ? "Remover dos favoritos" : "Salvar nos favoritos"}
+                >
+                    <Heart size={12} className={isFavorited ? styles.heartFilled : ''} />
+                </button>
+                <button 
+                    className={styles.actionBtn} 
+                    onClick={handleShare}
+                    title="Compartilhar imóvel"
+                >
+                    <Share2 size={12} />
+                </button>
+            </div>
             <div className={styles.grid} ref={scrollRef}>
                 {/* Main Image (Large) */}
                 <div className={styles.mainImageWrapper} onClick={() => openLightbox(0)}>
@@ -55,7 +121,7 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                     />
                     <div className={styles.imageOverlay} />
                 </div>
-
+ 
                 {/* Grid Images (Side) */}
                 {images.slice(1, 5).map((img, index) => (
                     <div 
@@ -86,13 +152,21 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                     </div>
                 ))}
             </div>
-
+ 
             {/* Navigation Arrows (Mobile Only via CSS) */}
-            <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={() => scroll('left')}>
-                <ChevronLeft size={24} />
+            <button 
+                className={`${styles.navBtn} ${styles.prevBtn}`} 
+                onClick={() => scroll('left')}
+                style={{ width: '24px', height: '24px', minWidth: '24px' }}
+            >
+                <ChevronLeft size={10} />
             </button>
-            <button className={`${styles.navBtn} ${styles.nextBtn}`} onClick={() => scroll('right')}>
-                <ChevronRight size={24} />
+            <button 
+                className={`${styles.navBtn} ${styles.nextBtn}`} 
+                onClick={() => scroll('right')}
+                style={{ width: '24px', height: '24px', minWidth: '24px' }}
+            >
+                <ChevronRight size={10} />
             </button>
 
             <div className={styles.galleryActions}>
