@@ -65,6 +65,6 @@ export async function GET(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Migration error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

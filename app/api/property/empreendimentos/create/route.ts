@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('Erro na API create empreendimento:', { body: await request.clone().json(), errorMessage: error.message, stack: error.stack });
+        console.error('Erro na API create empreendimento:', error.message);
         return NextResponse.json(
             { error: 'Erro interno ao salvar no banco de dados. Tente novamente mais tarde.' },
             { status: 500 }

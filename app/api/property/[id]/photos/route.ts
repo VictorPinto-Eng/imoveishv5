@@ -61,7 +61,7 @@ export async function GET(
         });
     } catch (error: any) {
         console.error(`[API Error] Erro ao buscar fotos:`, error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
     }
 }
 
@@ -147,7 +147,7 @@ export async function POST(
         return NextResponse.json({ success: true, photo: insertRes.rows[0] });
 
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
     }
 }
 
@@ -201,7 +201,7 @@ export async function DELETE(
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
     }
 }
 
@@ -240,7 +240,7 @@ export async function PATCH(
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
     }
 }
 
@@ -270,6 +270,6 @@ export async function PUT(
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
     }
 }

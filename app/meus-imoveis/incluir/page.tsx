@@ -1291,11 +1291,10 @@ export default function IncluirImovelPage() {
 
 
 
-                        {/* Map Section - Parity with hv5soft */}
-                        {/* Map Section - Parity with hv5soft */}
+                        {/* Map Section */}
                         {isAddressFound && (
                             <>
-                                <div style={{ marginTop: '32px' }}>
+                                <div style={{ marginTop: '32px', position: 'relative', zIndex: 1 }}>
                                     <label className={styles.mapLabel}>Ponto de Localização</label>
                                     <div className={styles.mapPreviewContainer}>
                                         <button 

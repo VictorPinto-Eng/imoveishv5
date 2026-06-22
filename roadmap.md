@@ -109,6 +109,17 @@ Exemplos:
 ### Feature de Autenticação
 - [ ] **SEC-17**: Verificação de telefone via SMS (Firebase Phone Auth) — código de 6 dígitos enviado por SMS, 10.000 verificações/mês gratuitas. Fluxo: após verificar email, usuário clica "Verificar telefone" no perfil → recebe SMS → digita código → `phone_verified = true`. Expansão futura: migrar para Twilio/AWS SNS quando ultrapassar 10k/mês.
 
+### Pendências da Auditoria v2 (22/06/2026)
+- [x] **SEC-18**: Endpoints retornam mensagem genérica ao client — `error.message` removido de todas as respostas 500. ✅ *22/06/2026*
+- [ ] **SEC-19**: OAuth Google sem `state` parameter — vulnerável a CSRF no fluxo de login social.
+- [ ] **SEC-20**: Token de verificação de email sem expiração — adicionar `expires_at` na tabela e validar.
+- [ ] **SEC-21**: JWT não invalidado ao trocar/resetar senha — token roubado continua válido até expirar (24h).
+- [ ] **SEC-22**: Google OAuth cria usuário sem verificar `email_verified` da resposta do Google.
+- [ ] **SEC-23**: Resend-verification revela existência de email — retornar mensagem genérica independente do resultado.
+- [x] **SEC-24**: `/api/property/generate-title` agora exige auth — protege quota da API Gemini. ✅ *22/06/2026*
+- [ ] **SEC-25**: Empreendimentos photos sem validação de ownership — qualquer logado pode manipular fotos de qualquer empreendimento.
+- [ ] **SEC-26**: Fortalecer política de senha (uppercase, special char, max length para evitar DoS bcrypt).
+
 ---
 
 ## 🟠 Performance (Débito Técnico)

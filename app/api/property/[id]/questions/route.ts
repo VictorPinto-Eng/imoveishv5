@@ -68,6 +68,6 @@ export async function POST(
         if (error.code === '42P01') {
             return NextResponse.json({ error: 'Tabela imovel_perguntas não existe. Por favor, execute o SQL de criação.' }, { status: 500 })
         }
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+        return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
     }
 }

@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { buildPropertyTitlePrompt, generatePropertyTitleFallback } from '@/lib/property-title-prompt';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '@/lib/auth-config';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-// Using -latest to ensure the SDK finds the stable version in any API endpoint
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-// High-availability fallback model
-const fallbackModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const fallbackModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
 const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -54,8 +54,19 @@ async function generateContentWithRetry(prompt: string, maxRetries = 2) {
     throw new Error('All AI generation attempts failed');
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Auth check
+    const token = request.cookies.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+    try {
+      jwt.verify(token, JWT_SECRET);
+    } catch {
+      return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
+    }
+
     const data = await request.json();
 
     try {
