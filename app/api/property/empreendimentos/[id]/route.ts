@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '@/lib/auth-config';
 
 export async function GET(
   req: NextRequest,
@@ -56,6 +58,18 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+
+    // Auth check
+    const token = req.cookies.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+    try {
+      jwt.verify(token, JWT_SECRET);
+    } catch {
+      return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { 
       descricao, bairro_id, cidade_id, estado_id, pais_id, cep, possui_carac,

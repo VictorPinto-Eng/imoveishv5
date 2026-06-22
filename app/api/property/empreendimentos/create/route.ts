@@ -1,8 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '@/lib/auth-config';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
+        // Auth check
+        const token = request.cookies.get('token')?.value;
+        if (!token) {
+            return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+        }
+        try {
+            jwt.verify(token, JWT_SECRET);
+        } catch {
+            return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { descricao, bairro_id, cidade_id, estado_id, pais_id, cep, possui_carac } = body;
 

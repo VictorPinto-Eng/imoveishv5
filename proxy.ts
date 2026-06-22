@@ -49,16 +49,6 @@ function decodeJwtPayload(token: string) {
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Forçar HTTPS em produção
-  if (process.env.NODE_ENV === 'production') {
-    const xForwardedProto = request.headers.get('x-forwarded-proto');
-    if (xForwardedProto && xForwardedProto !== 'https') {
-      const httpsUrl = new URL(request.url);
-      httpsUrl.protocol = 'https:';
-      return NextResponse.redirect(httpsUrl, 301);
-    }
-  }
-
   const token = request.cookies.get('token')?.value;
 
   // 2. Proteger rotas de API
