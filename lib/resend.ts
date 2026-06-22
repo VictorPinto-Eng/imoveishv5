@@ -1,7 +1,7 @@
 
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 'placeholder_for_build');
 
 export async function sendActivationEmail(email: string, name: string, token: string) {
   // Prioriza a variável de ambiente, senão usa o domínio de produção
