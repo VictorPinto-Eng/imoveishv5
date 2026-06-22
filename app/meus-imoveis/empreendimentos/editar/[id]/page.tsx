@@ -17,7 +17,7 @@ const PhotoManager = dynamic(() => import('@/components/PhotoManager'), {
 });
 import styles from '@/app/meus-imoveis/empreendimentos/incluir/empreendimento.module.css';
 import { maskCep } from '@/lib/format';
-import Swal from 'sweetalert2';
+import { fire } from '@/lib/swal';
 
 interface LocationItem {
     id: number;
@@ -166,7 +166,7 @@ export default function EditarEmpreendimentoPage() {
                             isInitialLoad.current = false;
                         }, 500);
                     } else {
-                        Swal.fire({
+                        fire({
                             title: 'Erro!',
                             text: data.error || 'Empreendimento não encontrado.',
                             icon: 'error'
@@ -176,7 +176,7 @@ export default function EditarEmpreendimentoPage() {
                 })
                 .catch(err => {
                     console.error("Error loading development details:", err);
-                    Swal.fire({
+                    fire({
                         title: 'Erro!',
                         text: 'Erro ao carregar dados do empreendimento.',
                         icon: 'error'
@@ -396,7 +396,7 @@ export default function EditarEmpreendimentoPage() {
             setSuccess(true);
         } catch (error: any) {
             console.error("Submit error:", error);
-            Swal.fire({
+            fire({
                 title: 'Erro!',
                 text: error.message,
                 icon: 'error'
@@ -413,7 +413,7 @@ export default function EditarEmpreendimentoPage() {
                     <aside className={styles.sidebar}>
                         <Link href={`/meus-imoveis?mode=empreendimentos&empId=${id}`} className={styles.backBtn}>
                             <ArrowLeft size={20} />
-                            Voltar para Empreendimentos
+                            Voltar
                         </Link>
                         <div className={styles.logoIcon}>
                             <Building2 size={24} color="#ffffff" />

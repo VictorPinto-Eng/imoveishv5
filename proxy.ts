@@ -1,5 +1,32 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
+
+/**
+ * SEC-14: Proxy centralizado para proteção de rotas (páginas + APIs).
+ * Next.js 16 usa proxy.ts em vez de middleware.ts.
+ */
+
+// Rotas de API protegidas
+const PROTECTED_API_PATTERNS = [
+  '/api/user/',
+  '/api/leads',
+  '/api/property/submit',
+];
+
+// APIs públicas (excluídas da proteção)
+const PUBLIC_API_ROUTES = [
+  '/api/auth/',
+  '/api/contact',
+  '/api/analytics/',
+  '/api/property/estados',
+  '/api/property/tipos',
+];
+
+function isProtectedApi(pathname: string): boolean {
+  if (PUBLIC_API_ROUTES.some(route => pathname.startsWith(route))) return false;
+  return PROTECTED_API_PATTERNS.some(pattern => pathname.startsWith(pattern));
+}
 
 function decodeJwtPayload(token: string) {
   try {
@@ -19,7 +46,7 @@ function decodeJwtPayload(token: string) {
   }
 }
 
-export default function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Forçar HTTPS em produção
@@ -34,28 +61,49 @@ export default function middleware(request: NextRequest) {
 
   const token = request.cookies.get('token')?.value;
 
-  // 2. Protege a rota /meus-imoveis e sub-rotas
+  // 2. Proteger rotas de API
+  if (pathname.startsWith('/api/') && isProtectedApi(pathname)) {
+    if (!token) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+      await jwtVerify(token, secret);
+    } catch {
+      return NextResponse.json({ error: 'Sessão expirada' }, { status: 401 });
+    }
+    return NextResponse.next();
+  }
+
+  // 3. Protege a rota /meus-imoveis e sub-rotas
   if (pathname.startsWith('/meus-imoveis')) {
     if (!token) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
-  // 3. Protege painel do corretor: /mural e /negocios
+  // 4. Protege painel do corretor: /mural e /negocios
   if (pathname.startsWith('/mural') || pathname.startsWith('/negocios')) {
     if (!token) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
-  // 4. Protege painel do cliente: /meus-favoritos
+  // 5. Protege a rota /meu-perfil
+  if (pathname.startsWith('/meu-perfil')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  // 6. Protege a rota /meus-favoritos
   if (pathname.startsWith('/meus-favoritos')) {
     if (!token) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
-  // 5. Protege a rota /admin e sub-rotas (exige ser administrador)
+  // 7. Protege a rota /admin (exige ser administrador)
   if (pathname.startsWith('/admin')) {
     if (!token) {
       return NextResponse.redirect(new URL('/', request.url));
@@ -69,17 +117,9 @@ export default function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Configura o proxy para rodar em todas as páginas, exceto assets estáticos
+// Aplica em páginas protegidas + APIs protegidas
 export const config = {
   matcher: [
-    /*
-     * Aplica o proxy em todas as rotas de páginas, exceto:
-     * - api (rotas de API internas)
-     * - _next/static (arquivos estáticos do Next.js)
-     * - _next/image (serviço de otimização de imagens)
-     * - Arquivos com extensão no final (imagens, ícones, etc.)
-     * - favicon.ico
-     */
-    '/((?!api|_next/static|_next/image|.*\\..*|favicon.ico).*)',
+    '/((?!_next/static|_next/image|.*\\..*|favicon.ico).*)',
   ],
 };

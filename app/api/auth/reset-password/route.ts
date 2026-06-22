@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
+import { validatePassword } from '@/lib/validate-password';
 
 export async function POST(request: Request) {
     try {
@@ -8,6 +9,12 @@ export async function POST(request: Request) {
 
         if (!token || !password) {
             return NextResponse.json({ error: 'Token e nova senha são obrigatórios.' }, { status: 400 });
+        }
+
+        // SEC-09: Validação de força da senha
+        const passwordCheck = validatePassword(password);
+        if (!passwordCheck.valid) {
+            return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
         }
 
         // 1. Verificar se o token é válido e não expirou

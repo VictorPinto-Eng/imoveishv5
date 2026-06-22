@@ -1,12 +1,17 @@
 
-import { NextResponse, after } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import crypto from 'crypto';
 import { sendActivationEmail } from '@/lib/resend';
+import { validatePassword } from '@/lib/validate-password';
+import { checkRateLimit } from '@/lib/rate-limit';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
+        // SEC-07: Rate limiting — 5 tentativas por 15 minutos
+        const rateLimited = checkRateLimit(request, '/api/auth/register', 'auth');
+        if (rateLimited) return rateLimited;
         const { name, social_name, email: rawEmail, phone, password, confirmPassword, idTipoUsuario, roles, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento } = await request.json();
         const email = (rawEmail || '').trim().toLowerCase();
 
@@ -43,6 +48,12 @@ export async function POST(request: Request) {
                 { error: 'As senhas não coincidem.' },
                 { status: 400 }
             );
+        }
+
+        // SEC-09: Validação de força da senha
+        const passwordCheck = validatePassword(password);
+        if (!passwordCheck.valid) {
+            return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
         }
 
         // Validate fields for Proprietário

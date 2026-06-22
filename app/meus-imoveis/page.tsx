@@ -31,7 +31,7 @@ import DashboardQuestions from '@/components/DashboardQuestions';
 import { generateWhatsAppShareMessage } from '@/lib/share-templates';
 import ShareModal from '@/components/ShareModal';
 import dynamic from 'next/dynamic';
-import Swal from 'sweetalert2';
+import { fire, showLoading } from '@/lib/swal';
 import type { PropertyMapProps } from '@/components/PropertyMap';
 
 const PropertyMap = dynamic<PropertyMapProps>(() => import('@/components/PropertyMap'), { ssr: false });
@@ -199,7 +199,7 @@ function MeusImoveisContent() {
         const isCorretor = roles.some((r: any) => Number(r.id) === 3);
         if (currentUser && isCorretor && !currentUser.creci_status) {
             const hasSentDoc = !!currentUser.creci_document_url;
-            Swal.fire({
+            fire({
                 icon: hasSentDoc ? 'info' : 'warning',
                 title: hasSentDoc ? 'CRECI em Análise ⏳' : 'CRECI Não Homologado',
                 text: hasSentDoc 
@@ -242,12 +242,12 @@ function MeusImoveisContent() {
 
         if (newValue === true) {
             try {
-                Swal.fire({
+                fire({
                     title: 'Publicando...',
                     text: 'Enviando imóvel para o n8n publicar no Instagram.',
                     allowOutsideClick: false,
                     didOpen: () => {
-                        Swal.showLoading();
+                        showLoading();
                     }
                 });
                 const res = await fetch(`/api/property/${selectedImovel.id}/publish`, {
@@ -255,14 +255,14 @@ function MeusImoveisContent() {
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    Swal.fire({
+                    fire({
                         title: 'Sucesso!',
                         text: 'Imóvel enviado com sucesso para publicação no Instagram!',
                         icon: 'success',
                         confirmButtonColor: '#7F34E6'
                     });
                 } else {
-                    Swal.fire({
+                    fire({
                         title: 'Erro!',
                         text: data.error || 'Erro ao enviar para o n8n.',
                         icon: 'error',
@@ -271,7 +271,7 @@ function MeusImoveisContent() {
                 }
             } catch (err) {
                 console.error(err);
-                Swal.fire({
+                fire({
                     title: 'Erro!',
                     text: 'Erro de conexão ao enviar para o n8n.',
                     icon: 'error',
@@ -893,17 +893,17 @@ function MeusImoveisContent() {
                                                                     if (res.ok) {
                                                                         const data = await res.json();
                                                                         if (data.success) {
-                                                                            Swal.fire({ title: 'Sucesso!', text: 'Imóvel clonado com sucesso!', icon: 'success', confirmButtonColor: '#7F34E6' });
+                                                                            fire({ title: 'Sucesso!', text: 'Imóvel clonado com sucesso!', icon: 'success', confirmButtonColor: '#7F34E6' });
                                                                             fetchMyImoveis();
                                                                         } else {
-                                                                            Swal.fire({ title: 'Erro!', text: `Erro ao clonar: ${data.error || 'Erro desconhecido'}`, icon: 'error', confirmButtonColor: '#7F34E6' });
+                                                                            fire({ title: 'Erro!', text: `Erro ao clonar: ${data.error || 'Erro desconhecido'}`, icon: 'error', confirmButtonColor: '#7F34E6' });
                                                                         }
                                                                     } else {
-                                                                        Swal.fire({ title: 'Erro!', text: 'Erro de conexão ao clonar o imóvel.', icon: 'error', confirmButtonColor: '#7F34E6' });
+                                                                        fire({ title: 'Erro!', text: 'Erro de conexão ao clonar o imóvel.', icon: 'error', confirmButtonColor: '#7F34E6' });
                                                                     }
                                                                 } catch (err) {
                                                                     console.error('Clone error:', err);
-                                                                    Swal.fire({ title: 'Erro!', text: 'Erro de conexão ao clonar o imóvel.', icon: 'error', confirmButtonColor: '#7F34E6' });
+                                                                    fire({ title: 'Erro!', text: 'Erro de conexão ao clonar o imóvel.', icon: 'error', confirmButtonColor: '#7F34E6' });
                                                                 }
                                                             }
                                                         }}
@@ -966,12 +966,12 @@ function MeusImoveisContent() {
                                                             e.stopPropagation(); 
                                                             if (selectedImovel) {
                                                                 try {
-                                                                    Swal.fire({
+                                                                    fire({
                                                                         title: 'Publicando...',
                                                                         text: 'Enviando imóvel para o n8n publicar no Instagram.',
                                                                         allowOutsideClick: false,
                                                                         didOpen: () => {
-                                                                            Swal.showLoading();
+                                                                            showLoading();
                                                                         }
                                                                     });
                                                                     const res = await fetch(`/api/property/${selectedImovel.id}/publish`, {
@@ -979,14 +979,14 @@ function MeusImoveisContent() {
                                                                     });
                                                                     const data = await res.json();
                                                                     if (res.ok && data.success) {
-                                                                        Swal.fire({
+                                                                        fire({
                                                                             title: 'Sucesso!',
                                                                             text: 'Imóvel enviado com sucesso para publicação no Instagram!',
                                                                             icon: 'success',
                                                                             confirmButtonColor: '#7F34E6'
                                                                         });
                                                                     } else {
-                                                                        Swal.fire({
+                                                                        fire({
                                                                             title: 'Erro!',
                                                                             text: data.error || 'Erro ao enviar para o n8n.',
                                                                             icon: 'error',
@@ -995,7 +995,7 @@ function MeusImoveisContent() {
                                                                     }
                                                                 } catch (err) {
                                                                     console.error(err);
-                                                                    Swal.fire({
+                                                                    fire({
                                                                         title: 'Erro!',
                                                                         text: 'Erro de conexão ao enviar para o n8n.',
                                                                         icon: 'error',

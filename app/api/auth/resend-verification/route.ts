@@ -1,11 +1,16 @@
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import crypto from 'crypto';
 import { sendActivationEmail } from '@/lib/resend';
+import { checkRateLimit } from '@/lib/rate-limit';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
+        // SEC-07: Rate limiting — 3 tentativas por 10 minutos (envio de email)
+        const rateLimited = checkRateLimit(request, '/api/auth/resend-verification', 'email');
+        if (rateLimited) return rateLimited;
+
         const { email: rawEmail } = await request.json();
         const email = (rawEmail || '').trim().toLowerCase();
 

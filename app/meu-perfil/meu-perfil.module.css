@@ -173,6 +173,37 @@
     gap: 8px;
 }
 
+.verifyPhoneBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--primary, #e30613);
+    background: transparent;
+    border: 1px solid var(--primary, #e30613);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.verifyPhoneBtn:hover {
+    background: var(--primary, #e30613);
+    color: #fff;
+}
+
+.verifiedBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #10b981;
+}
+
 .countrySelect {
     height: 48px;
     padding: 0 12px;

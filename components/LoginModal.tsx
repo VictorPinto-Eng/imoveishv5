@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { X, Loader2, Eye, EyeOff, User, Phone, Mail, Lock, Check, AlertCircle } from 'lucide-react'
 import styles from './loginModal.module.css'
-import Swal from 'sweetalert2'
+import { fire } from '@/lib/swal'
 
 interface LoginModalProps {
     isOpen: boolean
@@ -444,14 +444,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 body: JSON.stringify({ email: formData.email }),
             });
             const data = await res.json();
-            
+
             if (data.exists) {
-                if (data.verified) {
-                    setEmailExistsError('Este e-mail já está cadastrado.');
-                } else {
-                    setEmailExistsError('Este e-mail já está cadastrado, mas ainda não foi ativado.');
-                    setNeedsActivation(true);
-                }
+                setEmailExistsError('Este e-mail já está cadastrado.');
             } else {
                 setEmailExistsError(null);
             }
@@ -613,7 +608,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         `;
                     }
 
-                    await Swal.fire({
+                    await fire({
                         icon: 'success',
                         title: 'Cadastro realizado! 🎉',
                         html: `

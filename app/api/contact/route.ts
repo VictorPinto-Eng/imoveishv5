@@ -4,9 +4,14 @@ import { query } from '@/lib/db';
 import { sendPropertyContactEmail } from '@/lib/resend';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '@/lib/auth-config';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
     try {
+        // Rate limiting: 5 contatos por minuto por IP
+        const limited = checkRateLimit(req, 'contact', { maxAttempts: 5, windowMs: 60_000 });
+        if (limited) return limited;
+
         const body = await req.json();
         const { propertyId, name, email, phone, message } = body;
 

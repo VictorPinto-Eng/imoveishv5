@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CheckCircle2, DollarSign, FileText, AlertCircle } from 'lucide-react';
 import styles from './ProposalModal.module.css';
-import Swal from 'sweetalert2';
+import { fire } from '@/lib/swal';
 
 interface ProposalModalProps {
   isOpen: boolean;
@@ -123,7 +123,7 @@ export default function ProposalModal({
         }).catch(err => console.error('[Analytics] Failed to track proposal submit:', err));
       } else {
         const errorData = await res.json();
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro ao enviar proposta',
           text: errorData.error || 'Ocorreu um erro interno. Tente novamente mais tarde.',
@@ -131,7 +131,7 @@ export default function ProposalModal({
         });
       }
     } catch (error) {
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro de Conexão',
         text: 'Não foi possível conectar ao servidor.',

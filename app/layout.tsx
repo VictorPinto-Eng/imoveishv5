@@ -1,7 +1,22 @@
 import type { Metadata } from 'next'
+import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
 import './globals.css'
 import SpecialistHelp from '@/components/SpecialistHelp'
 import CookieConsent from '@/components/CookieConsent'
+
+const jakarta = Plus_Jakarta_Sans({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    display: 'swap',
+    variable: '--font-sans',
+})
+
+const outfit = Outfit({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    display: 'swap',
+    variable: '--font-menu',
+})
 
 export const metadata: Metadata = { 
     metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
@@ -44,7 +59,7 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="pt-BR" suppressHydrationWarning>
+        <html lang="pt-BR" className={`${jakarta.variable} ${outfit.variable}`} suppressHydrationWarning>
             <body suppressHydrationWarning>
                 {children}
                 <SpecialistHelp />

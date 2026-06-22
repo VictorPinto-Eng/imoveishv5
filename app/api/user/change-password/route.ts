@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { JWT_SECRET } from '@/lib/auth-config';
+import { validatePassword } from '@/lib/validate-password';
 
 export async function POST(req: NextRequest) {
     try {
@@ -17,6 +18,12 @@ export async function POST(req: NextRequest) {
 
         if (!currentPassword || !newPassword) {
             return NextResponse.json({ error: 'Senha atual e nova senha são obrigatórias.' }, { status: 400 });
+        }
+
+        // SEC-09: Validação de força da nova senha
+        const passwordCheck = validatePassword(newPassword);
+        if (!passwordCheck.valid) {
+            return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
         }
 
         // Fetch user password hash

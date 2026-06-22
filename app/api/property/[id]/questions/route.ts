@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import jwt from 'jsonwebtoken'
 import { query } from '@/lib/db'
+import { JWT_SECRET } from '@/lib/auth-config'
 
-// GET: Fetch questions for a specific property
+// GET: Fetch questions for a specific property (público)
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -10,15 +12,15 @@ export async function GET(
         const { id } = await params
         const { searchParams } = new URL(req.url)
         const all = searchParams.get('all') === 'true'
-        
+
         const res = await query(
-            `SELECT * FROM imovel_perguntas 
-             WHERE imovel_id = $1 
-             ${all ? '' : "AND status = 'respondida'"} 
+            `SELECT * FROM imovel_perguntas
+             WHERE imovel_id = $1
+             ${all ? '' : "AND status = 'respondida'"}
              ORDER BY created_at DESC`,
             [id]
         )
-        
+
         return NextResponse.json(res.rows)
     } catch (error) {
         console.error('Error fetching questions:', error)
@@ -26,36 +28,40 @@ export async function GET(
     }
 }
 
-// POST: Submit a new question
+// POST: Submit a new question (requer autenticação)
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { id } = await params
-        const { pergunta, user_id } = await req.json()
-        
+
+        // SEC-12: Validar sessão — user_id vem do token, não do body
+        const token = req.cookies.get('token')?.value
+        if (!token) {
+            return NextResponse.json({ error: 'Não autorizado. Faça login para enviar perguntas.' }, { status: 401 })
+        }
+
+        let decoded: { id: number }
+        try {
+            decoded = jwt.verify(token, JWT_SECRET) as { id: number }
+        } catch {
+            return NextResponse.json({ error: 'Sessão expirada. Faça login novamente.' }, { status: 401 })
+        }
+
+        const { pergunta } = await req.json()
+
         if (!pergunta) {
             return NextResponse.json({ error: 'Pergunta é obrigatória' }, { status: 400 })
         }
-        
-        // In a real app, we would validate if the user is logged in
-        // and handle moderation. For now, we save as 'respondida' for testing
-        // or 'pendente' for real use.
-        
-        console.log('[API Questions] Submitting:', { 
-            imovel_id: parseInt(id), 
-            user_id: user_id || null, 
-            pergunta: pergunta.substring(0, 20) + '...' 
-        })
 
         const res = await query(
-            `INSERT INTO imovel_perguntas (imovel_id, user_id, pergunta, status) 
-             VALUES ($1, $2, $3, 'pendente') 
+            `INSERT INTO imovel_perguntas (imovel_id, user_id, pergunta, status)
+             VALUES ($1, $2, $3, 'pendente')
              RETURNING *`,
-            [parseInt(id), user_id || null, pergunta]
+            [parseInt(id), decoded.id, pergunta]
         )
-        
+
         return NextResponse.json(res.rows[0])
     } catch (error: any) {
         console.error('❌ [API Questions] POST Error:', error.message)

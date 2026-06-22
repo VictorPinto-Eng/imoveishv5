@@ -49,5 +49,10 @@ public/uploads/*
 # TS build info
 *.tsbuildinfo
 
+# Docker (configurado manualmente no servidor)
+Dockerfile
+docker-compose.yml
+Caddyfile
+
 # Scratch scripts
 scratch/

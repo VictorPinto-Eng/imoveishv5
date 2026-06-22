@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '@/lib/auth-config';
+import { verifyAdmin } from '@/lib/verify-admin';
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get('token')?.value;
-    if (!token) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
-    if (!decoded.is_admin) {
-      return NextResponse.json({ error: 'Proibido' }, { status: 403 });
-    }
+    const auth = await verifyAdmin(req);
+    if (!auth.authorized) return auth.response!;
 
     console.log('--- STARTING PHOTO MODULE MIGRATION ---');
 

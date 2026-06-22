@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, ChevronLeft, ChevronRight, Phone, Mail, MessageCircle, ImageOff, Share2 } from 'lucide-react'
+import Image from 'next/image'
+import { Heart, Phone, Mail, MessageCircle, ImageOff, Share2 } from 'lucide-react'
 import styles from './ImovelCard.module.css'
 import { Imovel } from '@/lib/imoveis'
-import Swal from 'sweetalert2'
+import { fire } from '@/lib/swal'
+import { buildPropertyUrl } from '@/lib/property-url'
 import WhatsAppLink from './WhatsAppLink'
 import ContactModal from './ContactModal'
 import LeadCaptureModal from './LeadCaptureModal'
@@ -30,19 +32,24 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
 
     useEffect(() => {
         const checkFavorite = async () => {
-            if (typeof window !== 'undefined') {
-                const win = window as any;
+            if (typeof window === 'undefined') return;
+            // Não faz request se não há cookie de token
+            if (!document.cookie.includes('token=')) return;
+
+            const win = window as any;
+            if (!win._favoritesCache) {
                 if (!win._favoritesPromise) {
                     win._favoritesPromise = fetch('/api/user/favorites')
                         .then(r => r.ok ? r.json() : { success: false, favorites: [] })
                         .catch(() => ({ success: false, favorites: [] }));
                 }
-                
-                const data = await win._favoritesPromise;
-                if (data.success && Array.isArray(data.favorites)) {
-                    const favIds = data.favorites.map((f: any) => String(f.id));
-                    setIsFavorited(favIds.includes(String(imovel.id)));
-                }
+                win._favoritesCache = await win._favoritesPromise;
+            }
+
+            const data = win._favoritesCache;
+            if (data.success && Array.isArray(data.favorites)) {
+                const favIds = data.favorites.map((f: any) => String(f.id));
+                setIsFavorited(favIds.includes(String(imovel.id)));
             }
         };
         checkFavorite();
@@ -56,7 +63,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             const authRes = await fetch('/api/auth/me');
             const authData = await authRes.json();
             if (!authData.authenticated) {
-                Swal.fire({
+                fire({
                     title: 'Atenção',
                     text: 'Você precisa estar logado para favoritar imóveis.',
                     icon: 'warning',
@@ -81,6 +88,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                     setIsFavorited(false);
                     if (typeof window !== 'undefined') {
                         delete (window as any)._favoritesPromise;
+                        delete (window as any)._favoritesCache;
                     }
                     onFavoriteToggle?.(String(imovel.id), false);
                 }
@@ -94,6 +102,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                     setIsFavorited(true);
                     if (typeof window !== 'undefined') {
                         delete (window as any)._favoritesPromise;
+                        delete (window as any)._favoritesCache;
                     }
                     onFavoriteToggle?.(String(imovel.id), true);
                 }
@@ -160,22 +169,22 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
   const bairro = imovel.bairro_nome || '';
   const locationTitle = [bairro, cidade].filter(Boolean).join(', ') + (uf ? `/${uf.toUpperCase()}` : '')
 
-  const nextImage = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const nextImage = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
   }
 
-  const prevImage = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const prevImage = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
   }
 
   const isRental = !!imovel.is_locacao
 
     const handleCardClick = () => {
-        router.push(`/imovel/${imovel.id}`)
+        router.push(buildPropertyUrl(imovel))
     }
 
     const handleShareClick = (e: React.MouseEvent) => {
@@ -273,14 +282,14 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         </button>
 
         {imagens_urls && imagens_urls.length > 0 ? (
-            <div onClick={(e) => e.stopPropagation()}>
-                <img
-                    src={imagens_urls[currentImageIndex]}
-                    alt={nome}
-                    className={styles.image}
-                    onClick={handleCardClick}
-                />
-            </div>
+            <Image
+                src={imagens_urls[currentImageIndex]}
+                alt={nome}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className={styles.image}
+                onClick={(e) => { e.stopPropagation(); handleCardClick(); }}
+            />
         ) : (
             <div className={styles.noPhotoPlaceholder} onClick={handleCardClick}>
                 <ImageOff size={48} strokeWidth={1} className={styles.noPhotoIcon} />
@@ -317,12 +326,6 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         
         {imagens_urls.length > 1 && (
           <>
-            <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={prevImage} aria-label="Foto anterior">
-              <ChevronLeft size={20} />
-            </button>
-            <button className={`${styles.navBtn} ${styles.nextBtn}`} onClick={nextImage} aria-label="Próxima foto">
-              <ChevronRight size={20} />
-            </button>
             <div className={styles.imageCounter}>
               {currentImageIndex + 1}/{imagens_urls.length}
             </div>

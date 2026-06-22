@@ -84,10 +84,25 @@ export async function POST(
         const file = formData.get('file') as File | null;
         if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 });
 
+        // SEC-02: Validação de tipo e tamanho de arquivo
+        const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif'];
+        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        if (!ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
+            return NextResponse.json({ error: `Tipo de arquivo não permitido: .${ext}. Use: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}` }, { status: 400 });
+        }
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+            return NextResponse.json({ error: `MIME type não permitido: ${file.type}` }, { status: 400 });
+        }
+        if (file.size > MAX_FILE_SIZE) {
+            return NextResponse.json({ error: `Arquivo excede o limite de 5MB (${(file.size / 1024 / 1024).toFixed(1)}MB)` }, { status: 400 });
+        }
+
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        const ext = file.name.split('.').pop() || 'jpg';
         const filename = `${crypto.randomUUID()}.${ext}`;
         
         // Garante o caminho absoluto para o Docker (/app/public/uploads/imoveis)

@@ -1,12 +1,17 @@
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
 import { JWT_SECRET } from '@/lib/auth-config';
+import { checkRateLimit } from '@/lib/rate-limit';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
+        // SEC-07: Rate limiting — 5 tentativas por 15 minutos
+        const rateLimited = checkRateLimit(request, '/api/auth/login', 'auth');
+        if (rateLimited) return rateLimited;
+
         const { email: rawEmail, password } = await request.json();
         const email = (rawEmail || '').trim().toLowerCase();
 
@@ -18,7 +23,10 @@ export async function POST(request: Request) {
         }
 
         // Find user
-        const res = await query('SELECT * FROM users WHERE email = $1', [email]);
+        const res = await query(
+            'SELECT id, name, email, password_hash, ativo, email_verified FROM users WHERE email = $1',
+            [email]
+        );
         if (res.rowCount === 0) {
             return NextResponse.json(
                 { error: 'E-mail ou senha inválidos.' },

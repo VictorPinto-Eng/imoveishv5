@@ -63,9 +63,9 @@ export default function ImageLightbox({ images, currentIndex, onClose, onNext, o
                             style={{ backgroundImage: `url(${images[currentIndex]})` }} 
                         />
                         
-                        <img 
-                            src={images[currentIndex]} 
-                            alt={`Foto ${currentIndex + 1}`} 
+                        <img
+                            src={images[currentIndex]}
+                            alt={`Foto ${currentIndex + 1}`}
                             className={styles.mainImage}
                         />
                     </div>

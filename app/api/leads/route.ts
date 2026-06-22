@@ -2,11 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '@/lib/auth-config';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 5 leads por minuto por IP
+    const limited = checkRateLimit(request, 'leads', { maxAttempts: 5, windowMs: 60_000 });
+    if (limited) return limited;
+
     const body = await request.json();
     const { name, whatsapp, email, mensagem, codigo } = body;
+
+    // Validação de input
+    if (!name || typeof name !== 'string' || name.trim().length < 2 || name.length > 200) {
+      return NextResponse.json({ error: 'Nome inválido' }, { status: 400 });
+    }
+    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
+    }
+    if (whatsapp && (typeof whatsapp !== 'string' || whatsapp.length > 20)) {
+      return NextResponse.json({ error: 'Telefone inválido' }, { status: 400 });
+    }
+    if (mensagem && (typeof mensagem !== 'string' || mensagem.length > 2000)) {
+      return NextResponse.json({ error: 'Mensagem muito longa (máx 2000 caracteres)' }, { status: 400 });
+    }
+    if (codigo && isNaN(Number(codigo))) {
+      return NextResponse.json({ error: 'Código de imóvel inválido' }, { status: 400 });
+    }
 
     // Detect logged in user
     let userId: number | null = null;
@@ -20,17 +42,14 @@ export async function POST(request: NextRequest) {
       // Ignore auth errors, just record as anonymous
     }
 
-    // 1. Record the lead in the local application database (leads table and public.atendimento table)
+    // 1. Record the lead in the local application database
     try {
       if (codigo && name && email) {
-        // Record in historical leads table
         await query(`
           INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
           VALUES ($1, $2, $3, $4, $5, $6)
-        `, [Number(codigo), userId, name, email, whatsapp, mensagem]);
-        console.log('[Leads Proxy] Lead recorded in local DB (leads).');
+        `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
 
-        // Record in public.atendimento to generate a Kanban card
         await query(`
           INSERT INTO public.atendimento (
             produto_servico_id, user_id, nome, email, telefone, mensagem, tipo, etapa_id, valor_proposta, status_proposta
@@ -40,27 +59,34 @@ export async function POST(request: NextRequest) {
             (SELECT id FROM public.atendimento_etapa WHERE sigla = 'novo' LIMIT 1),
             0, 'pendente'
           )
-        `, [Number(codigo), userId, name, email, whatsapp, mensagem]);
-        console.log('[Leads Proxy] Lead recorded in local DB (atendimento).');
+        `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
       }
     } catch (dbError) {
-      // Log database error but don't block the webhook forwarding
       console.error('[Leads Proxy] Database insertion error:', dbError);
     }
 
-    // 2. Forward the lead data to the external n8n webhook
-    // This happens on the server side, so CORS is not an issue.
-    const response = await fetch("https://webhook.hv5.srv.br/webhook/14b51c8e-0bbf-433f-94f0-a46773c31051", {
+    // 2. Forward sanitized data to n8n webhook (whitelist fields only)
+    const webhookUrl = process.env.N8N_LEADS_WEBHOOK_URL;
+    if (!webhookUrl) {
+      return NextResponse.json({ success: true });
+    }
+
+    const sanitizedPayload = {
+      name: name.trim(),
+      email: email.trim(),
+      whatsapp: whatsapp || '',
+      mensagem: mensagem || '',
+      codigo: codigo ? Number(codigo) : null,
+    };
+
+    const response = await fetch(webhookUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sanitizedPayload),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Leads Proxy] Webhook error:', errorText);
+      console.error('[Leads Proxy] Webhook error:', await response.text());
       return NextResponse.json(
         { error: 'Falha ao enviar lead para o servidor de integração.' },
         { status: response.status }

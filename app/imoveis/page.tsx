@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import ImovelCard from '@/components/ImovelCard'
 import ImovelFilters from '@/components/ImovelFilters'
+import Pagination from '@/components/Pagination'
 import { getImoveis } from '@/lib/imoveis'
 
 export const revalidate = 0 // Dynamic
@@ -31,11 +32,15 @@ export default async function ImoveisPage({
         status: params.status as string,
         operacao: params.operacao as string,
         alto_padrao: params.alto_padrao as string,
-        exclusividade: params.exclusividade as string
+        exclusividade: params.exclusividade as string,
+        page: params.page ? Number(params.page) : 1,
+        pageSize: 24,
+        sortBy: (params.sortBy as 'recent' | 'price_asc' | 'price_desc' | 'area_asc' | 'area_desc') || 'recent',
     }
 
     const result = await getImoveis(filters);
     const imoveis = result.imoveis;
+    const pagination = result.pagination;
 
     return (
         <>
@@ -44,7 +49,7 @@ export default async function ImoveisPage({
                 <div className="container">
                     <h1 style={{ marginBottom: '2rem' }}>Encontre seu imóvel</h1>
 
-                    <ImovelFilters 
+                    <ImovelFilters
                         initialFilters={filters}
                     />
 
@@ -54,11 +59,22 @@ export default async function ImoveisPage({
                             <p>Tente ajustar sua busca.</p>
                         </div>
                     ) : (
-                        <div className="card-grid">
-                            {imoveis.map((imovel: any) => (
-                                <ImovelCard key={imovel.id} imovel={imovel} />
-                            ))}
-                        </div>
+                        <>
+                            <p style={{ marginBottom: '1rem', color: '#64748b', fontSize: '0.9rem' }}>
+                                {pagination.total} {pagination.total === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
+                            </p>
+                            <div className="card-grid">
+                                {imoveis.map((imovel: any) => (
+                                    <ImovelCard key={imovel.id} imovel={imovel} />
+                                ))}
+                            </div>
+                            {pagination.totalPages > 1 && (
+                                <Pagination
+                                    currentPage={pagination.page}
+                                    totalPages={pagination.totalPages}
+                                />
+                            )}
+                        </>
                     )}
                 </div>
             </main>

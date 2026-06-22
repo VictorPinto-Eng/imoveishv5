@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+/* Fonts loaded via next/font in layout.tsx — eliminates render-blocking @import */
 
 :root {
   --background: #ffffff;
@@ -12,8 +11,8 @@
   --card-bg: #ffffff;
   --border: #e2e8f0;
 
-  --font-sans: 'Inter', sans-serif;
-  --font-menu: 'Outfit', sans-serif;
+  --font-sans: var(--font-sans, 'Inter', sans-serif);
+  --font-menu: var(--font-menu, 'Outfit', sans-serif);
 
   --radius: 0.5rem;
   /* Slightly tighter radius */

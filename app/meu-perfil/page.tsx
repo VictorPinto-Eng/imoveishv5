@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { User, Lock, Mail, Trash2, Loader2, ChevronRight, FileText, Upload } from 'lucide-react';
 import styles from './meu-perfil.module.css';
-import Swal from 'sweetalert2';
+import { fire } from '@/lib/swal';
 
 interface UserProfile {
     id: number;
@@ -155,16 +155,16 @@ export default function MeuPerfilPage() {
 
     const handleValidateCPF = async () => {
         if (!cpfCnpj) {
-            Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, digite o CPF/CNPJ para validação.' });
+            fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, digite o CPF/CNPJ para validação.' });
             return;
         }
         if (!dataNascimento) {
-            Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, insira a Data de Nascimento / Abertura para validação.' });
+            fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, insira a Data de Nascimento / Abertura para validação.' });
             return;
         }
         const isCpf = cpfCnpj.replace(/\D/g, '').length === 11;
         if (isCpf && (!razaoSocial || !razaoSocial.trim())) {
-            Swal.fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, insira o nome completo conforme consta na Receita Federal.' });
+            fire({ icon: 'warning', title: 'Aviso', text: 'Por favor, insira o nome completo conforme consta na Receita Federal.' });
             return;
         }
         if (!user) return;
@@ -186,7 +186,7 @@ export default function MeuPerfilPage() {
             if (res.ok && data.success) {
                 if (data.isCpfPending) {
                     setCpfValidated(false);
-                    Swal.fire({
+                    fire({
                         icon: 'info',
                         title: 'Solicitação Enviada! ⏳',
                         text: data.message || 'Seu CPF foi enviado para análise e confirmação do CPF pelo administrador.',
@@ -198,7 +198,7 @@ export default function MeuPerfilPage() {
                     if (isCnpj && data.data_nascimento) {
                         setDataNascimento(data.data_nascimento);
                     }
-                    Swal.fire({
+                    fire({
                         icon: 'success',
                         title: 'Validado com Sucesso! 🎉',
                         text: data.message || 'Seu documento foi validado com sucesso na base de dados cadastral.',
@@ -207,7 +207,7 @@ export default function MeuPerfilPage() {
                 }
                 fetchUserData();
             } else {
-                Swal.fire({
+                fire({
                     icon: 'error',
                     title: 'Falha na Validação',
                     text: data.error || 'O documento fornecido ou o nome não são válidos.',
@@ -215,7 +215,7 @@ export default function MeuPerfilPage() {
                 });
             }
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Erro', text: 'Erro ao comunicar com o servidor de validação.' });
+            fire({ icon: 'error', title: 'Erro', text: 'Erro ao comunicar com o servidor de validação.' });
         } finally {
             setIsValidatingCpf(false);
         }
@@ -404,7 +404,7 @@ export default function MeuPerfilPage() {
             const data = await res.json();
             if (res.ok && data.success) {
                 if (data.emailChanged) {
-                    Swal.fire({
+                    fire({
                         icon: 'warning',
                         title: 'E-mail Alterado! ✉️',
                         text: 'Um e-mail de ativação foi enviado para seu novo endereço. Sua sessão foi encerrada e você precisa validar o novo e-mail antes de fazer login novamente.',
@@ -438,7 +438,7 @@ export default function MeuPerfilPage() {
             return;
         }
 
-        const confirm = await Swal.fire({
+        const confirm = await fire({
             title: 'Você tem certeza?',
             text: 'Esta ação é definitiva e apagará todos os seus dados e imóveis!',
             icon: 'warning',
@@ -463,7 +463,7 @@ export default function MeuPerfilPage() {
 
             const data = await res.json();
             if (res.ok && data.success) {
-                Swal.fire({
+                fire({
                     title: 'Conta Excluída',
                     text: 'Sua conta foi removida do ecossistema HV5.',
                     icon: 'success',
@@ -830,12 +830,12 @@ export default function MeuPerfilPage() {
                                                         <option value="351">🇵🇹 +351</option>
                                                         <option value="34">🇪🇸 +34</option>
                                                     </select>
-                                                    <input 
-                                                        type="text" 
-                                                        value={phone} 
-                                                        onChange={e => setPhone(maskPhone(e.target.value))} 
+                                                    <input
+                                                        type="text"
+                                                        value={phone}
+                                                        onChange={e => setPhone(maskPhone(e.target.value))}
                                                         placeholder="(81) 99999-9999"
-                                                        className={styles.input} 
+                                                        className={styles.input}
                                                     />
                                                 </div>
                                             </div>

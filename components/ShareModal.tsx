@@ -3,7 +3,7 @@
 import { createPortal } from 'react-dom';
 import { X, Copy, Facebook, Mail, MessageCircle, Instagram } from 'lucide-react';
 import styles from './ShareModal.module.css';
-import Swal from 'sweetalert2';
+import { fire } from '@/lib/swal';
 import { useEffect, useState } from 'react';
 
 interface ShareModalProps {
@@ -62,7 +62,7 @@ export default function ShareModal({
             }
 
             if (!silent) {
-                Swal.fire({
+                fire({
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
@@ -95,7 +95,7 @@ export default function ShareModal({
         }
 
         await copyToClipboard(true);
-        Swal.fire({
+        fire({
             title: 'Instagram',
             text: 'Link copiado! Agora você pode colá-lo nos seus Stories ou enviar por Direct.',
             icon: 'info',

@@ -1,6 +1,8 @@
-
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-    throw new Error('A variável de ambiente JWT_SECRET é obrigatória em produção para garantir a segurança dos tokens dos usuários.');
+if (!process.env.JWT_SECRET) {
+    throw new Error(
+        'A variável de ambiente JWT_SECRET é obrigatória em todos os ambientes. ' +
+        'Defina JWT_SECRET no arquivo .env.local para desenvolvimento.'
+    );
 }
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_default';
+export const JWT_SECRET: string = process.env.JWT_SECRET;

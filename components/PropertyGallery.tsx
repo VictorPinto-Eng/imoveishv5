@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 import styles from './propertyGalleryMobileFixed.module.css';
 import { Camera, Image as ImageIcon, ChevronLeft, ChevronRight, Heart, Share2 } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
@@ -114,24 +115,29 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
             <div className={styles.grid} ref={scrollRef}>
                 {/* Main Image (Large) */}
                 <div className={styles.mainImageWrapper} onClick={() => openLightbox(0)}>
-                    <img 
-                        src={images[0]} 
-                        alt={`${alt} - Principal`} 
+                    <Image
+                        src={images[0]}
+                        alt={`${alt} - Principal`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority
                         className={styles.mainImage}
                     />
                     <div className={styles.imageOverlay} />
                 </div>
- 
+
                 {/* Grid Images (Side) */}
                 {images.slice(1, 5).map((img, index) => (
-                    <div 
-                        key={index} 
+                    <div
+                        key={index}
                         className={`${styles.sideImageWrapper}`}
                         onClick={() => openLightbox(index + 1)}
                     >
-                        <img 
-                            src={img} 
-                            alt={`${alt} - Foto ${index + 2}`} 
+                        <Image
+                            src={img}
+                            alt={`${alt} - Foto ${index + 2}`}
+                            fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
                             className={styles.sideImage}
                         />
                         <div className={styles.imageOverlay} />

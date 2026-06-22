@@ -109,6 +109,9 @@ export interface ImovelFilters {
   status?: string
   alto_padrao?: string
   exclusividade?: string
+  page?: number
+  pageSize?: number
+  sortBy?: 'recent' | 'price_asc' | 'price_desc' | 'area_asc' | 'area_desc'
 }
 
 // Helpers
@@ -391,16 +394,17 @@ export async function getPriceUpdatedImoveis(limit = 6) {
 export async function getImoveis(filters: ImovelFilters = {}) {
   try {
     let sql = `
-      SELECT 
-        I.*, 
+      SELECT
+        I.id, I.nome, I.ativo, I.pub_site, I.pub_price, I.status,
+        I.imbtpoperacao_id, I.imbtipoanuncio_id, I.imbempreendimento_id,
+        I.cidade_id, I.bairro_id, I.estado_id, I.created_at,
+        I.logradouro, I.numero, I.cep, I.user_id,
         (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_total_unidades,
         (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_min_preco,
         (SELECT MIN(c.area_util) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.ativo = true AND p.imbtipoanuncio_id = 1) AS emp_min_area,
-        carac.dormitorio, carac.suite, carac.varanda, carac.banheiro, carac.vaga, carac.areaservico, carac.quartoservico, carac.cozinha, carac.lavabo, carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno, carac.sala, carac.parque_aquatico, carac.salao_festas, carac.espaco_gourmet, carac.espaco_zen, carac.coworking, carac.piquenique, carac.espaco_grill, carac.pet_park, carac.supermarket, carac.espaco_gamer, carac.salao_jogos, carac.sala_cinema, carac.playground, carac.sala_yoga, carac.redario, carac.horta, carac.area_convivencia, carac.espacos_gourmet_multiplos, carac.academia, carac.sala_funcional, carac.quadra_poliesportiva, carac.quadra_beach_tennis, carac.campo_futebol_society, carac.quadra_volei_praia, carac.quadra_tenis, carac.ciclovia, carac.pista_cooper, carac.controle_acesso_automatizado, carac.sala_encomendas_delivery, carac.wi_fi_areas_comuns,
-        COALESCE(
-          NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC), '{}'),
-          ARRAY(SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = I.imbempreendimento_id ORDER BY ordem_exibicao ASC, id ASC)
-        ) as all_photos,
+        carac.dormitorio, carac.suite, carac.banheiro, carac.vaga, carac.lavabo,
+        carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno,
+        (SELECT ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 10)) as all_photos,
         OP.descricao as operacao_nome,
         TP.descricao as tipo_nome,
         ST.nome as status_imovel_nome,
@@ -509,6 +513,41 @@ export async function getImoveis(filters: ImovelFilters = {}) {
       // noop
     }
 
+    // Ordenação
+    const sortBy = filters.sortBy || 'recent'
+    switch (sortBy) {
+      case 'price_asc':
+        sql += ` ORDER BY COALESCE(PL.preco_base, PV.preco_base, 0) ASC`
+        break
+      case 'price_desc':
+        sql += ` ORDER BY COALESCE(PL.preco_base, PV.preco_base, 0) DESC`
+        break
+      case 'area_asc':
+        sql += ` ORDER BY COALESCE(carac.area_util, 0) ASC`
+        break
+      case 'area_desc':
+        sql += ` ORDER BY COALESCE(carac.area_util, 0) DESC`
+        break
+      default:
+        sql += ` ORDER BY I.created_at DESC`
+    }
+
+    // Paginação
+    const page = Math.max(1, filters.page || 1)
+    const pageSize = Math.min(100, Math.max(1, filters.pageSize || 24))
+    const offset = (page - 1) * pageSize
+
+    // Query de contagem total (sem LIMIT)
+    const countSql = `SELECT COUNT(*)::int as total FROM (${sql}) as counted`
+    const countRes = await query(countSql, params)
+    const total = countRes.rows[0]?.total || 0
+
+    // Aplicar LIMIT/OFFSET
+    params.push(pageSize)
+    sql += ` LIMIT $${params.length}`
+    params.push(offset)
+    sql += ` OFFSET $${params.length}`
+
     const res = await query(sql, params)
     const parsed = parseImoveis(res.rows || [])
 
@@ -549,18 +588,24 @@ export async function getImoveis(filters: ImovelFilters = {}) {
 
     return {
       imoveis: filtered,
-      debug: {
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+      debug: process.env.NODE_ENV === 'development' ? {
         sql,
         params,
         filters,
         rowCount: res.rowCount,
         parsedCount: parsed.length,
         filteredCount: filtered.length
-      }
+      } : undefined
     };
   } catch (error) {
     console.error('Error fetching imoveis:', error);
-    return { imoveis: [], error, debug: { filters } };
+    return { imoveis: [], pagination: { page: 1, pageSize: 24, total: 0, totalPages: 0 }, error, debug: process.env.NODE_ENV === 'development' ? { filters } : undefined };
   }
 }
 

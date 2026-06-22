@@ -8,7 +8,7 @@ import styles from './header.module.css'
 import LoginModal from './LoginModal'
 import ProfileModal from './ProfileModal'
 import AnunciarModal from './AnunciarModal'
-import Swal from 'sweetalert2'
+import { fire } from '@/lib/swal'
 
 interface User {
     id: number;
@@ -85,7 +85,7 @@ export default function Header() {
 
                 // Dispara o SweetAlert2 informando o sucesso
                 setTimeout(() => {
-                    Swal.fire({
+                    fire({
                         icon: 'success',
                         title: 'E-mail Ativado! 🎉',
                         text: 'Sua conta foi validada e ativada com sucesso. Você já pode fazer login no ecossistema HV5.',
@@ -103,7 +103,7 @@ export default function Header() {
 
                 // Dispara o SweetAlert2 informando a conta desativada
                 setTimeout(() => {
-                    Swal.fire({
+                    fire({
                         icon: 'error',
                         title: 'Acesso Bloqueado ⚠️',
                         text: 'Sua conta está desativada. Entre em contato com o suporte para mais informações.',
@@ -174,7 +174,7 @@ export default function Header() {
                             const isOnlyProprietarioWaiting = isProprietario && isCpfFilled;
 
                             setTimeout(() => {
-                                Swal.fire({
+                                fire({
                                     icon: isOnlyProprietarioWaiting ? 'info' : 'warning',
                                     title: isOnlyProprietarioWaiting ? 'Aguardando Confirmação do CPF ⏳' : 'Perfil Incompleto ⚠️',
                                     html: alertHtml,
@@ -266,7 +266,7 @@ export default function Header() {
                     const cpfText = isCpfValidated ? '✅ CPF Confirmado' : '⏳ CPF Aguardando Confirmação';
                     const creciText = isCreciValidated ? '✅ CRECI Homologado' : '⏳ CRECI em Análise';
 
-                    Swal.fire({
+                    fire({
                         icon: 'info',
                         title: 'Aguardando Homologação do Perfil ⏳',
                         html: `
@@ -284,7 +284,7 @@ export default function Header() {
                     if (!isCpfFilled) pendingItems.push('Cadastro de CPF');
                     if (!isCreciFilled) pendingItems.push('Upload do Comprovante do CRECI');
 
-                    Swal.fire({
+                    fire({
                         icon: 'warning',
                         title: 'Homologação de CRECI/CPF Pendente ⚠️',
                         html: `
@@ -308,7 +308,7 @@ export default function Header() {
             if (isProp && !isCorretor && !isCpfValidated) {
                 const isCpfFilled = !!(user as any).cpf_cnpj;
                 if (isCpfFilled) {
-                    Swal.fire({
+                    fire({
                         icon: 'info',
                         title: 'Aguardando Confirmação do CPF ⏳',
                         html: `
@@ -321,7 +321,7 @@ export default function Header() {
                         confirmButtonText: 'Entendi'
                     });
                 } else {
-                    Swal.fire({
+                    fire({
                         icon: 'warning',
                         title: 'Confirmação de CPF Pendente ⚠️',
                         html: `

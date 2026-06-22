@@ -8,6 +8,7 @@ import NextImage from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SearchableSelect from '@/components/SearchableSelect';
+import CompletenessScore from '@/components/CompletenessScore';
 import {
     ArrowLeft, Loader2, Save, Home,
     Maximize2, Bed, Bath, Car, MapPin,
@@ -20,7 +21,7 @@ import { sanitizeLocationName } from '@/lib/sanitize-location';
 import dynamic from 'next/dynamic';
 
 const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false });
-import Swal from 'sweetalert2';
+import { fire } from '@/lib/swal';
 
 interface CustomFields {
     endereco?: string;
@@ -217,7 +218,7 @@ export default function EditarImovelPage() {
             if (data.success && data.empreendimento) {
                 const emp = data.empreendimento;
                 if (emp.possui_carac === true || emp.possui_carac === 1 || emp.possui_carac === 'true') {
-                    Swal.fire({
+                    fire({
                         title: 'Carregar Características?',
                         text: 'Este empreendimento possui características de lazer/comuns cadastradas. Deseja importá-las para este imóvel?',
                         icon: 'question',
@@ -229,7 +230,7 @@ export default function EditarImovelPage() {
                     }).then((result) => {
                         if (result.isConfirmed) {
                             copyEmpreendimentoCarac(emp);
-                            Swal.fire({
+                            fire({
                                 title: 'Importado!',
                                 text: 'Características carregadas com sucesso.',
                                 icon: 'success',
@@ -340,7 +341,7 @@ export default function EditarImovelPage() {
             if (data.title) {
                 setImovel(prev => prev ? ({ ...prev, nome: data.title.toUpperCase() }) : null);
                 
-                Swal.fire({
+                fire({
                     toast: true,
                     position: 'top-end',
                     icon: 'success',
@@ -354,7 +355,7 @@ export default function EditarImovelPage() {
             }
         } catch (error: any) {
             console.error('Error with AI title generation:', error);
-            Swal.fire({
+            fire({
                 title: 'IA Temporariamente Indisponível',
                 text: 'Não conseguimos gerar o título agora. Por favor, tente novamente em instantes.',
                 icon: 'warning',
@@ -726,7 +727,7 @@ export default function EditarImovelPage() {
     const handleSave = async () => {
         if (!imovel) return;
         if (!imovel.numero || !imovel.numero.trim()) {
-            Swal.fire({
+            fire({
                 title: 'Atenção!',
                 text: 'O número do endereço é obrigatório. Preencha com o número ou S/N.',
                 icon: 'warning',
@@ -842,7 +843,7 @@ export default function EditarImovelPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                Swal.fire({
+                fire({
                     title: 'Sucesso!',
                     text: 'Imóvel atualizado com sucesso.',
                     icon: 'success',
@@ -851,7 +852,7 @@ export default function EditarImovelPage() {
                 return;
             }
 
-            Swal.fire({
+            fire({
                 title: 'Erro!',
                 text: data.error || 'Erro ao atualizar imóvel',
                 icon: 'error',
@@ -859,7 +860,7 @@ export default function EditarImovelPage() {
             });
         } catch (error) {
             console.error('Error saving imovel:', error);
-            Swal.fire({
+            fire({
                 title: 'Erro de Conexão',
                 text: 'Não foi possível salvar as alterações.',
                 icon: 'error',
@@ -1036,7 +1037,7 @@ export default function EditarImovelPage() {
                 if (cepInput) (cepInput as HTMLElement).focus();
                 return;
             }
-            Swal.fire({
+            fire({
                 title: 'Erro!',
                 text: data?.error || 'Erro ao cadastrar localidade',
                 icon: 'error',
@@ -1044,7 +1045,7 @@ export default function EditarImovelPage() {
             });
         } catch (error) {
             console.error('Error confirming registration:', error);
-            Swal.fire({
+            fire({
                 title: 'Erro de Conexão',
                 text: 'Não foi possível cadastrar a localidade.',
                 icon: 'error',
@@ -1092,14 +1093,6 @@ export default function EditarImovelPage() {
                             <Link href="/meus-imoveis" className={styles.logo}>
                                 <span className={styles.logoText}>HV<span className={styles.logoHighlight}>5</span></span>
                             </Link>
-                            <div className={styles.headerDivider}></div>
-                            <button
-                                onClick={handleBack}
-                                className={styles.backBtn}
-                            >
-                                <ArrowLeft size={20} />
-                                <span>Voltar</span>
-                            </button>
                         </div>
                         <div className={styles.headerActions}>
                             <button
@@ -1110,12 +1103,20 @@ export default function EditarImovelPage() {
                                 {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
                                 <span>Salvar Alterações</span>
                             </button>
+                            <button
+                                onClick={handleBack}
+                                className={styles.backBtn}
+                            >
+                                <ArrowLeft size={20} />
+                                <span>Voltar</span>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className={styles.container}>
+                {imovel && <CompletenessScore imovel={imovel} />}
 
                 {showBairroCreateModal && (
                     <div

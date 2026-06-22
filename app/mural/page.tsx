@@ -9,7 +9,7 @@ import {
   UserCircle2, Home, DollarSign, Sparkles, Info, Eye, Pencil, Kanban, Printer, Plus,
   Search, Users, PhoneCall
 } from 'lucide-react';
-import Swal from 'sweetalert2';
+import { fire, showLoading, close, showValidationMessage } from '@/lib/swal';
 
 export default function MuralPage() {
   const [proposals, setProposals] = useState<any[]>([]);
@@ -75,7 +75,7 @@ export default function MuralPage() {
         setChatMessages(prev => [...prev, data.message]);
         setNewMessage('');
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Erro ao enviar mensagem.',
@@ -214,7 +214,7 @@ export default function MuralPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setDetalhesContato('');
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Registrado!',
           text: 'Tentativa de contato gravada com sucesso.',
@@ -222,7 +222,7 @@ export default function MuralPage() {
         });
         await fetchProposalLogs(selectedProposal.proposal_id);
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível registrar a tentativa de contato.',
@@ -239,7 +239,7 @@ export default function MuralPage() {
   const handleTriggerContactAttemptSwal = (proposalId?: number) => {
     const id = proposalId || selectedProposal?.proposal_id;
     if (!id) return;
-    Swal.fire({
+    fire({
       title: 'Registrar Tentativa de Contato',
       html: `
         <div style="text-align: left; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; gap: 14px;">
@@ -319,7 +319,7 @@ export default function MuralPage() {
   const handleGenerateContactAttemptsPDF = (proposal: any, attempts: any[]) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Bloqueador de Popups Ativo',
         text: 'Por favor, permita popups para este site para gerar o PDF.',
@@ -559,11 +559,11 @@ export default function MuralPage() {
   };
 
   const handleOpenContactAttemptsModal = async (proposal: any) => {
-    Swal.fire({
+    fire({
       title: 'Carregando...',
       allowOutsideClick: false,
       didOpen: () => {
-        Swal.showLoading();
+        showLoading();
       }
     });
 
@@ -626,7 +626,7 @@ export default function MuralPage() {
           </div>
         `;
 
-      Swal.fire({
+      fire({
         title: '',
         width: '650px',
         showCloseButton: true,
@@ -658,7 +658,7 @@ export default function MuralPage() {
         showConfirmButton: false,
         didOpen: () => {
           document.getElementById('swal-btn-new-attempt')?.addEventListener('click', () => {
-            Swal.close();
+            close();
             handleTriggerContactAttemptSwal(proposal.proposal_id);
           });
           document.getElementById('swal-btn-generate-pdf')?.addEventListener('click', () => {
@@ -669,7 +669,7 @@ export default function MuralPage() {
 
     } catch (err: any) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: err.message || 'Não foi possível carregar as tentativas de contato.',
@@ -679,11 +679,11 @@ export default function MuralPage() {
   };
 
   const handleOpenTimelineLogsModal = async (proposal: any) => {
-    Swal.fire({
+    fire({
       title: 'Carregando...',
       allowOutsideClick: false,
       didOpen: () => {
-        Swal.showLoading();
+        showLoading();
       }
     });
 
@@ -760,7 +760,7 @@ export default function MuralPage() {
           </div>
         `;
 
-      Swal.fire({
+      fire({
         title: '',
         width: '650px',
         showCloseButton: true,
@@ -777,7 +777,7 @@ export default function MuralPage() {
 
     } catch (err: any) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: err.message || 'Não foi possível carregar o histórico de acompanhamento.',
@@ -802,7 +802,7 @@ export default function MuralPage() {
     const actionText = newStatus === 'aceita' ? 'aceitar' : 'recusar';
     const confirmColor = newStatus === 'aceita' ? '#10b981' : '#ef4444';
 
-    const confirmResult = await Swal.fire({
+    const confirmResult = await fire({
       title: `Confirmar Ação`,
       text: `Deseja realmente ${actionText} esta proposta?`,
       icon: 'question',
@@ -831,14 +831,14 @@ export default function MuralPage() {
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
           setSelectedProposal((prev: any) => ({ ...prev, status: newStatus }));
         }
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Sucesso!',
           text: `A proposta foi marcada como ${newStatus === 'aceita' ? 'aceita' : 'recusada'}.`,
           confirmButtonColor: '#7F34E6'
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar a proposta.',
@@ -847,7 +847,7 @@ export default function MuralPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -876,7 +876,7 @@ export default function MuralPage() {
           setSelectedProposal((prev: any) => ({ ...prev, etapa: newEtapa }));
         }
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar o estágio da negociação.',
@@ -885,7 +885,7 @@ export default function MuralPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -913,7 +913,7 @@ export default function MuralPage() {
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
           setSelectedProposal((prev: any) => ({ ...prev, anotacoes_internas: notes }));
         }
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Anotações Salvas!',
           text: 'As anotações internas foram atualizadas com sucesso.',
@@ -921,7 +921,7 @@ export default function MuralPage() {
           showConfirmButton: false
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar as anotações.',
@@ -930,7 +930,7 @@ export default function MuralPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -963,7 +963,7 @@ export default function MuralPage() {
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
           setSelectedProposal((prev: any) => ({ ...prev, data_visita: dateStr || null, data_agendamento: dateStr || null, etapa: dateStr ? 'agendamento' : prev.etapa }));
         }
-        Swal.fire({
+        fire({
           icon: 'success',
           title: dateStr ? 'Visita Agendada!' : 'Agendamento Removido!',
           text: dateStr ? 'A data da visita foi agendada e o card movido para Agendamento.' : 'A data da visita foi removida.',
@@ -971,7 +971,7 @@ export default function MuralPage() {
           showConfirmButton: false
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar a data da visita.',
@@ -980,7 +980,7 @@ export default function MuralPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -1008,14 +1008,14 @@ export default function MuralPage() {
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
           setSelectedProposal((prev: any) => ({ ...prev, data_agendamento: dateStr || null }));
         }
-        Swal.fire({
+        fire({
           icon: 'success',
           title: dateStr ? 'Agendamento do Card Atualizado!' : 'Agendamento Removido!',
           timer: 2000,
           showConfirmButton: false
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar o agendamento.',
@@ -1024,7 +1024,7 @@ export default function MuralPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -1040,7 +1040,7 @@ export default function MuralPage() {
       ? new Date(new Date(proposal.data_agendamento).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) 
       : '';
 
-    Swal.fire({
+    fire({
       title: 'Agendamento do Card',
       html: `
         <div style="font-family: 'Outfit', sans-serif; text-align: left;">
@@ -1103,7 +1103,7 @@ export default function MuralPage() {
 
   const handleOpenCreateLeadModal = (prefill?: { name: string; email: string; phone: string }) => {
     if (myProperties.length === 0) {
-      Swal.fire({
+      fire({
         icon: 'warning',
         title: 'Nenhum Imóvel Encontrado',
         text: 'Você precisa ter pelo menos um imóvel cadastrado e ativo para criar uma nova oportunidade.',
@@ -1142,7 +1142,7 @@ export default function MuralPage() {
       }
     }
 
-    Swal.fire({
+    fire({
       title: 'Nova Oportunidade',
       html: `
         <div style="text-align: left; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; gap: 14px; position: relative;">
@@ -1284,7 +1284,7 @@ export default function MuralPage() {
         const conditions = (document.getElementById('swal-lead-conditions') as HTMLTextAreaElement).value;
 
         if (!name || !propertyId) {
-          Swal.showValidationMessage('Por favor, preencha o Nome e o Imóvel de Interesse.');
+          showValidationMessage('Por favor, preencha o Nome e o Imóvel de Interesse.');
           return false;
         }
 
@@ -1319,7 +1319,7 @@ export default function MuralPage() {
 
           const data = await res.json();
           if (res.ok && data.success) {
-            Swal.fire({
+            fire({
               icon: 'success',
               title: 'Lead Cadastrado! 🎉',
               text: 'A nova oportunidade foi cadastrada com sucesso.',
@@ -1327,7 +1327,7 @@ export default function MuralPage() {
             });
             await fetchBusinessData();
           } else {
-            Swal.fire({
+            fire({
               icon: 'error',
               title: 'Erro ao Cadastrar',
               text: data.error || 'Não foi possível registrar o lead.',
@@ -1336,7 +1336,7 @@ export default function MuralPage() {
           }
         } catch (err) {
           console.error(err);
-          Swal.fire({
+          fire({
             icon: 'error',
             title: 'Erro',
             text: 'Erro de conexão com o servidor.',
@@ -1356,7 +1356,7 @@ export default function MuralPage() {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Bloqueador de Popups Ativo',
         text: 'Por favor, permita popups para este site para imprimir o relatório.',
@@ -1589,7 +1589,7 @@ export default function MuralPage() {
 
   const handleSaveLeadFromDrawer = async () => {
     if (!newLeadName) {
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Campo Obrigatório',
         text: 'Por favor, preencha o Nome do Cliente.',
@@ -1600,7 +1600,7 @@ export default function MuralPage() {
 
     const defaultPropertyId = myProperties[0]?.id;
     if (!defaultPropertyId) {
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Nenhum Imóvel Encontrado',
         text: 'Você precisa ter pelo menos um imóvel cadastrado e ativo para registrar um lead.',
@@ -1623,7 +1623,7 @@ export default function MuralPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Lead Cadastrado! 🎉',
           text: 'O lead foi cadastrado com sucesso.',
@@ -1644,7 +1644,7 @@ export default function MuralPage() {
         // Return to list mode
         setDrawerMode('list');
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro ao Cadastrar',
           text: data.error || 'Não foi possível registrar o lead.',
@@ -1653,7 +1653,7 @@ export default function MuralPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',

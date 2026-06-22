@@ -24,6 +24,11 @@ if (process.env.DATABASE_URL) {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  // PERF-09: Configuração explícita do pool para produção
+  max: 20,                       // Máximo de conexões simultâneas
+  idleTimeoutMillis: 30000,      // Fecha conexão ociosa após 30s
+  connectionTimeoutMillis: 5000, // Timeout para obter conexão do pool
+  statement_timeout: 30000,      // Aborta queries que excedam 30s
 });
 
 // Wrapper para logar erros de query no servidor

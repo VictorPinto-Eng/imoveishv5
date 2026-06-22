@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './empreendimento.module.css';
 import { maskCep } from '@/lib/format';
-import Swal from 'sweetalert2';
+import { fire } from '@/lib/swal';
 
 interface LocationItem {
     id: number;
@@ -279,7 +279,7 @@ export default function IncluirEmpreendimentoPage() {
                 <aside className={styles.sidebar}>
                     <Link href={createdId ? `/meus-imoveis?mode=empreendimentos&empId=${createdId}` : "/meus-imoveis?mode=empreendimentos"} className={styles.backBtn}>
                         <ArrowLeft size={20} />
-                        Voltar para Empreendimentos
+                        Voltar
                     </Link>
                     <div className={styles.logoIcon}>
                         <Building2 size={24} color="#ffffff" />

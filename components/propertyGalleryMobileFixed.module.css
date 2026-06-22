@@ -25,11 +25,8 @@
 }
 
 .mainImage, .sideImage {
-    width: 100%;
-    height: 100%;
     object-fit: cover;
     transition: transform 0.7s ease;
-    position: relative;
     z-index: 2;
 }
 

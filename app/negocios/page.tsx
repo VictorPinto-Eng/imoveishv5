@@ -10,7 +10,7 @@ import {
   Menu, ChevronLeft, ChevronRight, Eye, Pencil, Printer, Plus, PhoneCall
 } from 'lucide-react';
 import Link from 'next/link';
-import Swal from 'sweetalert2';
+import { fire, showLoading, close, showValidationMessage } from '@/lib/swal';
 
 type TabType = 'propostas' | 'leads' | 'cadastro' | 'clientes' | 'apoio';
 
@@ -69,7 +69,7 @@ export default function NegociosPage() {
         setChatMessages(prev => [...prev, data.message]);
         setNewMessage('');
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Erro ao enviar mensagem.',
@@ -437,7 +437,7 @@ export default function NegociosPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setDetalhesContato('');
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Registrado!',
           text: 'Tentativa de contato gravada com sucesso.',
@@ -445,7 +445,7 @@ export default function NegociosPage() {
         });
         await fetchProposalLogs(selectedProposal.proposal_id);
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível registrar a tentativa de contato.',
@@ -462,7 +462,7 @@ export default function NegociosPage() {
   const handleTriggerContactAttemptSwal = (proposalId?: number) => {
     const id = proposalId || selectedProposal?.proposal_id;
     if (!id) return;
-    Swal.fire({
+    fire({
       title: 'Registrar Tentativa de Contato',
       html: `
         <div style="text-align: left; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; gap: 14px;">
@@ -542,7 +542,7 @@ export default function NegociosPage() {
   const handleGenerateContactAttemptsPDF = (proposal: any, attempts: any[]) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Bloqueador de Popups Ativo',
         text: 'Por favor, permita popups para este site para gerar o PDF.',
@@ -782,11 +782,11 @@ export default function NegociosPage() {
   };
 
   const handleOpenContactAttemptsModal = async (proposal: any) => {
-    Swal.fire({
+    fire({
       title: 'Carregando...',
       allowOutsideClick: false,
       didOpen: () => {
-        Swal.showLoading();
+        showLoading();
       }
     });
 
@@ -849,7 +849,7 @@ export default function NegociosPage() {
           </div>
         `;
 
-      Swal.fire({
+      fire({
         title: '',
         width: '650px',
         showCloseButton: true,
@@ -881,7 +881,7 @@ export default function NegociosPage() {
         showConfirmButton: false,
         didOpen: () => {
           document.getElementById('swal-btn-new-attempt')?.addEventListener('click', () => {
-            Swal.close();
+            close();
             handleTriggerContactAttemptSwal(proposal.proposal_id);
           });
           document.getElementById('swal-btn-generate-pdf')?.addEventListener('click', () => {
@@ -892,7 +892,7 @@ export default function NegociosPage() {
 
     } catch (err: any) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: err.message || 'Não foi possível carregar as tentativas de contato.',
@@ -902,11 +902,11 @@ export default function NegociosPage() {
   };
 
   const handleOpenTimelineLogsModal = async (proposal: any) => {
-    Swal.fire({
+    fire({
       title: 'Carregando...',
       allowOutsideClick: false,
       didOpen: () => {
-        Swal.showLoading();
+        showLoading();
       }
     });
 
@@ -983,7 +983,7 @@ export default function NegociosPage() {
           </div>
         `;
 
-      Swal.fire({
+      fire({
         title: '',
         width: '650px',
         showCloseButton: true,
@@ -1000,7 +1000,7 @@ export default function NegociosPage() {
 
     } catch (err: any) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: err.message || 'Não foi possível carregar o histórico de acompanhamento.',
@@ -1326,7 +1326,7 @@ export default function NegociosPage() {
   const handleSearchCnae = async () => {
     const clean = supportFormCodAtiv.replace(/\D/g, '');
     if (!clean || (clean.length !== 5 && clean.length !== 7)) {
-      Swal.fire({
+      fire({
         icon: 'warning',
         title: 'Código Inválido',
         text: 'Por favor, digite um código de 5 ou 7 dígitos (ex: 4520-0 ou 4520-0/01).',
@@ -1358,7 +1358,7 @@ export default function NegociosPage() {
 
       setSupportFormNome(formattedName);
       
-      Swal.fire({
+      fire({
         icon: 'success',
         title: 'CNAE Encontrado',
         text: `Atividade preenchida: "${formattedName}"`,
@@ -1367,7 +1367,7 @@ export default function NegociosPage() {
       });
     } catch (err: any) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro na busca',
         text: 'Não foi possível encontrar uma atividade econômica com o código informado.',
@@ -1421,7 +1421,7 @@ export default function NegociosPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Sucesso!',
           text: data.message || 'Registro cadastrado com sucesso!',
@@ -1449,7 +1449,7 @@ export default function NegociosPage() {
   };
 
   const alertError = (msg: string) => {
-    Swal.fire({
+    fire({
       icon: 'error',
       title: 'Erro',
       text: msg,
@@ -1510,7 +1510,7 @@ export default function NegociosPage() {
     const actionText = newStatus === 'aceita' ? 'aceitar' : 'recusar';
     const confirmColor = newStatus === 'aceita' ? '#10b981' : '#ef4444';
 
-    const confirmResult = await Swal.fire({
+    const confirmResult = await fire({
       title: `Confirmar Ação`,
       text: `Deseja realmente ${actionText} esta proposta?`,
       icon: 'question',
@@ -1536,14 +1536,14 @@ export default function NegociosPage() {
         setProposals(prev => 
           prev.map(p => p.proposal_id === proposalId ? { ...p, status: newStatus } : p)
         );
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Sucesso!',
           text: `A proposta foi marcada como ${newStatus === 'aceita' ? 'aceita' : 'recusada'}.`,
           confirmButtonColor: '#7F34E6'
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar a proposta.',
@@ -1552,7 +1552,7 @@ export default function NegociosPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -1578,7 +1578,7 @@ export default function NegociosPage() {
           prev.map(p => p.proposal_id === proposalId ? { ...p, etapa: newEtapa } : p)
         );
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar o estágio da negociação.',
@@ -1587,7 +1587,7 @@ export default function NegociosPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -1612,7 +1612,7 @@ export default function NegociosPage() {
         setProposals(prev => 
           prev.map(p => p.proposal_id === proposalId ? { ...p, anotacoes_internas: notes } : p)
         );
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Notas Salvas!',
           text: 'As anotações internas foram salvas com sucesso.',
@@ -1620,7 +1620,7 @@ export default function NegociosPage() {
           showConfirmButton: false
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar as anotações.',
@@ -1629,7 +1629,7 @@ export default function NegociosPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -1662,7 +1662,7 @@ export default function NegociosPage() {
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
           setSelectedProposal((prev: any) => ({ ...prev, data_visita: dateStr || null, data_agendamento: dateStr || null, etapa: dateStr ? 'agendamento' : prev.etapa }));
         }
-        Swal.fire({
+        fire({
           icon: 'success',
           title: dateStr ? 'Visita Agendada!' : 'Agendamento Removido!',
           text: dateStr ? 'A data da visita foi agendada e o card movido para Agendamento.' : 'A data da visita foi removida.',
@@ -1670,7 +1670,7 @@ export default function NegociosPage() {
           showConfirmButton: false
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar a data da visita.',
@@ -1679,7 +1679,7 @@ export default function NegociosPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -1707,14 +1707,14 @@ export default function NegociosPage() {
         if (selectedProposal && selectedProposal.proposal_id === proposalId) {
           setSelectedProposal((prev: any) => ({ ...prev, data_agendamento: dateStr || null }));
         }
-        Swal.fire({
+        fire({
           icon: 'success',
           title: dateStr ? 'Agendamento do Card Atualizado!' : 'Agendamento Removido!',
           timer: 2000,
           showConfirmButton: false
         });
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro',
           text: data.error || 'Não foi possível atualizar o agendamento do card.',
@@ -1723,7 +1723,7 @@ export default function NegociosPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -1739,7 +1739,7 @@ export default function NegociosPage() {
       ? new Date(new Date(proposal.data_agendamento).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) 
       : '';
 
-    Swal.fire({
+    fire({
       title: 'Agendamento do Card',
       html: `
         <div style="font-family: 'Outfit', sans-serif; text-align: left;">
@@ -1782,7 +1782,7 @@ export default function NegociosPage() {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Bloqueador de Popups Ativo',
         text: 'Por favor, permita popups para este site para imprimir o relatório.',
@@ -2077,7 +2077,7 @@ export default function NegociosPage() {
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formCustName || !formCnpjCpf) {
-      Swal.fire({
+      fire({
         icon: 'warning',
         title: 'Campos Obrigatórios',
         text: 'Por favor, preencha o Nome e o CPF/CNPJ.',
@@ -2139,7 +2139,7 @@ export default function NegociosPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({
+        fire({
           icon: 'success',
           title: isEdit ? 'Cliente Atualizado! 🎉' : 'Cliente Cadastrado! 🎉',
           text: isEdit ? 'O cadastro do cliente foi atualizado com sucesso.' : 'O cliente foi registrado com sucesso para geração de contratos.',
@@ -2191,7 +2191,7 @@ export default function NegociosPage() {
         setClientesView('list');
         await fetchCustomers();
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: isEdit ? 'Erro ao Atualizar' : 'Erro ao Cadastrar',
           text: data.error || 'Não foi possível salvar os dados do cliente.',
@@ -2200,7 +2200,7 @@ export default function NegociosPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -2213,7 +2213,7 @@ export default function NegociosPage() {
 
   const handleLookupLeadSwal = () => {
     if (proposals.length === 0) {
-      Swal.fire({
+      fire({
         icon: 'info',
         title: 'Nenhum Lead Disponível',
         text: 'Não há leads cadastrados no funil. Deseja cadastrar um novo?',
@@ -2237,7 +2237,7 @@ export default function NegociosPage() {
       return `<option value="${lead.proposal_id}">${lead.sender_name || 'Anônimo'} - ${lead.property_name || 'Imóvel'} (${valorStr})</option>`;
     }).join('');
 
-    Swal.fire({
+    fire({
       title: 'Importar Lead Existente',
       html: `
         <div style="text-align: left; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; gap: 16px; padding: 10px 0;">
@@ -2267,7 +2267,7 @@ export default function NegociosPage() {
         const createBtn = document.getElementById('swal-btn-create-lead-new');
         if (createBtn) {
           createBtn.addEventListener('click', () => {
-            Swal.close();
+            close();
             setTimeout(() => {
               handleOpenCreateLeadModal();
             }, 250);
@@ -2277,7 +2277,7 @@ export default function NegociosPage() {
       preConfirm: () => {
         const selectedId = (document.getElementById('swal-lookup-lead-select') as HTMLSelectElement).value;
         if (!selectedId) {
-          Swal.showValidationMessage('Selecione um lead para importar ou cancele.');
+          showValidationMessage('Selecione um lead para importar ou cancele.');
           return false;
         }
         return selectedId;
@@ -2290,7 +2290,7 @@ export default function NegociosPage() {
           setFormCustName(lead.sender_social_name || lead.sender_name || '');
           setFormCustEmail(lead.sender_email || '');
           setFormCustPhone(lead.sender_phone ? formatPhone(lead.sender_phone) : '');
-          Swal.fire({
+          fire({
             icon: 'success',
             title: 'Dados Importados!',
             text: 'Nome, E-mail e Telefone preenchidos a partir do lead.',
@@ -2304,7 +2304,7 @@ export default function NegociosPage() {
 
   const handleOpenCreateLeadModal = () => {
     if (myProperties.length === 0) {
-      Swal.fire({
+      fire({
         icon: 'warning',
         title: 'Nenhum Imóvel Encontrado',
         text: 'Você precisa ter pelo menos um imóvel cadastrado e ativo para criar uma nova oportunidade.',
@@ -2330,7 +2330,7 @@ export default function NegociosPage() {
     });
     const uniqueLeads = Array.from(uniqueLeadsMap.values()) as Array<{name: string, email: string, phone: string}>;
 
-    Swal.fire({
+    fire({
       title: 'Nova Oportunidade',
       html: `
         <div style="text-align: left; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; gap: 14px; position: relative;">
@@ -2472,7 +2472,7 @@ export default function NegociosPage() {
         const conditions = (document.getElementById('swal-lead-conditions') as HTMLTextAreaElement).value;
 
         if (!name || !propertyId) {
-          Swal.showValidationMessage('Por favor, preencha o Nome e o Imóvel de Interesse.');
+          showValidationMessage('Por favor, preencha o Nome e o Imóvel de Interesse.');
           return false;
         }
 
@@ -2507,7 +2507,7 @@ export default function NegociosPage() {
 
           const data = await res.json();
           if (res.ok && data.success) {
-            Swal.fire({
+            fire({
               icon: 'success',
               title: 'Lead Cadastrado! 🎉',
               text: 'A nova oportunidade foi cadastrada com sucesso.',
@@ -2520,7 +2520,7 @@ export default function NegociosPage() {
             if (payload.email) setFormCustEmail(payload.email);
             if (payload.phone) setFormCustPhone(formatPhone(payload.phone));
           } else {
-            Swal.fire({
+            fire({
               icon: 'error',
               title: 'Erro ao Cadastrar',
               text: data.error || 'Não foi possível registrar o lead.',
@@ -2529,7 +2529,7 @@ export default function NegociosPage() {
           }
         } catch (err) {
           console.error(err);
-          Swal.fire({
+          fire({
             icon: 'error',
             title: 'Erro',
             text: 'Erro de conexão com o servidor.',
@@ -2569,7 +2569,7 @@ export default function NegociosPage() {
   const handleCreateLead = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName || !formPropertyId) {
-      Swal.fire({
+      fire({
         icon: 'warning',
         title: 'Campos Obrigatórios',
         text: 'Por favor, preencha o Nome e o Imóvel de Interesse.',
@@ -2597,7 +2597,7 @@ export default function NegociosPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({
+        fire({
           icon: 'success',
           title: 'Lead Cadastrado! 🎉',
           text: 'O lead e a proposta foram registrados com sucesso.',
@@ -2616,7 +2616,7 @@ export default function NegociosPage() {
         setActiveTab('propostas');
         await fetchBusinessData();
       } else {
-        Swal.fire({
+        fire({
           icon: 'error',
           title: 'Erro ao Cadastrar',
           text: data.error || 'Não foi possível registrar o lead.',
@@ -2625,7 +2625,7 @@ export default function NegociosPage() {
       }
     } catch (err) {
       console.error(err);
-      Swal.fire({
+      fire({
         icon: 'error',
         title: 'Erro',
         text: 'Erro de conexão com o servidor.',
@@ -5349,7 +5349,7 @@ export default function NegociosPage() {
                             onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
                             onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
                           >
-                            <ArrowLeft size={16} /> Voltar para a lista
+                            <ArrowLeft size={16} /> Voltar
                           </button>
 
                           {/* Selected Customer Profile */}
@@ -5642,7 +5642,7 @@ export default function NegociosPage() {
                           onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
                           onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
                         >
-                          ← Voltar para a lista de clientes
+                          ← Voltar
                         </button>
 
                         <div style={{
@@ -6270,7 +6270,7 @@ export default function NegociosPage() {
                                       type="button"
                                       onClick={() => {
                                         if (!formCustName || !formCnpjCpf) {
-                                          Swal.fire({
+                                          fire({
                                             icon: 'warning',
                                             title: 'Campos Obrigatórios',
                                             text: 'Por favor, preencha o Nome e o Documento.',

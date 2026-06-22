@@ -9,7 +9,7 @@ import {
   User, ShieldCheck, Award, Phone, Mail, Calendar
 } from 'lucide-react';
 import styles from './admin.module.css';
-import Swal from 'sweetalert2';
+import { fire, showValidationMessage } from '@/lib/swal';
 
 interface Stats {
   totalUsers: number;
@@ -119,7 +119,7 @@ export default function AdminPage() {
 
   const handleAction = async (userId: number, brokerName: string, action: 'approve' | 'reject') => {
     const isApprove = action === 'approve';
-    const confirmResult = await Swal.fire({
+    const confirmResult = await fire({
       title: isApprove ? 'Aprovar CRECI?' : 'Rejeitar Comprovante?',
       text: isApprove
         ? `Você está aprovando e homologando o cadastro do corretor ${brokerName}.`
@@ -143,7 +143,7 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({
+        fire({
           title: isApprove ? 'Homologado!' : 'Rejeitado!',
           text: data.message,
           icon: 'success',
@@ -153,7 +153,7 @@ export default function AdminPage() {
         // Reload dashboard
         loadDashboardData();
       } else {
-        Swal.fire({
+        fire({
           title: 'Erro!',
           text: data.error || 'Erro ao processar ação.',
           icon: 'error'
@@ -161,7 +161,7 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error processing CRECI action:', err);
-      Swal.fire({
+      fire({
         title: 'Erro!',
         text: 'Erro de conexão.',
         icon: 'error'
@@ -174,7 +174,7 @@ export default function AdminPage() {
 
     // --- Fluxo de APROVAÇÃO/ATUALIZAÇÃO: pede o nome da Receita Federal antes de confirmar ---
     if (isApprove) {
-      const inputResult = await Swal.fire({
+      const inputResult = await fire({
         title: 'Homologar / Atualizar Nome Receita Federal',
         html: `
           <p style="margin-bottom:12px">Você está definindo o nome oficial do CPF/CNPJ de <strong>${userName}</strong>.</p>
@@ -193,7 +193,7 @@ export default function AdminPage() {
         cancelButtonText: 'Cancelar',
         preConfirm: (value: string) => {
           if (!value || !value.trim()) {
-            Swal.showValidationMessage('⚠️ O nome da Receita Federal é obrigatório para homologar.');
+            showValidationMessage('⚠️ O nome da Receita Federal é obrigatório para homologar.');
           }
           return value?.trim().toUpperCase();
         }
@@ -210,20 +210,20 @@ export default function AdminPage() {
 
         const data = await res.json();
         if (res.ok && data.success) {
-          Swal.fire({ title: 'Salvo com sucesso!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+          fire({ title: 'Salvo com sucesso!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
           loadDashboardData();
         } else {
-          Swal.fire({ title: 'Erro!', text: data.error || 'Erro ao processar ação.', icon: 'error' });
+          fire({ title: 'Erro!', text: data.error || 'Erro ao processar ação.', icon: 'error' });
         }
       } catch (err) {
         console.error('Error processing CPF action:', err);
-        Swal.fire({ title: 'Erro!', text: 'Erro de conexão.', icon: 'error' });
+        fire({ title: 'Erro!', text: 'Erro de conexão.', icon: 'error' });
       }
       return;
     }
 
     // --- Fluxo de REJEIÇÃO ---
-    const confirmResult = await Swal.fire({
+    const confirmResult = await fire({
       title: 'Rejeitar CPF/CNPJ?',
       text: `Os dados de CPF/CNPJ do usuário ${userName} serão limpos e ele precisará preencher novamente.`,
       icon: 'warning',
@@ -245,7 +245,7 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({
+        fire({
           title: 'Rejeitado!',
           text: data.message,
           icon: 'success',
@@ -254,7 +254,7 @@ export default function AdminPage() {
         });
         loadDashboardData();
       } else {
-        Swal.fire({
+        fire({
           title: 'Erro!',
           text: data.error || 'Erro ao processar ação.',
           icon: 'error'
@@ -262,7 +262,7 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error processing CPF action:', err);
-      Swal.fire({
+      fire({
         title: 'Erro!',
         text: 'Erro de conexão.',
         icon: 'error'
@@ -271,7 +271,7 @@ export default function AdminPage() {
   };
 
   const handleRestoreUser = async (userId: number, userName: string) => {
-    const confirm = await Swal.fire({
+    const confirm = await fire({
       title: 'Reativar Conta?',
       text: `Deseja reativar a conta do usuário ${userName} e cancelar a solicitação de exclusão?`,
       icon: 'question',
@@ -293,19 +293,19 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({ icon: 'success', title: 'Reativada!', text: data.message, timer: 2000, showConfirmButton: false });
+        fire({ icon: 'success', title: 'Reativada!', text: data.message, timer: 2000, showConfirmButton: false });
         loadDashboardData();
       } else {
-        Swal.fire({ icon: 'error', title: 'Erro!', text: data.error || 'Erro ao reativar conta.' });
+        fire({ icon: 'error', title: 'Erro!', text: data.error || 'Erro ao reativar conta.' });
       }
     } catch (error) {
       console.error('Error restoring account:', error);
-      Swal.fire({ icon: 'error', title: 'Erro!', text: 'Erro de conexão.' });
+      fire({ icon: 'error', title: 'Erro!', text: 'Erro de conexão.' });
     }
   };
 
   const handleDeleteUser = async (userId: number, userName: string) => {
-    const confirm = await Swal.fire({
+    const confirm = await fire({
       title: '⚠️ EXCLUIR DEFINITIVAMENTE?',
       text: `Esta ação apagará permanentemente o usuário ${userName} e todos os seus imóveis do banco de dados de forma definitiva! Não há como reverter.`,
       icon: 'warning',
@@ -325,14 +325,14 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        Swal.fire({ icon: 'success', title: 'Excluído!', text: data.message, timer: 2000, showConfirmButton: false });
+        fire({ icon: 'success', title: 'Excluído!', text: data.message, timer: 2000, showConfirmButton: false });
         loadDashboardData();
       } else {
-        Swal.fire({ icon: 'error', title: 'Erro!', text: data.error || 'Erro ao excluir conta.' });
+        fire({ icon: 'error', title: 'Erro!', text: data.error || 'Erro ao excluir conta.' });
       }
     } catch (error) {
       console.error('Error deleting account:', error);
-      Swal.fire({ icon: 'error', title: 'Erro!', text: 'Erro de conexão.' });
+      fire({ icon: 'error', title: 'Erro!', text: 'Erro de conexão.' });
     }
   };
 

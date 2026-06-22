@@ -87,6 +87,7 @@ export async function GET(request: Request) {
         response.cookies.set('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
             maxAge: 86400, // 1 day
             path: '/',
         });

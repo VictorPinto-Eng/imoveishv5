@@ -3,7 +3,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import PropertyQuestions from '@/components/PropertyQuestions'
 import { getImovelById, getFeaturedImoveis } from '@/lib/imoveis'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import PropertyGallery from '@/components/PropertyGallery'
 import PropertyStats from '@/components/PropertyStats'
 import ContactStickyCard from '@/components/ContactStickyCard'
@@ -42,14 +42,31 @@ import {
 import AnalyticsTracker from '@/components/AnalyticsTracker'
 import { Metadata } from 'next'
 import SafePropertyMap from '@/components/SafePropertyMap'
+import { cache } from 'react'
+import { buildPropertyUrl } from '@/lib/property-url'
+
+// PERF-06: Deduplifica chamadas a getImovelById no mesmo request cycle
+const getCachedImovel = cache(async (id: string) => getImovelById(id))
+
+/** Extrai o UUID do array de slugs */
+function extractId(slug: string[]): string | null {
+    if (slug.length === 1) return slug[0] // URL legada: /imovel/{uuid}
+    if (slug.length === 5) return slug[4] // SEO URL: /imovel/{tipo}/{op}/{cidade}/{bairro}/{uuid}
+    return null
+}
 
 export const revalidate = 60
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-    const { id } = await params
-    const imovel = await getImovelById(id)
-    
+export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
+    const { slug } = await params
+    const id = extractId(slug)
+    if (!id) return { title: 'Imóvel não encontrado' }
+
+    const imovel = await getCachedImovel(id)
     if (!imovel) return { title: 'Imóvel não encontrado' }
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const canonicalUrl = `${baseUrl}${buildPropertyUrl(imovel)}`
 
     const title = `${imovel.operacao_nome || 'Imóvel'} - ${imovel.tipo_nome || 'Detalhes'} | HV5`
     const description = `${imovel.custom_fields?.bairro || ''}, ${imovel.custom_fields?.cidade || ''} - ${imovel.dormitorios || 0} Qtos, ${imovel.area_util || imovel.area_terreno || 0}m²`
@@ -58,10 +75,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     return {
         title,
         description,
+        alternates: {
+            canonical: canonicalUrl,
+        },
         openGraph: {
             title,
             description,
             images,
+            url: canonicalUrl,
             type: 'website',
         },
         twitter: {
@@ -73,12 +94,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
 }
 
-export default async function ImovelDetail({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params
-    const imovel = await getImovelById(id)
+export default async function ImovelDetail({ params }: { params: Promise<{ slug: string[] }> }) {
+    const { slug } = await params
+    const id = extractId(slug)
 
-    if (!imovel) {
-        notFound()
+    if (!id) notFound()
+
+    const imovel = await getCachedImovel(id)
+
+    if (!imovel) notFound()
+
+    // Redirect: URL legada ou slugs incorretos → URL canônica
+    const canonicalPath = buildPropertyUrl(imovel)
+    const currentPath = `/imovel/${slug.join('/')}`
+    if (currentPath !== canonicalPath) {
+        permanentRedirect(canonicalPath)
     }
 
     const similarImoveis = await getFeaturedImoveis(4, id, imovel.imbtpimovel_id, imovel.imbtpoperacao_id, imovel.imbfinalidade_id)
@@ -136,8 +166,9 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
         '@type': 'RealEstateListing',
         name: imovel.nome,
         description: imovel.descricao || `${imovel.tipo_imovel_nome} ${imovel.operacao_nome ? `para ${imovel.operacao_nome}` : ''} em ${cf.bairro || ''}, ${cf.cidade || 'Pernambuco'}`,
-        url: `${baseUrl}/imovel/${id}`,
-        image: imovel.imagens_urls?.[0] || imovel.foto_capa || undefined,
+        url: `${baseUrl}${buildPropertyUrl(imovel)}`,
+        image: imovel.imagens_urls?.length ? imovel.imagens_urls : (imovel.foto_capa ? [imovel.foto_capa] : undefined),
+        datePosted: imovel.created_at || undefined,
         price: imovel.pub_price !== false ? imovel.preco_base : undefined,
         priceCurrency: 'BRL',
         address: {
@@ -147,7 +178,13 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
             addressRegion: imovel.uf_nome || 'PE',
             addressCountry: 'BR',
             postalCode: imovel.cep || undefined,
+            neighborhood: imovel.bairro_nome || cf.bairro || undefined,
         },
+        geo: (imovel.latitude && imovel.longitude) ? {
+            '@type': 'GeoCoordinates',
+            latitude: imovel.latitude,
+            longitude: imovel.longitude,
+        } : undefined,
         numberOfRooms: imovel.dormitorios || undefined,
         numberOfBathroomsTotal: imovel.banheiros || undefined,
         floorSize: imovel.area_util ? {
@@ -155,12 +192,27 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
             value: imovel.area_util,
             unitCode: 'MTK',
         } : undefined,
+        additionalProperty: [
+            imovel.suites ? { '@type': 'PropertyValue', name: 'Suítes', value: imovel.suites } : null,
+            imovel.vagas ? { '@type': 'PropertyValue', name: 'Vagas de garagem', value: imovel.vagas } : null,
+            imovel.area_terreno ? { '@type': 'PropertyValue', name: 'Área do terreno', value: `${imovel.area_terreno} m²` } : null,
+        ].filter(Boolean),
         offers: {
             '@type': 'Offer',
             price: imovel.pub_price !== false ? imovel.preco_base : undefined,
             priceCurrency: 'BRL',
             availability: 'https://schema.org/InStock',
         },
+    }
+
+    const breadcrumbJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Início', item: baseUrl },
+            { '@type': 'ListItem', position: 2, name: 'Imóveis', item: `${baseUrl}/imoveis` },
+            { '@type': 'ListItem', position: 3, name: imovel.nome, item: `${baseUrl}${buildPropertyUrl(imovel)}` },
+        ],
     }
     
     const categories = [
@@ -231,6 +283,10 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
             />
             <Header />
             <AnalyticsTracker produto_servico_id={Number(id)} event_name="view_property" />
@@ -420,7 +476,7 @@ export default async function ImovelDetail({ params }: { params: Promise<{ id: s
             {/* Back Button */}
             <div className={styles.backFixed}>
                 <BackButton className={styles.backBtn} fallbackHref="/imoveis">
-                    ← Voltar para a lista
+                    ← Voltar
                 </BackButton>
             </div>
 

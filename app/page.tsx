@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   },
 }
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// PERF-04: Revalidar a cada 5 minutos — dados de imóveis não mudam a cada segundo
+export const revalidate = 300
 
 export default async function Home() {
   // Busca todas as fontes em paralelo

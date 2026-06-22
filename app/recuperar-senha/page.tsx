@@ -92,7 +92,7 @@ function RecuperarSenhaContent() {
                         Sua senha foi atualizada com sucesso. Você será redirecionado para a página inicial em instantes.
                     </p>
                     <button className={styles.button} onClick={() => router.push('/')}>
-                        Voltar para Início
+                        Voltar
                     </button>
                 </div>
             </div>

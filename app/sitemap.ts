@@ -1,15 +1,27 @@
 import { MetadataRoute } from 'next'
 import { query } from '@/lib/db'
+import { buildPropertyUrl } from '@/lib/property-url'
 
 export const dynamic = 'force-dynamic'
 
 
-async function getAllImovelIds(): Promise<{ id: string; updated_at?: string }[]> {
+async function getAllImoveis(): Promise<{ id: string; updated_at?: string; operacao_nome?: string; tipo_nome?: string; cidade_nome?: string; bairro_nome?: string }[]> {
   try {
     const res = await query(
-      `SELECT id, updated_at FROM public.produto_servico 
-       WHERE tipo = 'produto' AND categoria = 'Imovel' AND ativo = true AND pub_site = true
-       ORDER BY updated_at DESC`,
+      `SELECT I.id, I.updated_at,
+         OP.descricao as operacao_nome,
+         TP.descricao as tipo_nome,
+         CID.descricao as cidade_nome,
+         BAI.descricao as bairro_nome
+       FROM public.produto_servico I
+       LEFT JOIN public.imbtpoperacao OP ON OP.id = I.imbtpoperacao_id
+       LEFT JOIN public.produto_servicos_loca PL ON I.id = PL.produto_servico_id
+       LEFT JOIN public.produto_servicos_venda PV ON I.id = PV.produto_servico_id
+       LEFT JOIN public.imbtpimovel TP ON COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) = TP.id
+       JOIN public.apocidade CID ON I.cidade_id = CID.id
+       JOIN public.apobairro BAI ON I.bairro_id = BAI.id
+       WHERE I.ativo = true AND I.pub_site = true
+       ORDER BY I.updated_at DESC`,
       []
     )
     return res.rows || []
@@ -61,10 +73,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Páginas dinâmicas de cada imóvel
-  const imoveis = await getAllImovelIds()
+  // Páginas dinâmicas de cada imóvel (URLs SEO-friendly)
+  const imoveis = await getAllImoveis()
   const imovelPages: MetadataRoute.Sitemap = imoveis.map((imovel) => ({
-    url: `${baseUrl}/imovel/${imovel.id}`,
+    url: `${baseUrl}${buildPropertyUrl(imovel)}`,
     lastModified: imovel.updated_at ? new Date(imovel.updated_at) : new Date(),
     changeFrequency: 'weekly',
     priority: 0.8,

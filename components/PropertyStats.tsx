@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react';
 import styles from './propertyStats.module.css';
 import { Bed, Bath, Car, Maximize, DoorOpen } from 'lucide-react';
