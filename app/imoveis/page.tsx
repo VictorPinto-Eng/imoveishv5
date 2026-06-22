@@ -5,6 +5,7 @@ import ImovelFilters from '@/components/ImovelFilters'
 import Pagination from '@/components/Pagination'
 import { getImoveis } from '@/lib/imoveis'
 
+
 export const revalidate = 0 // Dynamic
 
 export default async function ImoveisPage({
@@ -38,9 +39,16 @@ export default async function ImoveisPage({
         sortBy: (params.sortBy as 'recent' | 'price_asc' | 'price_desc' | 'area_asc' | 'area_desc') || 'recent',
     }
 
-    const result = await getImoveis(filters);
-    const imoveis = result.imoveis;
-    const pagination = result.pagination;
+    const hasActiveFilters = !!(
+        filters.cidade || filters.bairro || filters.tipo || filters.finalidade ||
+        filters.operacao || filters.minPrice || filters.maxPrice ||
+        filters.dormitorios || filters.suites || filters.banheiros || filters.vagas ||
+        filters.minArea || filters.maxArea
+    )
+
+    const result = await getImoveis(filters)
+    const imoveis = result.imoveis
+    const pagination = result.pagination
 
     return (
         <>
@@ -61,7 +69,10 @@ export default async function ImoveisPage({
                     ) : (
                         <>
                             <p style={{ marginBottom: '1rem', color: '#64748b', fontSize: '0.9rem' }}>
-                                {pagination.total} {pagination.total === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
+                                {hasActiveFilters
+                                    ? `${pagination.total} ${pagination.total === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}`
+                                    : 'Imóveis recentes'
+                                }
                             </p>
                             <div className="card-grid">
                                 {imoveis.map((imovel: any) => (

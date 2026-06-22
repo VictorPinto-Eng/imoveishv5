@@ -1294,7 +1294,7 @@ export default function IncluirImovelPage() {
                         {/* Map Section */}
                         {isAddressFound && (
                             <>
-                                <div style={{ marginTop: '32px', position: 'relative', zIndex: 1 }}>
+                                <div style={{ marginTop: '32px', position: 'relative' }}>
                                     <label className={styles.mapLabel}>Ponto de Localização</label>
                                     <div className={styles.mapPreviewContainer}>
                                         <button 
