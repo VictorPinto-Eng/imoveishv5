@@ -60,7 +60,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
     }
 
     return (
-        <div className={styles.wrapper} ref={containerRef}>
+        <div className={`${styles.wrapper} ${isOpen ? styles.wrapperOpen : ''}`} ref={containerRef}>
             <div
                 className={`${styles.button} ${isOpen ? styles.buttonOpen : ''}`}
                 onClick={() => setIsOpen(!isOpen)}

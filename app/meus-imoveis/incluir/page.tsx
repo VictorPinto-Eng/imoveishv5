@@ -1061,7 +1061,7 @@ export default function IncluirImovelPage() {
 
                             </>
                         ) : (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ position: 'relative', zIndex: 10 }}>
                                 <div className={styles.addressConfirmBox}>
                                     <div className={styles.addressInfo}>
                                         <Building2 size={24} className="text-gray-600" />

@@ -110,15 +110,25 @@ Exemplos:
 - [ ] **SEC-17**: Verificação de telefone via SMS (Firebase Phone Auth) — código de 6 dígitos enviado por SMS, 10.000 verificações/mês gratuitas. Fluxo: após verificar email, usuário clica "Verificar telefone" no perfil → recebe SMS → digita código → `phone_verified = true`. Expansão futura: migrar para Twilio/AWS SNS quando ultrapassar 10k/mês.
 
 ### Pendências da Auditoria v2 (22/06/2026)
+
+#### 🚨 Prioridade Alta (corrigir antes de escalar)
 - [x] **SEC-18**: Endpoints retornam mensagem genérica ao client — `error.message` removido de todas as respostas 500. ✅ *22/06/2026*
-- [ ] **SEC-19**: OAuth Google sem `state` parameter — vulnerável a CSRF no fluxo de login social.
-- [ ] **SEC-20**: Token de verificação de email sem expiração — adicionar `expires_at` na tabela e validar.
-- [ ] **SEC-21**: JWT não invalidado ao trocar/resetar senha — token roubado continua válido até expirar (24h).
-- [ ] **SEC-22**: Google OAuth cria usuário sem verificar `email_verified` da resposta do Google.
-- [ ] **SEC-23**: Resend-verification revela existência de email — retornar mensagem genérica independente do resultado.
 - [x] **SEC-24**: `/api/property/generate-title` agora exige auth — protege quota da API Gemini. ✅ *22/06/2026*
+- [ ] **SEC-19**: OAuth Google sem `state` parameter — vulnerável a CSRF no fluxo de login social. Gerar state aleatório no cookie antes do redirect, validar no callback.
+- [ ] **SEC-22**: Google OAuth cria usuário sem verificar `email_verified` da resposta do Google — pode permitir login com email não verificado.
 - [ ] **SEC-25**: Empreendimentos photos sem validação de ownership — qualquer logado pode manipular fotos de qualquer empreendimento.
-- [ ] **SEC-26**: Fortalecer política de senha (uppercase, special char, max length para evitar DoS bcrypt).
+- [ ] **SEC-27**: Login revela status da conta (verificação/desativação) ANTES de validar senha — mover password check para antes do status check.
+- [ ] **SEC-28**: `delete-account` e `change-password` não verificam Google-only users — bypass total da confirmação de identidade.
+
+#### ⚠️ Prioridade Média
+- [ ] **SEC-21**: JWT não invalidado ao trocar/resetar senha — token roubado continua válido até expirar (24h). Implementar `password_changed_at` ou cookie rotation.
+- [ ] **SEC-23**: Resend-verification revela existência de email — retornar mensagem genérica independente do resultado.
+- [ ] **SEC-26**: Fortalecer política de senha — adicionar max 128 chars (evita DoS bcrypt), recomendável uppercase/special.
+- [ ] **SEC-29**: `console.log` expõe emails em produção (register, forgot-password) — mascarar ou remover.
+
+#### ℹ️ Prioridade Baixa
+- [ ] **SEC-20**: Token de verificação de email sem expiração — adicionar `expires_at` na tabela e validar.
+- [ ] **SEC-30**: Logout não inclui `sameSite: 'strict'` no cookie cleared — inconsistência com login.
 
 ---
 
