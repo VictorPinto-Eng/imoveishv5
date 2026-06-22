@@ -1260,7 +1260,7 @@ export default function IncluirImovelPage() {
 
                                     {/* Status removed as requested - forced to Pendente by default */}
 
-                                    <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                    <div className={styles.formGroup} style={{ marginTop: '24px', position: 'relative', zIndex: 9999 }}>
                                         <p className={styles.subQuestion} style={{ marginBottom: '8px' }}>Empreendimento</p>
                                         <SearchableSelect
                                             options={empreendimentos}

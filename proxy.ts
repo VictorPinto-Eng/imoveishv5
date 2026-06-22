@@ -21,6 +21,7 @@ const PUBLIC_API_ROUTES = [
   '/api/analytics/',
   '/api/property/estados',
   '/api/property/tipos',
+  '/api/property/types',
 ];
 
 function isProtectedApi(pathname: string): boolean {
