@@ -87,6 +87,7 @@ export interface Imovel {
   imbtpimovel_id?: number
   imbfinalidade_id?: number
   owner_phone?: string
+  imbempreendimento_id?: number | string
   emp_total_unidades?: number
   emp_min_preco?: number
   emp_min_area?: number
@@ -258,13 +259,38 @@ export function parseImoveis(data: any[]): Imovel[] {
   return data.map(parseImovel)
 }
 
+const SQL_DEDUP_EMP = `AND (
+  I.imbtipoanuncio_id != 2
+  OR I.imbempreendimento_id IS NULL
+  OR NOT EXISTS (
+    SELECT 1 FROM public.produto_servico p
+    WHERE p.imbempreendimento_id = I.imbempreendimento_id
+    AND p.imbtipoanuncio_id = 2
+    AND p.tipo = 'produto' AND p.categoria = 'Imovel' AND p.ativo = true AND p.pub_site = true
+    AND p.id < I.id
+  )
+)`
+
+// Same without tipo/categoria (for getImoveis which doesn't filter by those)
+const SQL_DEDUP_EMP_SIMPLE = `AND (
+  I.imbtipoanuncio_id != 2
+  OR I.imbempreendimento_id IS NULL
+  OR NOT EXISTS (
+    SELECT 1 FROM public.produto_servico p
+    WHERE p.imbempreendimento_id = I.imbempreendimento_id
+    AND p.imbtipoanuncio_id = 2
+    AND p.ativo = true AND p.pub_site = true
+    AND p.id < I.id
+  )
+)`
+
 // Data Fetching
 const BASE_SELECT = `
   SELECT 
     I.*, 
-    (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_total_unidades,
-    (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_preco,
-    (SELECT MIN(COALESCE(NULLIF(c.area_util, 0), NULLIF(c.area_construida, 0), NULLIF(c.area_terreno, 0))) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_area,
+    (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id) AS emp_total_unidades,
+    (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id) AS emp_min_preco,
+    (SELECT MIN(COALESCE(NULLIF(c.area_util, 0), NULLIF(c.area_construida, 0), NULLIF(c.area_terreno, 0))) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id) AS emp_min_area,
     carac.dormitorio, carac.suite, carac.varanda, carac.banheiro, carac.vaga, carac.areaservico, carac.quartoservico, carac.cozinha, carac.lavabo, carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno, carac.sala, carac.parque_aquatico, carac.salao_festas, carac.espaco_gourmet, carac.espaco_zen, carac.coworking, carac.piquenique, carac.espaco_grill, carac.pet_park, carac.supermarket, carac.espaco_gamer, carac.salao_jogos, carac.sala_cinema, carac.playground, carac.sala_yoga, carac.redario, carac.horta, carac.area_convivencia, carac.espacos_gourmet_multiplos, carac.academia, carac.sala_funcional, carac.quadra_poliesportiva, carac.quadra_beach_tennis, carac.campo_futebol_society, carac.quadra_volei_praia, carac.quadra_tenis, carac.ciclovia, carac.pista_cooper, carac.controle_acesso_automatizado, carac.sala_encomendas_delivery, carac.wi_fi_areas_comuns,
     COALESCE(
       NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC), '{}'),
@@ -319,7 +345,7 @@ export async function getFeaturedImoveis(
 ) {
   try {
     const params: any[] = [limit]
-    let whereClause = `WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true`
+    let whereClause = `WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true ${SQL_DEDUP_EMP}`
     
     if (excludeId) {
       params.push(excludeId)
@@ -361,6 +387,7 @@ export async function getRecentImoveis(limit = 6) {
     const res = await query(`
       ${BASE_SELECT}
       WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
+        ${SQL_DEDUP_EMP}
         AND I.created_at >= NOW() - INTERVAL '30 days'
       ORDER BY I.created_at DESC
       LIMIT $1
@@ -378,6 +405,7 @@ export async function getPriceUpdatedImoveis(limit = 6) {
     const res = await query(`
       ${BASE_SELECT}
       WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
+        ${SQL_DEDUP_EMP}
         AND I.updated_at IS NOT NULL
         AND I.updated_at > I.created_at + INTERVAL '1 hour'
         AND I.updated_at >= NOW() - INTERVAL '60 days'
@@ -399,9 +427,9 @@ export async function getImoveis(filters: ImovelFilters = {}) {
         I.imbtpoperacao_id, I.imbtipoanuncio_id, I.imbempreendimento_id,
         I.cidade_id, I.bairro_id, I.estado_id, I.created_at,
         I.logradouro, I.numero, I.cep, I.user_id,
-        (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_total_unidades,
-        (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_preco,
-        (SELECT MIN(COALESCE(NULLIF(c.area_util, 0), NULLIF(c.area_construida, 0), NULLIF(c.area_terreno, 0))) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_area,
+        (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id) AS emp_total_unidades,
+        (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id) AS emp_min_preco,
+        (SELECT MIN(COALESCE(NULLIF(c.area_util, 0), NULLIF(c.area_construida, 0), NULLIF(c.area_terreno, 0))) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id) AS emp_min_area,
         carac.dormitorio, carac.suite, carac.banheiro, carac.vaga, carac.lavabo,
         carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno,
         COALESCE(
@@ -445,7 +473,7 @@ export async function getImoveis(filters: ImovelFilters = {}) {
       JOIN public.apocidade CID ON I.cidade_id = CID.id
       JOIN public.apobairro BAI ON I.bairro_id = BAI.id
       LEFT JOIN public.apoestado EST ON I.estado_id = EST.id
-      WHERE I.ativo = true AND I.pub_site = true
+      WHERE I.ativo = true AND I.pub_site = true ${SQL_DEDUP_EMP_SIMPLE}
     `
     const params: any[] = []
 
