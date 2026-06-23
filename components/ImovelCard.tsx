@@ -240,16 +240,12 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         }
     }
     if (isEmpreendimento) {
-        if (totalUnits === 1) {
-            // Badge será renderizado na parte inferior da imagem (separado)
-        } else {
-            activeBadges.push({
-                text: 'EMPREENDIMENTO',
-                bg: '#7F34E6',
-                color: '#ffffff',
-                shadow: '0 4px 12px rgba(127, 52, 230, 0.25)'
-            });
-        }
+        activeBadges.push({
+            text: 'EMPREENDIMENTO',
+            bg: '#7F34E6',
+            color: '#ffffff',
+            shadow: '0 4px 12px rgba(127, 52, 230, 0.25)'
+        });
     }
 
     return (
