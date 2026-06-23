@@ -2170,7 +2170,8 @@ export default function MuralPage() {
                                       <Phone size={12} />
                                     </a>
                                   )}
-                                  
+
+                                  {p.client_user_id != null && p.client_user_id > 0 && (
                                   <button
                                     title="Abrir Chat com Cliente"
                                     onClick={(e) => {
@@ -2212,6 +2213,7 @@ export default function MuralPage() {
                                       }} />
                                     )}
                                   </button>
+                                  )}
 
                                   {isProposal && p.status?.toLowerCase() === 'pendente' && (
                                     <button
@@ -2416,7 +2418,8 @@ export default function MuralPage() {
                 </h3>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button 
+                {selectedProposal.client_user_id != null && selectedProposal.client_user_id > 0 && (
+                <button
                   onClick={() => setShowChat(true)}
                   title="Abrir Chat com Cliente"
                   style={{
@@ -2463,8 +2466,9 @@ export default function MuralPage() {
                     </span>
                   )}
                 </button>
+                )}
 
-                <button 
+                <button
                   onClick={() => setShowProposalDetailModal(false)}
                   style={{
                     border: 'none',

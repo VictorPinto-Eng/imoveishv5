@@ -3963,7 +3963,7 @@ export default function NegociosPage() {
                                             </a>
                                           )}
 
-                                          {p.client_user_id && (
+                                          {p.client_user_id != null && p.client_user_id > 0 && (
                                           <button
                                             title="Abrir Chat com Cliente"
                                             onClick={(e) => {
@@ -7406,7 +7406,7 @@ export default function NegociosPage() {
                 </h2>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {selectedProposal.client_user_id && (
+                {selectedProposal.client_user_id != null && selectedProposal.client_user_id > 0 && (
                 <button
                   onClick={() => setShowChat(true)}
                   title="Abrir Chat com Cliente"
