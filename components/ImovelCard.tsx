@@ -241,18 +241,13 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     }
     if (isEmpreendimento) {
         if (totalUnits === 1) {
-            activeBadges.push({ 
-                text: 'ÚLTIMA UNIDADE DISPONÍVEL', 
-                bg: '#ea580c', 
-                color: '#ffffff', 
-                shadow: '0 4px 12px rgba(234, 88, 12, 0.25)' 
-            });
+            // Badge será renderizado na parte inferior da imagem (separado)
         } else {
-            activeBadges.push({ 
-                text: 'EMPREENDIMENTO', 
-                bg: '#7F34E6', 
-                color: '#ffffff', 
-                shadow: '0 4px 12px rgba(127, 52, 230, 0.25)' 
+            activeBadges.push({
+                text: 'EMPREENDIMENTO',
+                bg: '#7F34E6',
+                color: '#ffffff',
+                shadow: '0 4px 12px rgba(127, 52, 230, 0.25)'
             });
         }
     }
@@ -321,6 +316,12 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         {showStatus && (
           <div className={styles.statusBadge}>
             {(imovel.status_imovel_nome || imovel.status || '').toUpperCase()}
+          </div>
+        )}
+
+        {hasSingleUnit && (
+          <div className={styles.lastUnitBadge}>
+            ÚLTIMA UNIDADE DISPONÍVEL
           </div>
         )}
         
@@ -451,12 +452,22 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                 </strong>
               </div>
             </div>
+          ) : hasSingleUnit ? (
+            <div className={styles.premiumDevBlock}>
+              <span className={styles.premiumDevLabel}>Última unidade disponível:</span>
+              <div className={styles.premiumDevValues}>
+                <strong className={styles.premiumDevPrice}>
+                  {priceFormatted}
+                  {isRental && '/mês'}
+                </strong>
+              </div>
+            </div>
           ) : (
-            <div 
+            <div
               className={styles.priceValue}
               style={{ margin: '0.5rem 0' }}
             >
-              {isRental 
+              {isRental
                 ? <span className={styles.pricePrefix}><strong className={styles.priceMainVal}>{priceFormatted}</strong>/mês</span>
                 : <strong className={styles.priceMainVal}>{priceFormatted}</strong>
               }
