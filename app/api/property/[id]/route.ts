@@ -58,8 +58,8 @@ export async function GET(
       LEFT JOIN apoestado est ON p.estado_id = est.id
       LEFT JOIN apocidade cid ON p.cidade_id = cid.id
       LEFT JOIN apobairro bai ON p.bairro_id = bai.id
-      WHERE p.id = $1 AND ($3::boolean = true OR p.user_id = $2)
-    `, [id, userId, isAdmin]);
+      WHERE p.id = $1::int AND ($3 = 'true' OR p.user_id = $2)
+    `, [id, userId, String(isAdmin)]);
 
     if (res.rowCount === 0) {
       return NextResponse.json({ error: 'Imóvel não encontrado ou sem permissão' }, { status: 404 });
@@ -541,11 +541,11 @@ export async function PUT(
         updated_at = NOW(),
         updated_by = $27,
         organization_id = COALESCE(organization_id, '1')
-      WHERE id = $28 AND ($31::boolean = true OR user_id = $29)
+      WHERE id = $28 AND ($31 = 'true' OR user_id = $29)
       RETURNING id
     `, [
-      title || oldData.nome || 'Imóvel sem título', 
-      description || '', 
+      title || oldData.nome || 'Imóvel sem título',
+      description || '',
       status || 'ativo',
       logradouroSanitized || null,
       numeroSanitized || null,
@@ -574,7 +574,7 @@ export async function PUT(
       id,
       userId,
       imbtipoanuncio_id || 1,
-      isAdmin
+      String(isAdmin)
     ]);
 
   if (updateRes.rowCount === 0) {
