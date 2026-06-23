@@ -404,7 +404,10 @@ export async function getImoveis(filters: ImovelFilters = {}) {
         (SELECT MIN(COALESCE(NULLIF(c.area_util, 0), NULLIF(c.area_construida, 0), NULLIF(c.area_terreno, 0))) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_area,
         carac.dormitorio, carac.suite, carac.banheiro, carac.vaga, carac.lavabo,
         carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno,
-        (SELECT ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 10)) as all_photos,
+        COALESCE(
+          NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 10), '{}'),
+          ARRAY(SELECT url_referencia FROM public.imbempreendimento_midia WHERE imbempreendimento_id = I.imbempreendimento_id ORDER BY ordem_exibicao ASC, id ASC LIMIT 10)
+        ) as all_photos,
         OP.descricao as operacao_nome,
         TP.descricao as tipo_nome,
         ST.nome as status_imovel_nome,
