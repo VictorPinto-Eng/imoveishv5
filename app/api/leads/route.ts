@@ -86,11 +86,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
+      // Log webhook failure but don't block the user — lead is already saved to DB
       console.error('[Leads Proxy] Webhook error:', await response.text());
-      return NextResponse.json(
-        { error: 'Falha ao enviar lead para o servidor de integração.' },
-        { status: response.status }
-      );
     }
 
     return NextResponse.json({ success: true });
