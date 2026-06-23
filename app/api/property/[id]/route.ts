@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import { JWT_SECRET } from '@/lib/auth-config';
+import { revalidatePath } from 'next/cache';
 import { recordAuditLog } from '@/lib/analytics-service';
 
 // GET: Fetch property details for editing
@@ -894,6 +895,10 @@ export async function PUT(
       status: status || 'ativo',
       changes: Object.keys(changes).length > 0 ? changes : undefined
   });
+
+  // Invalidar cache das páginas que exibem imóveis
+  revalidatePath('/');
+  revalidatePath('/imoveis');
 
   return NextResponse.json({ success: true, message: 'Imóvel atualizado com sucesso' });
 

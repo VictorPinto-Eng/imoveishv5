@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import { JWT_SECRET } from '@/lib/auth-config';
 import { recordAuditLog } from '@/lib/analytics-service';
@@ -398,6 +399,10 @@ export async function POST(req: NextRequest) {
         title,
         status: status || 'Pendente'
     });
+
+    // Invalidar cache das páginas que exibem imóveis
+    revalidatePath('/');
+    revalidatePath('/imoveis');
 
     return NextResponse.json({ success: true, id: produtoId });
 
