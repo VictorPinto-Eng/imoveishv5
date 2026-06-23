@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import jwt from 'jsonwebtoken';
 import { query } from '@/lib/db';
 import { writeFile, mkdir, unlink } from 'fs/promises';
@@ -144,6 +145,10 @@ export async function POST(
             RETURNING *
         `, [imovelId, fileUrl, nextOrder, isFirst]);
 
+        // Invalida cache da home e busca para que as novas fotos apareçam imediatamente
+        revalidatePath('/');
+        revalidatePath('/imoveis');
+
         return NextResponse.json({ success: true, photo: insertRes.rows[0] });
 
     } catch (error: any) {
@@ -198,6 +203,9 @@ export async function DELETE(
                 await query('UPDATE produtos_servicos_midia SET foto_principal = TRUE WHERE id = $1', [nextOne.rows[0].id]);
             }
         }
+
+        revalidatePath('/');
+        revalidatePath('/imoveis');
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

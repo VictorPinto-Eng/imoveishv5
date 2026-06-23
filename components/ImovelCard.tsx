@@ -28,6 +28,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     const [isShareModalOpen, setIsShareModalOpen] = useState(false)
     const [showPhone, setShowPhone] = useState(false)
     const [isFavorited, setIsFavorited] = useState(false)
+    const [imageError, setImageError] = useState(false)
     const router = useRouter()
 
     useEffect(() => {
@@ -134,9 +135,11 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
 
         if (isLeftSwipe) {
             // Swipe para a esquerda (próxima foto)
+            setImageError(false)
             setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
         } else if (isRightSwipe) {
             // Swipe para a direita (foto anterior)
+            setImageError(false)
             setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
         }
     }
@@ -172,12 +175,14 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
   const nextImage = (e?: React.MouseEvent) => {
     e?.preventDefault()
     e?.stopPropagation()
+    setImageError(false)
     setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
   }
 
   const prevImage = (e?: React.MouseEvent) => {
     e?.preventDefault()
     e?.stopPropagation()
+    setImageError(false)
     setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
   }
 
@@ -272,7 +277,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             <Heart size={15} fill={isFavorited ? '#ef4444' : 'none'} className={isFavorited ? 'text-red-500' : ''} />
         </button>
 
-        {imagens_urls && imagens_urls.length > 0 ? (
+        {imagens_urls && imagens_urls.length > 0 && !imageError ? (
             <Image
                 src={imagens_urls[currentImageIndex]}
                 alt={nome}
@@ -280,6 +285,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className={styles.image}
                 onClick={(e) => { e.stopPropagation(); handleCardClick(); }}
+                onError={() => setImageError(true)}
             />
         ) : (
             <div className={styles.noPhotoPlaceholder} onClick={handleCardClick}>

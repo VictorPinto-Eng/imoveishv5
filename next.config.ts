@@ -15,9 +15,20 @@ const nextConfig: NextConfig = {
       // Desenvolvimento local
       { protocol: 'http', hostname: 'localhost' },
     ],
+    // Cache imagens otimizadas por 30 dias (filenames são UUIDs, imutáveis)
+    minimumCacheTTL: 2592000,
+    // Formatos modernos para menor tamanho
+    formats: ['image/avif', 'image/webp'],
   },
   async headers() {
     return [
+      {
+        // Cache agressivo para imagens de upload (UUIDs imutáveis)
+        source: '/uploads/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [
