@@ -105,7 +105,7 @@ export async function POST(
         const buffer = Buffer.from(bytes);
 
         const filename = `${crypto.randomUUID()}.${ext}`;
-        
+
         // Garante o caminho absoluto para o Docker (/app/public/uploads/imoveis)
         // Se estivermos em desenvolvimento (Windows), ele usará o caminho relativo padrão
         const isDocker = process.platform === 'linux';

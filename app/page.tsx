@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   },
 }
 
-// PERF-04: Revalidar a cada 5 minutos — dados de imóveis não mudam a cada segundo
-export const revalidate = 300
+// Revalidar a cada 60 segundos — garante que imagens recém-adicionadas apareçam rapidamente
+export const revalidate = 60
 
 export default async function Home() {
   // Busca todas as fontes em paralelo
