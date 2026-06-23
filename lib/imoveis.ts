@@ -262,9 +262,9 @@ export function parseImoveis(data: any[]): Imovel[] {
 const BASE_SELECT = `
   SELECT 
     I.*, 
-    (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.imbtipoanuncio_id = 1 AND p.statusimovel IN (1, 2)) AS emp_total_unidades,
-    (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.imbtipoanuncio_id = 1 AND p.statusimovel IN (1, 2)) AS emp_min_preco,
-    (SELECT MIN(c.area_util) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.imbtipoanuncio_id = 1 AND p.statusimovel IN (1, 2)) AS emp_min_area,
+    (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_total_unidades,
+    (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_preco,
+    (SELECT MIN(c.area_util) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_area,
     carac.dormitorio, carac.suite, carac.varanda, carac.banheiro, carac.vaga, carac.areaservico, carac.quartoservico, carac.cozinha, carac.lavabo, carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno, carac.sala, carac.parque_aquatico, carac.salao_festas, carac.espaco_gourmet, carac.espaco_zen, carac.coworking, carac.piquenique, carac.espaco_grill, carac.pet_park, carac.supermarket, carac.espaco_gamer, carac.salao_jogos, carac.sala_cinema, carac.playground, carac.sala_yoga, carac.redario, carac.horta, carac.area_convivencia, carac.espacos_gourmet_multiplos, carac.academia, carac.sala_funcional, carac.quadra_poliesportiva, carac.quadra_beach_tennis, carac.campo_futebol_society, carac.quadra_volei_praia, carac.quadra_tenis, carac.ciclovia, carac.pista_cooper, carac.controle_acesso_automatizado, carac.sala_encomendas_delivery, carac.wi_fi_areas_comuns,
     COALESCE(
       NULLIF(ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC), '{}'),
@@ -399,9 +399,9 @@ export async function getImoveis(filters: ImovelFilters = {}) {
         I.imbtpoperacao_id, I.imbtipoanuncio_id, I.imbempreendimento_id,
         I.cidade_id, I.bairro_id, I.estado_id, I.created_at,
         I.logradouro, I.numero, I.cep, I.user_id,
-        (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.imbtipoanuncio_id = 1 AND p.statusimovel IN (1, 2)) AS emp_total_unidades,
-        (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.imbtipoanuncio_id = 1 AND p.statusimovel IN (1, 2)) AS emp_min_preco,
-        (SELECT MIN(c.area_util) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.imbtipoanuncio_id = 1 AND p.statusimovel IN (1, 2)) AS emp_min_area,
+        (SELECT COUNT(*)::int FROM public.produto_servico p WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_total_unidades,
+        (SELECT MIN(COALESCE(pl.preco_base, pv.preco_base, 0)) FROM public.produto_servico p LEFT JOIN public.produto_servicos_loca pl ON p.id = pl.produto_servico_id LEFT JOIN public.produto_servicos_venda pv ON p.id = pv.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_preco,
+        (SELECT MIN(c.area_util) FROM public.produto_servico p LEFT JOIN public.produto_servico_carac c ON p.id = c.produto_servico_id WHERE p.imbempreendimento_id = I.imbempreendimento_id AND p.statusimovel IN (1, 2)) AS emp_min_area,
         carac.dormitorio, carac.suite, carac.banheiro, carac.vaga, carac.lavabo,
         carac.area_util, carac.area_construida, carac.area_terreno, carac.dimensoes_terreno,
         (SELECT ARRAY(SELECT url_referencia FROM public.produtos_servicos_midia WHERE produto_servico_id = I.id ORDER BY ordem_exibicao ASC, id ASC LIMIT 10)) as all_photos,
