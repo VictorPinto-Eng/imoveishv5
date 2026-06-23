@@ -23,9 +23,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const atendimentosRes = await query(`
-      SELECT 
+      SELECT
         a.id as atendimento_id,
         a.id as proposal_id,
+        a.user_id as client_user_id,
         a.valor_proposta as valor,
         a.condicoes,
         a.status_proposta as status,

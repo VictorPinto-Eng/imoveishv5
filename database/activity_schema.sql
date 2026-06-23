@@ -3,7 +3,8 @@
 -- Tabela de Leads (Contatos do Site)
 CREATE TABLE IF NOT EXISTS public.leads (
     id SERIAL PRIMARY KEY,
-    produto_servico_id INTEGER NOT NULL REFERENCES public.produtos_servicos(id) ON DELETE CASCADE,
+    produto_servico_id INTEGER NOT NULL REFERENCES public.produto_servico(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     telefone VARCHAR(50),

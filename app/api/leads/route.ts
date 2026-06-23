@@ -43,13 +43,35 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Record the lead in the local application database
+    let dbSaved = false;
     try {
       if (codigo && name && email) {
         await query(`
           INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
+        dbSaved = true;
+      }
+    } catch (dbError: any) {
+      console.error('[Leads Proxy] Database insertion error (leads):', dbError?.message || dbError);
 
+      // Fallback: tentar sem user_id caso a coluna não exista
+      if (!dbSaved && codigo && name && email) {
+        try {
+          await query(`
+            INSERT INTO leads (produto_servico_id, nome, email, telefone, mensagem)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [Number(codigo), name.trim(), email.trim(), whatsapp || null, mensagem || null]);
+          dbSaved = true;
+        } catch (fallbackError: any) {
+          console.error('[Leads Proxy] Fallback insertion error:', fallbackError?.message || fallbackError);
+        }
+      }
+    }
+
+    // Registrar atendimento (independente do lead)
+    try {
+      if (codigo && name && email) {
         await query(`
           INSERT INTO public.atendimento (
             produto_servico_id, user_id, nome, email, telefone, mensagem, tipo, etapa_id, valor_proposta, status_proposta
@@ -61,8 +83,16 @@ export async function POST(request: NextRequest) {
           )
         `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
       }
-    } catch (dbError) {
-      console.error('[Leads Proxy] Database insertion error:', dbError);
+    } catch (atenError: any) {
+      console.error('[Leads Proxy] Atendimento insertion error:', atenError?.message || atenError);
+    }
+
+    // Se não conseguiu salvar o lead no banco, informar o usuário
+    if (!dbSaved && codigo) {
+      return NextResponse.json(
+        { error: 'Não foi possível registrar seu contato. Tente novamente.' },
+        { status: 500 }
+      );
     }
 
     // 2. Forward sanitized data to n8n webhook (whitelist fields only)

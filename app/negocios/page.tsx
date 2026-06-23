@@ -3962,7 +3962,8 @@ export default function NegociosPage() {
                                               <Phone size={12} />
                                             </a>
                                           )}
-                                          
+
+                                          {p.client_user_id && (
                                           <button
                                             title="Abrir Chat com Cliente"
                                             onClick={(e) => {
@@ -4004,6 +4005,7 @@ export default function NegociosPage() {
                                               }} />
                                             )}
                                           </button>
+                                          )}
 
                                           {isProposal && p.status?.toLowerCase() === 'pendente' && (
                                             <button
@@ -7404,7 +7406,8 @@ export default function NegociosPage() {
                 </h2>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button 
+                {selectedProposal.client_user_id && (
+                <button
                   onClick={() => setShowChat(true)}
                   title="Abrir Chat com Cliente"
                   style={{
@@ -7451,6 +7454,7 @@ export default function NegociosPage() {
                     </span>
                   )}
                 </button>
+                )}
 
                 <button
                   onClick={() => setShowProposalDetailModal(false)}

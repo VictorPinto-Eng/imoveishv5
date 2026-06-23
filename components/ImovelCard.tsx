@@ -368,7 +368,7 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                   </svg>
                   <span>
                     {minArea > 0
-                      ? (hasMultipleUnits ? `a partir de ${minArea} m²` : hasSingleUnit ? `${minArea} m²` : `${minArea} m²`)
+                      ? (hasMultipleUnits ? `a partir de ${Number(minArea).toFixed(2)} m²` : `${Number(minArea).toFixed(2)} m²`)
                       : dimensoesTerreno}
                   </span>
                 </div>

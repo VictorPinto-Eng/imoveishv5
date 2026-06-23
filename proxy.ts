@@ -10,7 +10,6 @@ import { jwtVerify } from 'jose';
 // Rotas de API protegidas
 const PROTECTED_API_PATTERNS = [
   '/api/user/',
-  '/api/leads',
   '/api/property/submit',
 ];
 
