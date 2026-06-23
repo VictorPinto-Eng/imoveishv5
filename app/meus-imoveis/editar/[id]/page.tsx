@@ -844,27 +844,36 @@ export default function EditarImovelPage() {
 
             if (res.ok && data.success) {
                 fire({
-                    title: 'Sucesso!',
-                    text: 'Imóvel atualizado com sucesso.',
+                    toast: true,
+                    position: 'top-end',
                     icon: 'success',
-                    confirmButtonColor: '#7F34E6'
+                    title: 'Imóvel atualizado com sucesso.',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
                 });
                 return;
             }
 
             fire({
-                title: 'Erro!',
-                text: data.error || 'Erro ao atualizar imóvel',
+                toast: true,
+                position: 'top-end',
                 icon: 'error',
-                confirmButtonColor: '#7F34E6'
+                title: data.error || 'Erro ao atualizar imóvel',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true
             });
         } catch (error) {
             console.error('Error saving imovel:', error);
             fire({
-                title: 'Erro de Conexão',
-                text: 'Não foi possível salvar as alterações.',
+                toast: true,
+                position: 'top-end',
                 icon: 'error',
-                confirmButtonColor: '#7F34E6'
+                title: 'Não foi possível salvar as alterações.',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true
             });
         } finally {
             setSaving(false);
