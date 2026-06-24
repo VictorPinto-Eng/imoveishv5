@@ -130,7 +130,7 @@ export default function MuralPage() {
         const user = authData.user;
         const userRoles = user.roles || [];
         const hasAdvertiserRole = userRoles.some((r: any) => Number(r.id) === 2 || Number(r.id) === 3);
-        const showMeusImoveis = !!user.is_admin || (hasAdvertiserRole && !!user.cpf_validated);
+        const showMeusImoveis = !!user.is_admin || hasAdvertiserRole;
         
         setIsAdvertiser(showMeusImoveis);
 
@@ -1862,12 +1862,11 @@ export default function MuralPage() {
             </div>
           ) : (
             /* Mural Kanban Board (Full-screen Fixed Columns Layout) */
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(5, 1fr)', 
-              gap: '16px', 
-              alignItems: 'flex-start',
-              minHeight: '650px'
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: '16px',
+              alignItems: 'flex-start'
             }}>
               {etapas.map((stageObj) => {
                 const stage = stageObj.sigla;
@@ -1881,8 +1880,9 @@ export default function MuralPage() {
                 }
 
                 return (
-                  <div 
-                    key={stage} 
+                  <div
+                    key={stage}
+                    className="hide-scrollbar"
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, stage)}
                     style={{
@@ -1894,8 +1894,7 @@ export default function MuralPage() {
                       gap: '12px',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
                       border: `1px solid #e2e8f0`,
-                      minHeight: '600px',
-                      maxHeight: '80vh',
+                      maxHeight: 'calc(100vh - 200px)',
                       overflowY: 'auto'
                     }}
                   >

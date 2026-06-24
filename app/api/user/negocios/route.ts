@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
         a.id as atendimento_id,
         a.id as proposal_id,
         a.user_id as client_user_id,
+        (SELECT l.cliente_id FROM public.leads l WHERE l.produto_servico_id = a.produto_servico_id AND LOWER(l.email) = LOWER(a.email) AND l.cliente_id IS NOT NULL LIMIT 1) as cliente_id,
         a.valor_proposta as valor,
         a.condicoes,
         a.status_proposta as status,

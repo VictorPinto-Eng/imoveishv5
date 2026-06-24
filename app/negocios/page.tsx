@@ -1473,7 +1473,7 @@ export default function NegociosPage() {
         const user = authData.user;
         const userRoles = user.roles || [];
         const hasAdvertiserRole = userRoles.some((r: any) => Number(r.id) === 2 || Number(r.id) === 3);
-        const showMeusImoveis = !!user.is_admin || (hasAdvertiserRole && !!user.cpf_validated);
+        const showMeusImoveis = !!user.is_admin || hasAdvertiserRole;
         
         setIsAdvertiser(showMeusImoveis);
 
@@ -2230,9 +2230,10 @@ export default function NegociosPage() {
       return;
     }
 
-    const optionsHtml = proposals.map(lead => {
-      const valorStr = lead.valor && Number(lead.valor) > 0 
-        ? Number(lead.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+    const unleadedProposals = proposals.filter(p => !p.cliente_id);
+    const optionsHtml = unleadedProposals.map(lead => {
+      const valorStr = lead.valor && Number(lead.valor) > 0
+        ? Number(lead.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
         : 'Contato';
       return `<option value="${lead.proposal_id}">${lead.sender_name || 'Anônimo'} - ${lead.property_name || 'Imóvel'} (${valorStr})</option>`;
     }).join('');

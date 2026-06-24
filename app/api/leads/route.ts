@@ -44,13 +44,16 @@ export async function POST(request: NextRequest) {
 
     // 1. Record the lead in the local application database
     let dbSaved = false;
+    let leadId: number | null = null;
     try {
       if (codigo && name && email) {
-        await query(`
+        const leadRes = await query(`
           INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
           VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
         `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
         dbSaved = true;
+        leadId = leadRes.rows[0]?.id || null;
       }
     } catch (dbError: any) {
       console.error('[Leads Proxy] Database insertion error (leads):', dbError?.message || dbError);
@@ -58,14 +61,44 @@ export async function POST(request: NextRequest) {
       // Fallback: tentar sem user_id caso a coluna não exista
       if (!dbSaved && codigo && name && email) {
         try {
-          await query(`
+          const fallbackRes = await query(`
             INSERT INTO leads (produto_servico_id, nome, email, telefone, mensagem)
             VALUES ($1, $2, $3, $4, $5)
+            RETURNING id
           `, [Number(codigo), name.trim(), email.trim(), whatsapp || null, mensagem || null]);
           dbSaved = true;
+          leadId = fallbackRes.rows[0]?.id || null;
         } catch (fallbackError: any) {
           console.error('[Leads Proxy] Fallback insertion error:', fallbackError?.message || fallbackError);
         }
+      }
+    }
+
+    // Vincular lead ao cliente caso já exista no cadastro (por email ou telefone)
+    if (dbSaved && leadId && (email || whatsapp)) {
+      try {
+        let customerRes = null;
+        if (email) {
+          customerRes = await query(
+            `SELECT idcustomer FROM public.customer WHERE LOWER(email) = LOWER($1) AND ativo = 1 LIMIT 1`,
+            [email.trim()]
+          );
+        }
+        if ((!customerRes || !customerRes.rowCount || customerRes.rowCount === 0) && whatsapp) {
+          const cleanPhone = whatsapp.replace(/\D/g, '');
+          customerRes = await query(
+            `SELECT idcustomer FROM public.customer WHERE REPLACE(REPLACE(REPLACE(cel, '(', ''), ')', ''), '-', '') = $1 AND ativo = 1 LIMIT 1`,
+            [cleanPhone]
+          );
+        }
+        if (customerRes && customerRes.rowCount && customerRes.rowCount > 0) {
+          await query(
+            `UPDATE public.leads SET cliente_id = $1 WHERE id = $2`,
+            [customerRes.rows[0].idcustomer, leadId]
+          );
+        }
+      } catch (linkError: any) {
+        console.error('[Leads Proxy] Error linking lead to customer:', linkError?.message || linkError);
       }
     }
 

@@ -23,8 +23,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const leadsRes = await query(`
-      SELECT 
+      SELECT
         l.id,
+        l.cliente_id,
         l.nome as sender_name,
         l.email as sender_email,
         l.telefone as sender_phone,
@@ -32,9 +33,11 @@ export async function GET(req: NextRequest) {
         l.status,
         l.created_at,
         p.id as property_id,
-        p.nome as property_name
+        p.nome as property_name,
+        c.nome as cliente_nome
       FROM public.leads l
       JOIN public.produto_servico p ON l.produto_servico_id = p.id
+      LEFT JOIN public.customer c ON l.cliente_id = c.idcustomer
       WHERE p.user_id = $1
       ORDER BY l.created_at DESC
     `, [userId]);
