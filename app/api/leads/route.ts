@@ -42,18 +42,39 @@ export async function POST(request: NextRequest) {
       // Ignore auth errors, just record as anonymous
     }
 
-    // 1. Record the lead in the local application database
+    // 1. Record the lead in the local application database (deduplicação por email/telefone + imóvel)
     let dbSaved = false;
     let leadId: number | null = null;
     try {
       if (codigo && name && email) {
-        const leadRes = await query(`
-          INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
-          VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING id
-        `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
-        dbSaved = true;
-        leadId = leadRes.rows[0]?.id || null;
+        // Verificar se já existe lead com mesmo email ou telefone para o mesmo imóvel
+        const cleanPhone = whatsapp ? whatsapp.replace(/\D/g, '') : null;
+        let existingLead = await query(`
+          SELECT id FROM public.leads
+          WHERE produto_servico_id = $1
+            AND (LOWER(email) = LOWER($2) ${cleanPhone ? `OR REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') = '${cleanPhone}'` : ''})
+          LIMIT 1
+        `, [Number(codigo), email.trim()]);
+
+        if (existingLead.rowCount && existingLead.rowCount > 0) {
+          // Lead já existe — atualizar mensagem e dados
+          leadId = existingLead.rows[0].id;
+          await query(`
+            UPDATE public.leads
+            SET mensagem = $1, user_id = COALESCE($2, user_id), nome = $3, telefone = COALESCE($4, telefone)
+            WHERE id = $5
+          `, [mensagem || null, userId, name.trim(), whatsapp || null, leadId]);
+          dbSaved = true;
+        } else {
+          // Lead novo — inserir
+          const leadRes = await query(`
+            INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id
+          `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
+          dbSaved = true;
+          leadId = leadRes.rows[0]?.id || null;
+        }
       }
     } catch (dbError: any) {
       console.error('[Leads Proxy] Database insertion error (leads):', dbError?.message || dbError);
