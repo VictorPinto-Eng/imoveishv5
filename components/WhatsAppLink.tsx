@@ -72,6 +72,36 @@ export default function WhatsAppLink({
                     origin: origin
                 })
             }).catch(err => console.error('[AuditLog] Failed:', err));
+
+            // Registrar lead + atendimento no mural do anunciante
+            // Buscar dados do usuário logado se houver
+            let userName = 'Contato via WhatsApp';
+            let userEmail = '';
+            let userPhone = '';
+            try {
+                const authRes = await fetch('/api/auth/me');
+                if (authRes.ok) {
+                    const authData = await authRes.json();
+                    if (authData.authenticated && authData.user) {
+                        userName = authData.user.social_name || authData.user.name || userName;
+                        userEmail = authData.user.email || '';
+                        userPhone = authData.user.phone || '';
+                    }
+                }
+            } catch {}
+
+            fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: userName,
+                    email: userEmail || undefined,
+                    whatsapp: userPhone || undefined,
+                    mensagem: text,
+                    codigo: produto_servico_id,
+                    origem: 'whatsapp'
+                })
+            }).catch(err => console.error('[Lead] Failed to register whatsapp lead:', err));
         }
 
         const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''

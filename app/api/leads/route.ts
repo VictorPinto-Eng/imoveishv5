@@ -11,14 +11,17 @@ export async function POST(request: NextRequest) {
     if (limited) return limited;
 
     const body = await request.json();
-    const { name, whatsapp, email, mensagem, codigo } = body;
+    const { name, whatsapp, email, mensagem, codigo, origem } = body;
 
-    // Validação de input
-    if (!name || typeof name !== 'string' || name.trim().length < 2 || name.length > 200) {
-      return NextResponse.json({ error: 'Nome inválido' }, { status: 400 });
-    }
-    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
+    // Validação de input (relaxada para contatos via WhatsApp)
+    const isWhatsappOrigin = origem === 'whatsapp';
+    if (!isWhatsappOrigin) {
+      if (!name || typeof name !== 'string' || name.trim().length < 2 || name.length > 200) {
+        return NextResponse.json({ error: 'Nome inválido' }, { status: 400 });
+      }
+      if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return NextResponse.json({ error: 'Email inválido' }, { status: 400 });
+      }
     }
     if (whatsapp && (typeof whatsapp !== 'string' || whatsapp.length > 20)) {
       return NextResponse.json({ error: 'Telefone inválido' }, { status: 400 });
@@ -42,28 +45,39 @@ export async function POST(request: NextRequest) {
       // Ignore auth errors, just record as anonymous
     }
 
-    // 1. Record the lead in the local application database (deduplicação por email/telefone + imóvel)
+    // 1. Record the lead in the local application database (deduplicação por email/telefone — um único cadastro por pessoa)
     let dbSaved = false;
     let leadId: number | null = null;
+    const leadName = name ? name.trim() : 'Contato via WhatsApp';
+    const leadEmail = email ? email.trim() : null;
     try {
-      if (codigo && name && email) {
-        // Verificar se já existe lead com mesmo email ou telefone para o mesmo imóvel
+      if (codigo && (leadEmail || whatsapp)) {
+        // Verificar se já existe lead com mesmo email ou telefone
         const cleanPhone = whatsapp ? whatsapp.replace(/\D/g, '') : null;
-        let existingLead = await query(`
-          SELECT id FROM public.leads
-          WHERE produto_servico_id = $1
-            AND (LOWER(email) = LOWER($2) ${cleanPhone ? `OR REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') = '${cleanPhone}'` : ''})
-          LIMIT 1
-        `, [Number(codigo), email.trim()]);
+        let existingLead;
+        if (leadEmail) {
+          existingLead = await query(`
+            SELECT id FROM public.leads
+            WHERE LOWER(email) = LOWER($1)
+              ${cleanPhone ? `OR REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') = '${cleanPhone}'` : ''}
+            LIMIT 1
+          `, [leadEmail]);
+        } else if (cleanPhone) {
+          existingLead = await query(`
+            SELECT id FROM public.leads
+            WHERE REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') = $1
+            LIMIT 1
+          `, [cleanPhone]);
+        }
 
-        if (existingLead.rowCount && existingLead.rowCount > 0) {
-          // Lead já existe — atualizar mensagem e dados
+        if (existingLead && existingLead.rowCount && existingLead.rowCount > 0) {
+          // Lead já existe — atualizar dados mais recentes
           leadId = existingLead.rows[0].id;
           await query(`
             UPDATE public.leads
-            SET mensagem = $1, user_id = COALESCE($2, user_id), nome = $3, telefone = COALESCE($4, telefone)
-            WHERE id = $5
-          `, [mensagem || null, userId, name.trim(), whatsapp || null, leadId]);
+            SET nome = $1, user_id = COALESCE($2, user_id), telefone = COALESCE($3, telefone)
+            WHERE id = $4
+          `, [leadName, userId, whatsapp || null, leadId]);
           dbSaved = true;
         } else {
           // Lead novo — inserir
@@ -71,7 +85,7 @@ export async function POST(request: NextRequest) {
             INSERT INTO leads (produto_servico_id, user_id, nome, email, telefone, mensagem)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id
-          `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
+          `, [Number(codigo), userId, leadName, leadEmail, whatsapp || null, mensagem || null]);
           dbSaved = true;
           leadId = leadRes.rows[0]?.id || null;
         }
@@ -80,13 +94,13 @@ export async function POST(request: NextRequest) {
       console.error('[Leads Proxy] Database insertion error (leads):', dbError?.message || dbError);
 
       // Fallback: tentar sem user_id caso a coluna não exista
-      if (!dbSaved && codigo && name && email) {
+      if (!dbSaved && codigo && (leadEmail || whatsapp)) {
         try {
           const fallbackRes = await query(`
             INSERT INTO leads (produto_servico_id, nome, email, telefone, mensagem)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING id
-          `, [Number(codigo), name.trim(), email.trim(), whatsapp || null, mensagem || null]);
+          `, [Number(codigo), leadName, leadEmail, whatsapp || null, mensagem || null]);
           dbSaved = true;
           leadId = fallbackRes.rows[0]?.id || null;
         } catch (fallbackError: any) {
@@ -123,26 +137,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Registrar atendimento (independente do lead)
+    // Registrar atendimento (independente do lead — cada contato gera um card no mural)
     try {
-      if (codigo && name && email) {
+      if (codigo && (leadEmail || whatsapp)) {
         await query(`
           INSERT INTO public.atendimento (
             produto_servico_id, user_id, nome, email, telefone, mensagem, tipo, etapa_id, valor_proposta, status_proposta
           )
           VALUES (
-            $1, $2, $3, $4, $5, $6, 'contato',
+            $1, $2, $3, $4, $5, $6, $7,
             (SELECT id FROM public.atendimento_etapa WHERE sigla = 'novo' LIMIT 1),
             0, 'pendente'
           )
-        `, [Number(codigo), userId, name.trim(), email.trim(), whatsapp || null, mensagem || null]);
+        `, [Number(codigo), userId, leadName, leadEmail, whatsapp || null, mensagem || null, isWhatsappOrigin ? 'whatsapp' : 'contato']);
       }
     } catch (atenError: any) {
       console.error('[Leads Proxy] Atendimento insertion error:', atenError?.message || atenError);
     }
 
-    // Se não conseguiu salvar o lead no banco, informar o usuário
-    if (!dbSaved && codigo) {
+    // Se não conseguiu salvar o lead no banco, informar o usuário (exceto WhatsApp anônimo)
+    if (!dbSaved && codigo && !isWhatsappOrigin) {
       return NextResponse.json(
         { error: 'Não foi possível registrar seu contato. Tente novamente.' },
         { status: 500 }
