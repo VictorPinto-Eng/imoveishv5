@@ -142,11 +142,6 @@ export default function WhatsAppLink({
         }, 300)
     }
 
-    const handleSkip = () => {
-        trackAndRegister('Contato via WhatsApp', '', '')
-        setShowModal(false)
-        openWhatsApp()
-    }
 
     return (
         <>
@@ -233,15 +228,6 @@ export default function WhatsAppLink({
                                 <MessageCircle size={18} /> Continuar para WhatsApp
                             </span>
                         </button>
-
-                        <div style={{ textAlign: 'center', marginTop: '14px' }}>
-                            <button
-                                onClick={handleSkip}
-                                style={{ border: 'none', background: 'none', color: '#94a3b8', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
-                            >
-                                Pular e ir direto ao WhatsApp
-                            </button>
-                        </div>
 
                         <div style={{ marginTop: '20px', padding: '12px 16px', background: '#f8fafc', borderRadius: '12px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                             <UserPlus size={16} color="#7f34e6" style={{ marginTop: '2px', flexShrink: 0 }} />
