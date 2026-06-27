@@ -45,4 +45,20 @@ export const query = async (text: string, params?: any[]) => {
   }
 };
 
+// Helper para transações — garante COMMIT ou ROLLBACK automático
+export async function withTransaction<T>(fn: (client: { query: (text: string, params?: any[]) => Promise<any> }) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export default pool;

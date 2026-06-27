@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Square, ArrowLeft, Loader2, Camera, Home as HomeIcon, CheckCircle, Building2, X, Milestone, Info, ChevronRight, Sparkles, DollarSign, Ruler, Map, MapPin, Navigation, Map as MapIcon, Maximize2, Plus, Calendar, ShieldCheck, FileText } from 'lucide-react';
 import styles from './incluir.module.css';
 import Link from 'next/link';
@@ -72,6 +73,7 @@ interface PropertyData {
 }
 
 export default function IncluirImovelPage() {
+    const router = useRouter();
     const [step, setStep] = useState(1);
     const [searchMode, setSearchMode] = useState<SearchMode>('CEP'); // Default to CEP as per video/screenshot
     const [loading, setLoading] = useState(false);
@@ -733,7 +735,18 @@ export default function IncluirImovelPage() {
 
             if (data.success) {
                 setSuccess(true);
-                window.location.href = `/meus-imoveis?id=${data.id}&refresh=${Date.now()}`;
+                fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Imóvel cadastrado com sucesso!',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                });
+                setTimeout(() => {
+                    router.push(`/meus-imoveis?id=${data.id}`);
+                }, 800);
                 return;
             }
 

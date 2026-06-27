@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { query } from '@/lib/db';
+import { query, withTransaction } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { sanitizeLocationName } from '@/lib/sanitize-location';
 import { JWT_SECRET } from '@/lib/auth-config';
@@ -218,11 +218,13 @@ export async function POST(req: NextRequest) {
     const relimovel_id = relMapping[relationship] || 3;
     const prop_id = relationship === 'Proprietário' ? userId : null;
 
-    // Insert into public.produto_servico
-    const insertResult = await query(`
-      INSERT INTO public.produto_servico 
+    // Transação: garante que todos os INSERTs são atômicos (tudo ou nada)
+    const produtoId = await withTransaction(async (tx) => {
+
+    const insertResult = await tx.query(`
+      INSERT INTO public.produto_servico
         (nome, descricao, status, logradouro, numero, complemento, quadra_torre_bloco, unidade, andar, cep, pais_id, estado_id, cidade_id, bairro_id, user_id, prop_id, imbtpoperacao_id, statusimovel, imbempreendimento_id, latitude, longitude, plus_code, pub_site, pub_price, pub_facebook, pub_instagram, relimovel_id, imbtipoanuncio_id, tipo, categoria, ativo, tags, organization_id)
-      VALUES 
+      VALUES
         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, 'produto', 'Imovel', true, '[]', '1')
       RETURNING id
     `, [
@@ -256,10 +258,10 @@ export async function POST(req: NextRequest) {
       imbtipoanuncio_id || 1
     ]);
 
-    const produtoId = insertResult.rows[0].id;
+    const id = insertResult.rows[0].id;
 
     // Insert into public.produto_servico_carac
-    await query(`
+    await tx.query(`
       INSERT INTO public.produto_servico_carac (
         produto_servico_id,
         dormitorio, suite, varanda, banheiro, vaga, areaservico, quartoservico, cozinha, lavabo, sala,
@@ -278,7 +280,7 @@ export async function POST(req: NextRequest) {
         $43, $44, $45, $46, $47
       )
     `, [
-      produtoId,
+      id,
       parseInt(rooms) || 0,
       parseInt(suites) || 0,
       parseInt(varandas) || 0,
@@ -348,14 +350,14 @@ export async function POST(req: NextRequest) {
 
       const resolvedPeriodoLocaId = Number(periodo_loca_id) || 3; // Padrão: Mensal
 
-      await query(`
+      await tx.query(`
         INSERT INTO public.produto_servicos_loca (
           produto_servico_id, periodo_loca_id, imbfinalidade_id, imbtpimovel_id, preco_base,
           inclusocond, pr_condominio, inclusoiptu, pr_iptuanual, inclusoincendio, pr_segincendio,
           vrtotal
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       `, [
-        produtoId,
+        id,
         resolvedPeriodoLocaId,
         imbfinalidade_id || null,
         imbtpimovel_id || null,
@@ -377,13 +379,13 @@ export async function POST(req: NextRequest) {
       const prSegincendio = parsePriceBR(seguro_incendio);
       const vrtotal = precoBase;
 
-      await query(`
+      await tx.query(`
         INSERT INTO public.produto_servicos_venda (
           produto_servico_id, imbfinalidade_id, imbtpimovel_id, preco_base,
           pr_condominio, pr_iptuanual, pr_segincendio, vrtotal
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       `, [
-        produtoId,
+        id,
         imbfinalidade_id || null,
         imbtpimovel_id || null,
         precoBase,
@@ -394,7 +396,10 @@ export async function POST(req: NextRequest) {
       ]);
     }
 
-    // Log the creation activity
+    return id;
+    }); // fim da transação
+
+    // Log da atividade (fora da transação — não crítico)
     await recordAuditLog(produtoId, userId, 'CRIACAO', {
         title,
         status: status || 'Pendente'
