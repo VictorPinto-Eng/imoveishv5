@@ -2036,7 +2036,7 @@ export default function IncluirImovelPage() {
                             <button
                                 className={styles.btnPrimary}
                                 onClick={handleNext}
-                                disabled={!formData.price || (formData.imbtpoperacao_id !== 2 && !formData.condoFee) || (formData.hasIptu && !formData.iptuValue)}
+                                disabled={!formData.price}
                             >
                                 Continuar
                             </button>
