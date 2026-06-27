@@ -1,7 +1,7 @@
 .pageWrapper {
   display: flex;
-  height: calc(100vh - 80px); /* Ajustado para remover o Header se necessário ou considerar altura do Header */
-  background: white;
+  height: calc(100vh - 80px);
+  background: #f1f5f9;
   overflow: hidden;
 }
 
@@ -11,7 +11,7 @@
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
+  background: #ffffff;
   z-index: 100;
   position: relative;
 }
@@ -208,7 +208,7 @@
 .propertyList {
   flex: 1;
   overflow-y: auto;
-  background: white;
+  background: #fafbfc;
 }
 
 .cardCompact {
@@ -226,7 +226,8 @@
 }
 
 .cardCompactActive {
-  background: #f1f5f9;
+  background: #eff6ff;
+  border-left: 3px solid var(--primary);
 }
 
 .cardCompactImage {
@@ -457,9 +458,12 @@
 .mainSection {
   flex: 1;
   overflow-y: auto;
-  background: white;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
+  border-radius: 12px 0 0 12px;
+  margin: 0.5rem 0 0.5rem 0;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.04);
 }
 
 /* Detalhes Layout */

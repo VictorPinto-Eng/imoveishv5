@@ -1,19 +1,19 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import SpecialistHelp from '@/components/SpecialistHelp'
 import CookieConsent from '@/components/CookieConsent'
 
-const jakarta = Plus_Jakarta_Sans({
+const inter = Inter({
     subsets: ['latin'],
     weight: ['400', '500', '600', '700'],
     display: 'swap',
     variable: '--font-sans',
 })
 
-const outfit = Outfit({
+const jakarta = Plus_Jakarta_Sans({
     subsets: ['latin'],
-    weight: ['400', '500', '600', '700'],
+    weight: ['500', '600', '700', '800'],
     display: 'swap',
     variable: '--font-menu',
 })
@@ -59,7 +59,7 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="pt-BR" className={`${jakarta.variable} ${outfit.variable}`} suppressHydrationWarning>
+        <html lang="pt-BR" className={`${inter.variable} ${jakarta.variable}`} suppressHydrationWarning>
             <body suppressHydrationWarning>
                 {children}
                 <SpecialistHelp />

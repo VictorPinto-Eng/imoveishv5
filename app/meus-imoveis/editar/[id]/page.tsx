@@ -250,10 +250,12 @@ export default function EditarImovelPage() {
         // Remove global body padding from globals.css for this focused page
         const originalPadding = document.body.style.paddingTop;
         document.body.style.paddingTop = '0';
+        // Prefetch meus-imoveis para navegação instantânea ao voltar
+        router.prefetch('/meus-imoveis');
         return () => {
             document.body.style.paddingTop = originalPadding;
         };
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         const idStr = Array.isArray(id) ? id[0] : id;
@@ -849,9 +851,13 @@ export default function EditarImovelPage() {
                     icon: 'success',
                     title: 'Imóvel atualizado com sucesso.',
                     showConfirmButton: false,
-                    timer: 3000,
+                    timer: 1500,
                     timerProgressBar: true
                 });
+                // Redirecionar para meus-imoveis com o item selecionado
+                setTimeout(() => {
+                    router.push(`/meus-imoveis?id=${id}`);
+                }, 800);
                 return;
             }
 

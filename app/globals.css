@@ -12,7 +12,7 @@
   --border: #e2e8f0;
 
   --font-sans: var(--font-sans, 'Inter', sans-serif);
-  --font-menu: var(--font-menu, 'Outfit', sans-serif);
+  --font-menu: var(--font-menu, 'Plus Jakarta Sans', sans-serif);
 
   --radius: 0.5rem;
   /* Slightly tighter radius */
@@ -29,12 +29,15 @@
 
 body {
   font-family: var(--font-sans);
+  font-size: 0.9375rem; /* 15px — sweet spot para UI: maior que 14, menos espaçoso que 16 */
+  line-height: 1.6; /* Legibilidade: espaçamento vertical confortável */
+  letter-spacing: -0.011em; /* Inter fica melhor com tracking levemente negativo */
   background-color: #f8fafc;
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv11' 1, 'ss01' 1; /* Inter: alternativas mais legíveis */
   padding-top: 5.7rem;
-  /* Compensate for fixed header height (further 10% reduction) */
 }
 
 h1,
@@ -44,8 +47,11 @@ h4,
 h5,
 h6 {
   font-family: var(--font-menu);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--foreground);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
 }
 
 a {
@@ -53,11 +59,28 @@ a {
   text-decoration: none;
 }
 
+/* Números tabulares para preços e contadores — alinhamento perfeito */
+[data-price],
+.price,
+table td,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Textos curtos: evitar viúvas e orfãs */
+p,
+li,
+span {
+  text-wrap: pretty;
+}
+
 button {
   cursor: pointer;
   border: none;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition-property: transform, background-color, box-shadow, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
 }
 
 .container {

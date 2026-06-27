@@ -617,8 +617,8 @@ function MeusImoveisContent() {
                                                  <div className={styles.cardCompactId}>Cód {imovel.id}</div>
                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                      {imovel.unidade && (
-                                                         <span style={{ fontSize: '9px', fontWeight: 600, color: '#475569', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px' }}>
-                                                             Un. {imovel.unidade}
+                                                         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', background: '#e2e8f0', padding: '3px 8px', borderRadius: '5px' }}>
+                                                             UN: {imovel.unidade}
                                                          </span>
                                                      )}
                                                      {Number(imovel.pending_questions) > 0 && (
