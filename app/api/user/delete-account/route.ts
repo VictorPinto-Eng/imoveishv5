@@ -27,12 +27,18 @@ export async function POST(req: NextRequest) {
 
         const user = userRes.rows[0];
 
+        // SEC-28: Bloquear se conta Google-only (sem senha definida)
+        if (!user.password_hash) {
+            return NextResponse.json(
+                { error: 'Sua conta não possui senha. Defina uma senha em "Esqueci minha senha" antes de prosseguir.' },
+                { status: 400 }
+            );
+        }
+
         // Check password
-        if (user.password_hash) {
-            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-            if (!isPasswordValid) {
-                return NextResponse.json({ error: 'Senha incorreta.' }, { status: 400 });
-            }
+        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+        if (!isPasswordValid) {
+            return NextResponse.json({ error: 'Senha incorreta.' }, { status: 400 });
         }
 
         // Desabilitar o acesso do usuário (marcar como ativo = false e delete_requested = true)

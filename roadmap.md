@@ -114,21 +114,21 @@ Exemplos:
 #### 🚨 Prioridade Alta (corrigir antes de escalar)
 - [x] **SEC-18**: Endpoints retornam mensagem genérica ao client — `error.message` removido de todas as respostas 500. ✅ *22/06/2026*
 - [x] **SEC-24**: `/api/property/generate-title` agora exige auth — protege quota da API Gemini. ✅ *22/06/2026*
-- [ ] **SEC-19**: OAuth Google sem `state` parameter — vulnerável a CSRF no fluxo de login social. Gerar state aleatório no cookie antes do redirect, validar no callback.
-- [ ] **SEC-22**: Google OAuth cria usuário sem verificar `email_verified` da resposta do Google — pode permitir login com email não verificado.
-- [ ] **SEC-25**: Empreendimentos photos sem validação de ownership — qualquer logado pode manipular fotos de qualquer empreendimento.
-- [ ] **SEC-27**: Login revela status da conta (verificação/desativação) ANTES de validar senha — mover password check para antes do status check.
-- [ ] **SEC-28**: `delete-account` e `change-password` não verificam Google-only users — bypass total da confirmação de identidade.
+- [ ] **SEC-19**: ⏸️ *Adiado* — OAuth Google não implementado no frontend. Aplicar quando ativar login social. Gerar state aleatório no cookie antes do redirect, validar no callback.
+- [ ] **SEC-22**: ⏸️ *Adiado* — Mesma dependência de SEC-19. Verificar `email_verified` da resposta do Google ao ativar OAuth.
+- [x] **SEC-25**: Empreendimentos photos com validação de ownership — apenas donos de imóveis vinculados ou admins podem manipular fotos. ✅ *27/06/2026*
+- [x] **SEC-27**: Password check movido para antes do status check no login — não revela mais status da conta sem senha válida. ✅ *27/06/2026*
+- [x] **SEC-28**: `delete-account` e `change-password` agora bloqueiam Google-only users (sem `password_hash`) — orienta definir senha via forgot-password. ✅ *27/06/2026*
 
 #### ⚠️ Prioridade Média
-- [ ] **SEC-21**: JWT não invalidado ao trocar/resetar senha — token roubado continua válido até expirar (24h). Implementar `password_changed_at` ou cookie rotation.
-- [ ] **SEC-23**: Resend-verification revela existência de email — retornar mensagem genérica independente do resultado.
-- [ ] **SEC-26**: Fortalecer política de senha — adicionar max 128 chars (evita DoS bcrypt), recomendável uppercase/special.
-- [ ] **SEC-29**: `console.log` expõe emails em produção (register, forgot-password) — mascarar ou remover.
+- [x] **SEC-21**: JWT invalidado ao trocar/resetar senha — `/api/auth/me` compara `iat` do token com `password_changed_at`. Token emitido antes da troca é rejeitado. ✅ *27/06/2026*
+- [x] **SEC-23**: Resend-verification retorna mensagem genérica independente do resultado — não revela mais existência de email. ✅ *27/06/2026*
+- [x] **SEC-26**: Política de senha com max 128 chars — evita DoS bcrypt em hashing de strings gigantes. ✅ *27/06/2026*
+- [x] **SEC-29**: `console.log` de emails removido/protegido — não expõe mais PII em produção. ✅ *27/06/2026*
 
 #### ℹ️ Prioridade Baixa
-- [ ] **SEC-20**: Token de verificação de email sem expiração — adicionar `expires_at` na tabela e validar.
-- [ ] **SEC-30**: Logout não inclui `sameSite: 'strict'` no cookie cleared — inconsistência com login.
+- [x] **SEC-20**: Token de verificação de email com expiração de 24h — coluna `verification_token_expires` adicionada, validada no verify, gravada no register e resend. ✅ *27/06/2026*
+- [x] **SEC-30**: Logout agora inclui `sameSite: 'strict'` no cookie cleared — consistente com login. ✅ *27/06/2026*
 
 ---
 

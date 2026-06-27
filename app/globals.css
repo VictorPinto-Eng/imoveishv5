@@ -43,6 +43,7 @@ h3,
 h4,
 h5,
 h6 {
+  font-family: var(--font-menu);
   font-weight: 600;
   color: var(--foreground);
 }

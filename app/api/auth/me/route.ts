@@ -12,13 +12,14 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ authenticated: false }, { status: 200 });
         }
 
-        // The login route uses { id, email, name } in the payload
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; name: string };
+        // The login route uses { id, email, name, iat } in the payload
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: number; email: string; name: string; iat?: number };
 
         const res = await query(
             `SELECT u.id, u.email, u.name, u.social_name, u.avatar_url, u.email_verified, u.phone,
                     u.creci_numero, u.creci_apoestado_id, u.creci_tipo, u.creci_status, u.creci_document_url,
                     u.cpf_cnpj, u.data_nascimento, u.cpf_validated, u.razao_social, u.ativo,
+                    u.password_changed_at,
                     EXISTS(SELECT 1 FROM public.admin_users WHERE user_id = u.id) as is_admin,
                     (SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', ur.role_id, 'nome', tu.nome)), '[]'::json)
                      FROM public.user_roles ur
@@ -34,6 +35,15 @@ export async function GET(req: NextRequest) {
         }
 
         const user = res.rows[0];
+
+        // SEC-21: Rejeitar token emitido antes da última troca de senha
+        if (user.password_changed_at && decoded.iat) {
+            const changedAtSeconds = Math.floor(new Date(user.password_changed_at).getTime() / 1000);
+            if (decoded.iat < changedAtSeconds) {
+                return NextResponse.json({ authenticated: false }, { status: 200 });
+            }
+        }
+
         const roles = user.roles_list || [];
 
         return NextResponse.json({

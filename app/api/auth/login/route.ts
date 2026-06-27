@@ -36,32 +36,11 @@ export async function POST(request: NextRequest) {
 
         const user = res.rows[0];
 
-        // Check if user is active
-        if (user.ativo === false) {
-            return NextResponse.json(
-                { error: 'Sua conta está desativada. Entre em contato com o suporte.' },
-                { status: 403 }
-            );
-        }
-
-        // Check if email is verified first (or verify password and then handle verification)
-        // For usability in this app, we can check email verification first or handle it if they exist
-        if (user.email_verified === false) {
-            return NextResponse.json(
-                { 
-                    error: 'Por favor, verifique seu e-mail para ativar sua conta.',
-                    needsActivation: true,
-                    email: email
-                },
-                { status: 403 }
-            );
-        }
-
-        // Check password
+        // SEC-27: Validar senha ANTES de revelar qualquer status da conta
         if (!user.password_hash) {
             return NextResponse.json(
-                { error: 'Conta vinculada ao Google. Use o botão Entrar com Google.' },
-                { status: 400 }
+                { error: 'E-mail ou senha inválidos.' },
+                { status: 401 }
             );
         }
 
@@ -70,6 +49,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { error: 'E-mail ou senha inválidos.' },
                 { status: 401 }
+            );
+        }
+
+        // Só após validar a senha, verificar status da conta
+        if (user.ativo === false) {
+            return NextResponse.json(
+                { error: 'Sua conta está desativada. Entre em contato com o suporte.' },
+                { status: 403 }
+            );
+        }
+
+        if (user.email_verified === false) {
+            return NextResponse.json(
+                {
+                    error: 'Por favor, verifique seu e-mail para ativar sua conta.',
+                    needsActivation: true,
+                    email: email
+                },
+                { status: 403 }
             );
         }
 

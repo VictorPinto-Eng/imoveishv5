@@ -370,7 +370,7 @@ export default function Header() {
                                 alt="HV5 Logo"
                                 width={320}
                                 height={130}
-                                className={styles.logoImage} style={{ width: "105px", height: "auto", objectFit: "contain" }}
+                                className={styles.logoImage}
                             />
                         </a>
                     </div>

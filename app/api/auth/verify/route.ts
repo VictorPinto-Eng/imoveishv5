@@ -11,9 +11,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Check if token exists and get user
+    // Check if token exists and get user (SEC-20: incluir expiração)
     const result = await query(
-      'SELECT id, email FROM users WHERE verification_token = $1',
+      'SELECT id, email, verification_token_expires FROM users WHERE verification_token = $1',
       [token]
     );
 
@@ -21,9 +21,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Token inválido ou expirado.' }, { status: 400 });
     }
 
+    const user = result.rows[0];
+
+    // SEC-20: Verificar expiração do token (se a coluna existir e tiver valor)
+    if (user.verification_token_expires && new Date(user.verification_token_expires) < new Date()) {
+      return NextResponse.json(
+        { error: 'Token expirado. Solicite um novo e-mail de verificação.' },
+        { status: 400 }
+      );
+    }
+
     // Update user: verify email and clear token
     await query(
-      'UPDATE users SET email_verified = TRUE, verification_token = NULL WHERE verification_token = $1',
+      'UPDATE users SET email_verified = TRUE, verification_token = NULL, verification_token_expires = NULL WHERE verification_token = $1',
       [token]
     );
 

@@ -6,15 +6,29 @@ import { join } from 'path';
 import crypto from 'crypto';
 import { JWT_SECRET } from '@/lib/auth-config';
 
-// Helper to check if user is authenticated
 async function checkAuth(req: NextRequest) {
     const token = req.cookies.get('token')?.value;
     if (!token) return null;
     try {
-        return jwt.verify(token, JWT_SECRET) as { id: number };
+        return jwt.verify(token, JWT_SECRET) as { id: number; is_admin?: boolean };
     } catch {
         return null;
     }
+}
+
+// SEC-25: Verifica se o usuário é dono de pelo menos um imóvel no empreendimento, ou admin
+async function checkOwnership(userId: number, empId: string): Promise<boolean> {
+    const adminCheck = await query(
+        'SELECT EXISTS(SELECT 1 FROM public.admin_users WHERE user_id = $1) as is_admin',
+        [userId]
+    );
+    if (adminCheck.rows[0]?.is_admin) return true;
+
+    const ownerCheck = await query(
+        'SELECT EXISTS(SELECT 1 FROM public.produto_servico WHERE imbempreendimento_id = $1 AND user_id = $2) as is_owner',
+        [empId, userId]
+    );
+    return ownerCheck.rows[0]?.is_owner || false;
 }
 
 export async function GET(
@@ -25,6 +39,9 @@ export async function GET(
         const { id: empId } = await props.params;
         const user = await checkAuth(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const hasAccess = await checkOwnership(user.id, empId);
+        if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const res = await query(
             'SELECT * FROM public.imbempreendimento_midia WHERE imbempreendimento_id = $1 ORDER BY ordem_exibicao ASC, id ASC',
@@ -50,6 +67,9 @@ export async function POST(
         const { id: empId } = await props.params;
         const user = await checkAuth(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const hasAccess = await checkOwnership(user.id, empId);
+        if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const formData = await req.formData();
         const file = formData.get('file') as File | null;
@@ -113,6 +133,9 @@ export async function DELETE(
         const user = await checkAuth(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        const hasAccess = await checkOwnership(user.id, empId);
+        if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
         const photoId = req.nextUrl.searchParams.get('photoId');
 
         const photoRes = await query(
@@ -162,6 +185,9 @@ export async function PATCH(
         const user = await checkAuth(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        const hasAccess = await checkOwnership(user.id, empId);
+        if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
         const body = await req.json();
         const { photoId, setPrincipal, legenda, categoria, privada } = body;
 
@@ -194,6 +220,9 @@ export async function PUT(
         const { id: empId } = await props.params;
         const user = await checkAuth(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const hasAccess = await checkOwnership(user.id, empId);
+        if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const body = await req.json();
         const { items } = body;

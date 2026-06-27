@@ -34,22 +34,31 @@ export async function POST(req: NextRequest) {
 
         const user = userRes.rows[0];
 
+        // SEC-28: Bloquear se conta Google-only (sem senha definida)
+        if (!user.password_hash) {
+            return NextResponse.json(
+                { error: 'Sua conta não possui senha. Use "Esqueci minha senha" para definir uma.' },
+                { status: 400 }
+            );
+        }
+
         // Check current password
-        if (user.password_hash) {
-            const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
-            if (!isPasswordValid) {
-                return NextResponse.json({ error: 'Senha atual incorreta.' }, { status: 400 });
-            }
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!isPasswordValid) {
+            return NextResponse.json({ error: 'Senha atual incorreta.' }, { status: 400 });
         }
 
         // Hash new password
         const salt = await bcrypt.genSalt(10);
         const newPasswordHash = await bcrypt.hash(newPassword, salt);
 
-        // Update database
-        await query('UPDATE users SET password_hash = $1 WHERE id = $2', [newPasswordHash, decoded.id]);
+        // SEC-21: Atualizar senha E registrar timestamp para invalidar tokens antigos
+        await query(
+            'UPDATE users SET password_hash = $1, password_changed_at = NOW() WHERE id = $2',
+            [newPasswordHash, decoded.id]
+        );
 
-        return NextResponse.json({ success: true, message: 'Senha atualizada com sucesso!' });
+        return NextResponse.json({ success: true, message: 'Senha atualizada com sucesso! Faça login novamente.' });
 
     } catch (error) {
         console.error('Error changing password:', error);

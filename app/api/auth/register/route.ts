@@ -103,13 +103,14 @@ export async function POST(request: NextRequest) {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        // Generate verification token
+        // Generate verification token with 24h expiration (SEC-20)
         const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
 
         // Insert user (email_verified defaults to FALSE) and get new ID
         const result = await query(
-            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
-            [name, social_name || '', email, phone, passwordHash, verificationToken, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null]
+            'INSERT INTO users (name, social_name, email, phone, password_hash, verification_token, verification_token_expires, creci_numero, creci_apoestado_id, creci_tipo, cpf_cnpj, data_nascimento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id',
+            [name, social_name || '', email, phone, passwordHash, verificationToken, verificationExpires, valCreciNumero, valCreciEstadoId, valCreciTipo, cpf_cnpj || null, data_nascimento || null]
         );
         const newUserId = result.rows[0].id;
 
@@ -128,7 +129,10 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
-        console.log(`✅ Activation email sent successfully to ${email}`);
+        // SEC-29: Log sem expor email em produção
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`Activation email sent to user id: ${newUserId}`);
+        }
 
         return NextResponse.json({ 
             message: 'Conta criada com sucesso! Verifique seu e-mail para ativar sua conta.' 

@@ -17,12 +17,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 5rem; /* Reduced by another 10% from original max */
+    height: 5rem;
     position: relative;
     z-index: 51;
-    /* Keep header content above backdrop */
-    background-color: white;
-    /* Ensure header background covers backdrop */
+    /* Glass effect herdado do .header — sem fundo sólido */
 }
 
 .logoContainer {
@@ -55,7 +53,8 @@
 
 .logoImage {
     object-fit: contain;
-    height: 38px; width: auto;
+    width: 110px;
+    height: auto;
 }
 
 .desktopNav {
@@ -65,7 +64,7 @@
 }
 
 .navLink {
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #334155;
     transition: color 0.2s;
@@ -73,7 +72,8 @@
     align-items: center;
     gap: 0.5rem;
     text-decoration: none;
-    padding: 0.5rem 0.25rem;
+    padding: 0.5rem 0.5rem;
+    letter-spacing: -0.01em;
 }
 
 .navLink svg {
@@ -133,14 +133,12 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1.25rem;
+    padding: 0.55rem 1.35rem;
     background-color: #f1f5f9;
     color: var(--primary);
-    /* Green text */
     border: 1px solid transparent;
     border-radius: 9999px;
-    /* Pill shape */
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -205,11 +203,12 @@
 .mobileMenu {
     position: fixed;
     top: 5.7rem;
-    /* Height of the header */
     left: 0;
     width: 100%;
+    max-height: calc(100vh - 5.7rem);
+    overflow-y: auto;
     background-color: white;
-    z-index: 10001; /* Must be higher than header */
+    z-index: 10001;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 
     transform: translateY(-100%);
@@ -368,10 +367,10 @@
 }
 
 .userName {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #334155;
-    max-width: 120px;
+    max-width: 140px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -440,4 +439,31 @@
 .logoutItem:hover {
     background-color: #fef2f2;
     color: #dc2626;
+}
+
+/* Mobile Profile Styles */
+.mobileProfileHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 0.5rem;
+}
+
+.mobileProfileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.mobileUserName {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.mobileUserEmail {
+    font-size: 0.825rem;
+    color: #64748b;
 }

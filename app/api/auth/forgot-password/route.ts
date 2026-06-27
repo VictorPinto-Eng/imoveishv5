@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         after(async () => {
             try {
                 await sendPasswordResetEmail(email, user.name, resetToken);
-                console.log(`Password reset email sent to ${email}`);
+                // SEC-29: Não logar email em produção
             } catch (emailError) {
                 console.error('Failed to send reset email:', emailError);
             }
