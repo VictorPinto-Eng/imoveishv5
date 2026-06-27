@@ -58,7 +58,7 @@
 /* Floating Action Button (FAB) Speed Dial */
 .fabContainer {
     position: absolute;
-    bottom: 1.5rem;
+    bottom: 2rem;
     right: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -121,8 +121,8 @@
 }
 
 .fab {
-    width: 60px;
-    height: 60px;
+    width: 48px;
+    height: 48px;
     background-color: #737373;
     color: white;
     border-radius: 50%;
@@ -147,8 +147,8 @@
 }
 
 .fab svg {
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     stroke-width: 2.5px;
     transition: all 0.3s;
 }
