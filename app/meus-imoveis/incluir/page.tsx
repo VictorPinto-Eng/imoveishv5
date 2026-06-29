@@ -1136,30 +1136,52 @@ export default function IncluirImovelPage() {
                                     <>
                                         <div className={styles.formGroup} style={{ marginTop: '24px' }}>
                                             <h3 className={styles.question}>Estado (UF) <span style={{ color: '#ef4444' }}>*</span></h3>
-                                            <div className={styles.inputWrapper}>
-                                                <input
-                                                    type="text"
-                                                    name="uf"
-                                                    className={styles.input}
-                                                    placeholder="Ex: SP"
-                                                    value={formData.uf}
-                                                    onChange={handleChange}
-                                                    maxLength={2}
-                                                />
-                                            </div>
+                                            <select
+                                                name="uf"
+                                                className={styles.select}
+                                                value={formData.uf}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setSelectedUf(val);
+                                                    setSelectedCity('');
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        uf: val.toUpperCase(),
+                                                        cidade: '',
+                                                        bairro: ''
+                                                    }));
+                                                }}
+                                                style={{ height: '52px' }}
+                                            >
+                                                <option value="">Selecione o estado...</option>
+                                                {ufs.map(uf => (
+                                                    <option key={uf.sigla} value={uf.sigla}>{uf.sigla} — {uf.nome}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className={styles.formGroup} style={{ marginTop: '24px' }}>
                                             <h3 className={styles.question}>Cidade <span style={{ color: '#ef4444' }}>*</span></h3>
-                                            <div className={styles.inputWrapper}>
-                                                <input
-                                                    type="text"
-                                                    name="cidade"
-                                                    className={styles.input}
-                                                    placeholder="Ex: São Paulo"
-                                                    value={formData.cidade}
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
+                                            <select
+                                                name="cidade"
+                                                className={styles.select}
+                                                value={formData.cidade}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setSelectedCity(val);
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        cidade: val.toUpperCase(),
+                                                        bairro: ''
+                                                    }));
+                                                }}
+                                                disabled={!formData.uf}
+                                                style={{ height: '52px' }}
+                                            >
+                                                <option value="">Selecione a cidade...</option>
+                                                {cities.map(city => (
+                                                    <option key={city} value={city}>{city}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className={styles.formGroup} style={{ marginTop: '24px' }}>
                                             <h3 className={styles.question}>Endereço (Rua) <span style={{ color: '#ef4444' }}>*</span></h3>
