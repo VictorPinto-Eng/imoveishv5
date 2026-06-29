@@ -79,6 +79,7 @@ export default function IncluirImovelPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [isAddressFound, setIsAddressFound] = useState(false);
+    const [isCepGenerico, setIsCepGenerico] = useState(false);
     const [isMapOpen, setIsMapOpen] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -445,6 +446,8 @@ export default function IncluirImovelPage() {
                         const data = await res.json();
                         if (!data.erro) {
                             lastSearchedCep.current = cleanCep;
+                            const isGenerico = !data.logradouro;
+                            setIsCepGenerico(isGenerico);
                             setFormData(prev => ({
                                 ...prev,
                                 address: sanitizeLocationName((data.logradouro || '').split(',')[0].split('-')[0].trim()),
@@ -455,6 +458,23 @@ export default function IncluirImovelPage() {
                             setSelectedUf(sanitizeLocationName(data.uf || ''));
                             setSelectedCity(sanitizeLocationName(data.localidade || ''));
                             setIsAddressFound(true);
+                        } else {
+                            // CEP não encontrado no ViaCEP - permitir preenchimento manual
+                            lastSearchedCep.current = cleanCep;
+                            setIsCepGenerico(true);
+                            setFormData(prev => ({
+                                ...prev,
+                                address: '',
+                                uf: '',
+                                cidade: '',
+                                bairro: ''
+                            }));
+                            setIsAddressFound(true);
+                            fire({
+                                title: 'CEP não encontrado',
+                                text: 'Este CEP não foi localizado nos Correios. Preencha o endereço manualmente.',
+                                icon: 'info'
+                            });
                         }
                     } catch (error: any) {
                         if (error.name !== 'AbortError') {
@@ -555,9 +575,14 @@ export default function IncluirImovelPage() {
 
     const handleNext = async () => {
         if (step === 1) {
+            // Sync selectedUf/selectedCity with formData for generic CEP cases
+            if (isCepGenerico) {
+                if (formData.uf && !selectedUf) setSelectedUf(formData.uf);
+                if (formData.cidade && !selectedCity) setSelectedCity(formData.cidade);
+            }
             // Sequential Verification Chain
             const success = await verifyLocationSequence();
-            if (!success) return; 
+            if (!success) return;
         }
         setStep(step + 1);
         window.scrollTo(0, 0);
@@ -1079,7 +1104,13 @@ export default function IncluirImovelPage() {
                                     <div className={styles.addressInfo}>
                                         <Building2 size={24} className="text-gray-600" />
                                         <div className={styles.addressDetails}>
-                                            <span className={styles.addressText}>{formData.address}</span>
+                                            {isCepGenerico ? (
+                                                <span className={styles.addressText} style={{ color: '#f59e0b' }}>
+                                                    CEP genérico – preencha o endereço abaixo
+                                                </span>
+                                            ) : (
+                                                <span className={styles.addressText}>{formData.address}</span>
+                                            )}
                                             {(formData.bairro || formData.cidade) && (
                                                 <span className={styles.locationDetailText}>
                                                     {formData.bairro}{formData.bairro && (formData.cidade || formData.uf) ? ', ' : ''}
@@ -1093,12 +1124,71 @@ export default function IncluirImovelPage() {
                                         className={styles.changeButton}
                                         onClick={() => {
                                             setIsAddressFound(false);
+                                            setIsCepGenerico(false);
                                             setFormData(prev => ({ ...prev, cep: '', address: '', latitude: null, longitude: null, plus_code: '' }));
                                         }}
                                     >
                                         Mudar
                                     </button>
                                 </div>
+
+                                {isCepGenerico && (
+                                    <>
+                                        <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                            <h3 className={styles.question}>Estado (UF) <span style={{ color: '#ef4444' }}>*</span></h3>
+                                            <div className={styles.inputWrapper}>
+                                                <input
+                                                    type="text"
+                                                    name="uf"
+                                                    className={styles.input}
+                                                    placeholder="Ex: SP"
+                                                    value={formData.uf}
+                                                    onChange={handleChange}
+                                                    maxLength={2}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                            <h3 className={styles.question}>Cidade <span style={{ color: '#ef4444' }}>*</span></h3>
+                                            <div className={styles.inputWrapper}>
+                                                <input
+                                                    type="text"
+                                                    name="cidade"
+                                                    className={styles.input}
+                                                    placeholder="Ex: São Paulo"
+                                                    value={formData.cidade}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                            <h3 className={styles.question}>Endereço (Rua) <span style={{ color: '#ef4444' }}>*</span></h3>
+                                            <div className={styles.inputWrapper}>
+                                                <input
+                                                    type="text"
+                                                    name="address"
+                                                    className={styles.input}
+                                                    placeholder="Ex: Rua das Flores"
+                                                    value={formData.address}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className={styles.formGroup} style={{ marginTop: '24px' }}>
+                                            <h3 className={styles.question}>Bairro</h3>
+                                            <div className={styles.inputWrapper}>
+                                                <input
+                                                    type="text"
+                                                    name="bairro"
+                                                    className={styles.input}
+                                                    placeholder="Ex: Centro"
+                                                    value={formData.bairro}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
 
 
                                 <div className={styles.formGroup}>
@@ -1394,16 +1484,17 @@ export default function IncluirImovelPage() {
                                 className={styles.btnPrimary}
                                 onClick={handleNext}
                                 disabled={
-                                    !isAddressFound || 
-                                    !formData.number || 
-                                    !formData.imbfinalidade_id || 
+                                    !isAddressFound ||
+                                    !formData.number ||
+                                    !formData.imbfinalidade_id ||
                                     !formData.imbtpimovel_id ||
-                                    !formData.relationship
+                                    !formData.relationship ||
+                                    (isCepGenerico && (!formData.address.trim() || !formData.uf.trim() || !formData.cidade.trim()))
                                 }
                             >
                                 Continuar
                             </button>
-                            {(!isAddressFound || !formData.number || !formData.imbfinalidade_id || !formData.imbtpimovel_id || !formData.relationship) && (
+                            {(!isAddressFound || !formData.number || !formData.imbfinalidade_id || !formData.imbtpimovel_id || !formData.relationship || (isCepGenerico && (!formData.address.trim() || !formData.uf.trim() || !formData.cidade.trim()))) && (
                                 <p className={styles.hint} style={{ marginTop: '12px', textAlign: 'center', width: '100%' }}>
                                     Preencha todos os campos obrigatórios para continuar
                                 </p>
