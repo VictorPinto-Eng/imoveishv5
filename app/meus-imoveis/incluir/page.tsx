@@ -106,6 +106,12 @@ export default function IncluirImovelPage() {
     const [propertyStatuses, setPropertyStatuses] = useState<{ id: number; nome: string }[]>([]);
     const [empreendimentos, setEmpreendimentos] = useState<{ id: number; descricao: string }[]>([]);
 
+    // Bairros autocomplete for CEP genérico
+    const [bairrosList, setBairrosList] = useState<{ id: number; nome: string }[]>([]);
+    const [bairroInput, setBairroInput] = useState('');
+    const [bairroSuggestions, setBairroSuggestions] = useState<{ id: number; nome: string }[]>([]);
+    const [showBairroSuggestions, setShowBairroSuggestions] = useState(false);
+    const bairroInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState<PropertyData>({
         address: '',
@@ -207,6 +213,27 @@ export default function IncluirImovelPage() {
         };
         fetchCities();
     }, [selectedUf]);
+
+    // Fetch Bairros when city changes (for CEP genérico autocomplete)
+    useEffect(() => {
+        const fetchBairros = async () => {
+            if (!selectedCity || !selectedUf) {
+                setBairrosList([]);
+                setBairroSuggestions([]);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/property/bairros?uf=${selectedUf}&cidade=${encodeURIComponent(selectedCity)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) setBairrosList(data);
+                }
+            } catch (error) {
+                console.error('Error fetching bairros:', error);
+            }
+        };
+        fetchBairros();
+    }, [selectedCity, selectedUf]);
 
     // Fetch Categories for Step 3
     useEffect(() => {
@@ -458,6 +485,13 @@ export default function IncluirImovelPage() {
                             setSelectedUf(sanitizeLocationName(data.uf || ''));
                             setSelectedCity(sanitizeLocationName(data.localidade || ''));
                             setIsAddressFound(true);
+                            // Se CEP genérico (tem UF/cidade mas sem rua), focar no campo Endereço
+                            if (isGenerico) {
+                                setTimeout(() => {
+                                    const addressInput = document.querySelector('input[name="address"]') as HTMLElement;
+                                    if (addressInput) addressInput.focus();
+                                }, 300);
+                            }
                         } else {
                             // CEP não encontrado no ViaCEP - permitir preenchimento manual
                             lastSearchedCep.current = cleanCep;
@@ -474,6 +508,12 @@ export default function IncluirImovelPage() {
                                 title: 'CEP não encontrado',
                                 text: 'Este CEP não foi localizado nos Correios. Preencha o endereço manualmente.',
                                 icon: 'info'
+                            }).then(() => {
+                                // Foco no campo Estado após fechar o alerta
+                                setTimeout(() => {
+                                    const ufSelect = document.querySelector('select[name="uf"]') as HTMLElement;
+                                    if (ufSelect) ufSelect.focus();
+                                }, 100);
                             });
                         }
                     } catch (error: any) {
@@ -1183,6 +1223,74 @@ export default function IncluirImovelPage() {
                                                 ))}
                                             </select>
                                         </div>
+                                        <div className={styles.formGroup} style={{ marginTop: '24px', position: 'relative' }}>
+                                            <h3 className={styles.question}>Bairro</h3>
+                                            <div className={styles.inputWrapper}>
+                                                <input
+                                                    ref={bairroInputRef}
+                                                    type="text"
+                                                    name="bairro"
+                                                    className={styles.input}
+                                                    placeholder={bairrosList.length > 0 ? 'Digite para buscar ou selecionar...' : 'Ex: Centro'}
+                                                    value={formData.bairro}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setFormData(prev => ({ ...prev, bairro: val }));
+                                                        // Filtrar sugestões
+                                                        if (val.trim().length > 0 && bairrosList.length > 0) {
+                                                            const filtered = bairrosList.filter(b =>
+                                                                b.nome.toUpperCase().includes(val.toUpperCase())
+                                                            );
+                                                            setBairroSuggestions(filtered.slice(0, 8));
+                                                            setShowBairroSuggestions(filtered.length > 0);
+                                                        } else if (val.trim().length === 0 && bairrosList.length > 0) {
+                                                            setBairroSuggestions(bairrosList.slice(0, 8));
+                                                            setShowBairroSuggestions(true);
+                                                        } else {
+                                                            setShowBairroSuggestions(false);
+                                                        }
+                                                    }}
+                                                    onFocus={() => {
+                                                        if (bairrosList.length > 0) {
+                                                            const val = formData.bairro;
+                                                            if (val.trim().length > 0) {
+                                                                const filtered = bairrosList.filter(b =>
+                                                                    b.nome.toUpperCase().includes(val.toUpperCase())
+                                                                );
+                                                                setBairroSuggestions(filtered.slice(0, 8));
+                                                                setShowBairroSuggestions(filtered.length > 0);
+                                                            } else {
+                                                                setBairroSuggestions(bairrosList.slice(0, 8));
+                                                                setShowBairroSuggestions(true);
+                                                            }
+                                                        }
+                                                    }}
+                                                    onBlur={() => {
+                                                        // Delay para permitir click na sugestão
+                                                        setTimeout(() => setShowBairroSuggestions(false), 200);
+                                                    }}
+                                                    autoComplete="off"
+                                                />
+                                            </div>
+                                            {showBairroSuggestions && bairroSuggestions.length > 0 && (
+                                                <div className={styles.suggestionList} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, maxHeight: '200px', overflowY: 'auto' }}>
+                                                    {bairroSuggestions.map(b => (
+                                                        <div
+                                                            key={b.id}
+                                                            className={styles.suggestionItem}
+                                                            onClick={() => {
+                                                                setFormData(prev => ({ ...prev, bairro: b.nome }));
+                                                                setShowBairroSuggestions(false);
+                                                            }}
+                                                        >
+                                                            <div className={styles.suggestionInfo}>
+                                                                <span className={styles.suggestionMain}>{b.nome}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                         <div className={styles.formGroup} style={{ marginTop: '24px' }}>
                                             <h3 className={styles.question}>Endereço (Rua) <span style={{ color: '#ef4444' }}>*</span></h3>
                                             <div className={styles.inputWrapper}>
@@ -1192,19 +1300,6 @@ export default function IncluirImovelPage() {
                                                     className={styles.input}
                                                     placeholder="Ex: Rua das Flores"
                                                     value={formData.address}
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className={styles.formGroup} style={{ marginTop: '24px' }}>
-                                            <h3 className={styles.question}>Bairro</h3>
-                                            <div className={styles.inputWrapper}>
-                                                <input
-                                                    type="text"
-                                                    name="bairro"
-                                                    className={styles.input}
-                                                    placeholder="Ex: Centro"
-                                                    value={formData.bairro}
                                                     onChange={handleChange}
                                                 />
                                             </div>
