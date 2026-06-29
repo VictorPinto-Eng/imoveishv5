@@ -1482,23 +1482,29 @@ export default function IncluirImovelPage() {
                         <div className={styles.navigation} style={{ marginTop: '48px' }}>
                             <button
                                 className={styles.btnPrimary}
-                                onClick={handleNext}
-                                disabled={
-                                    !isAddressFound ||
-                                    !formData.number ||
-                                    !formData.imbfinalidade_id ||
-                                    !formData.imbtpimovel_id ||
-                                    !formData.relationship ||
-                                    (isCepGenerico && (!formData.address.trim() || !formData.uf.trim() || !formData.cidade.trim()))
-                                }
+                                onClick={() => {
+                                    const faltando: string[] = [];
+                                    if (!isAddressFound && !isCepGenerico) faltando.push('Endereço (busque pelo CEP ou endereço)');
+                                    if (isCepGenerico && !formData.uf.trim()) faltando.push('Estado (UF)');
+                                    if (isCepGenerico && !formData.cidade.trim()) faltando.push('Cidade');
+                                    if (isCepGenerico && !formData.address.trim()) faltando.push('Endereço (Rua)');
+                                    if (!formData.number) faltando.push('Número');
+                                    if (!formData.imbfinalidade_id) faltando.push('Finalidade');
+                                    if (!formData.imbtpimovel_id) faltando.push('Tipo do imóvel');
+                                    if (!formData.relationship) faltando.push('Relação com o imóvel');
+                                    if (faltando.length > 0) {
+                                        fire({
+                                            title: 'Campos obrigatórios',
+                                            html: `<p>Preencha os seguintes campos:</p><ul style="text-align:left;margin-top:8px">${faltando.map(f => `<li>• ${f}</li>`).join('')}</ul>`,
+                                            icon: 'warning'
+                                        });
+                                        return;
+                                    }
+                                    handleNext();
+                                }}
                             >
                                 Continuar
                             </button>
-                            {(!isAddressFound || !formData.number || !formData.imbfinalidade_id || !formData.imbtpimovel_id || !formData.relationship || (isCepGenerico && (!formData.address.trim() || !formData.uf.trim() || !formData.cidade.trim()))) && (
-                                <p className={styles.hint} style={{ marginTop: '12px', textAlign: 'center', width: '100%' }}>
-                                    Preencha todos os campos obrigatórios para continuar
-                                </p>
-                            )}
                         </div>
                     </div>
                 )}
@@ -2126,8 +2132,17 @@ export default function IncluirImovelPage() {
                             <button className={styles.btnSecondary} onClick={handlePrev}>Voltar</button>
                             <button
                                 className={styles.btnPrimary}
-                                onClick={handleNext}
-                                disabled={!formData.price}
+                                onClick={() => {
+                                    if (!formData.price) {
+                                        fire({
+                                            title: 'Campo obrigatório',
+                                            text: 'Informe o valor do imóvel para continuar.',
+                                            icon: 'warning'
+                                        });
+                                        return;
+                                    }
+                                    handleNext();
+                                }}
                             >
                                 Continuar
                             </button>
