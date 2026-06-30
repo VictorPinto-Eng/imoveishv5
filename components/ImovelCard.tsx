@@ -328,17 +328,14 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         )}
         
         {imagens_urls.length > 1 && (
-          <>
-            <div className={styles.dotsIndicator}>
-              {imagens_urls.slice(0, 5).map((_, idx) => (
-                <span
-                  key={idx}
-                  className={`${styles.dot} ${idx === currentImageIndex ? styles.dotActive : ''}`}
-                />
-              ))}
-              {imagens_urls.length > 5 && <span className={styles.dotMore}>+{imagens_urls.length - 5}</span>}
-            </div>
-          </>
+          <div className={styles.dotsIndicator}>
+            {imagens_urls.map((_, idx) => (
+              <span
+                key={idx}
+                className={`${styles.dot} ${idx === currentImageIndex ? styles.dotActive : ''}`}
+              />
+            ))}
+          </div>
         )}
       </div>
 
