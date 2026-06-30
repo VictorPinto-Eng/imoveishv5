@@ -285,15 +285,24 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         </button>
 
         {imagens_urls && imagens_urls.length > 0 && !imageError ? (
-            <Image
-                src={imagens_urls[currentImageIndex]}
-                alt={nome}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className={styles.image}
-                onClick={(e) => { e.stopPropagation(); handleCardClick(); }}
-                onError={() => setImageError(true)}
-            />
+            <div
+                className={styles.carouselTrack}
+                style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+            >
+                {imagens_urls.map((url, idx) => (
+                    <div key={idx} className={styles.carouselSlide}>
+                        <Image
+                            src={url}
+                            alt={`${nome} - foto ${idx + 1}`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className={styles.image}
+                            loading={idx === 0 ? 'eager' : 'lazy'}
+                            onError={() => setImageError(true)}
+                        />
+                    </div>
+                ))}
+            </div>
         ) : (
             <div className={styles.noPhotoPlaceholder} onClick={handleCardClick}>
                 <ImageOff size={48} strokeWidth={1} className={styles.noPhotoIcon} />
