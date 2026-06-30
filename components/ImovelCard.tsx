@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Heart, Phone, Mail, MessageCircle, ImageOff, Share2 } from 'lucide-react'
@@ -116,11 +116,13 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     // Touch swipe states and handlers for mobile gallery
     const [touchStartX, setTouchStartX] = useState<number | null>(null)
     const [touchEndX, setTouchEndX] = useState<number | null>(null)
+    const justSwipedRef = useRef(false)
     const MIN_SWIPE_DISTANCE = 50
 
     const handleTouchStart = (e: React.TouchEvent) => {
         setTouchStartX(e.targetTouches[0].clientX)
         setTouchEndX(null)
+        justSwipedRef.current = false
     }
 
     const handleTouchMove = (e: React.TouchEvent) => {
@@ -134,13 +136,13 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
         const isRightSwipe = distance < -MIN_SWIPE_DISTANCE
 
         if (isLeftSwipe) {
-            // Swipe para a esquerda (próxima foto)
             setImageError(false)
             setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
+            justSwipedRef.current = true
         } else if (isRightSwipe) {
-            // Swipe para a direita (foto anterior)
             setImageError(false)
             setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
+            justSwipedRef.current = true
         }
     }
 
@@ -189,6 +191,11 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
   const isRental = !!imovel.is_locacao
 
     const handleCardClick = () => {
+        // Não navegar se acabou de fazer swipe nas fotos
+        if (justSwipedRef.current) {
+            justSwipedRef.current = false
+            return
+        }
         router.push(buildPropertyUrl(imovel))
     }
 
