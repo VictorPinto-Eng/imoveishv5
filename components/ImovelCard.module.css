@@ -321,6 +321,7 @@
 }
 
 .locationSubtitle {
+  font-family: var(--font-menu), sans-serif;
   font-size: 0.8rem;
   color: #1e293b;
   font-weight: 700;
