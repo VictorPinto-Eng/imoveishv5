@@ -1090,13 +1090,10 @@ export default function NegociosPage() {
 
   const fetchSupportData = async (table: string, search: string = '') => {
     const cleanSearch = search.trim();
-    if (cleanSearch.length < 3) {
-      setSupportList([]);
-      return;
-    }
     setLoadingSupport(true);
     try {
-      const res = await fetch(`/api/user/apoio?table=${table}&search=${encodeURIComponent(cleanSearch)}`, { cache: 'no-store' });
+      const searchQuery = cleanSearch.length >= 3 ? `&search=${encodeURIComponent(cleanSearch)}` : '';
+      const res = await fetch(`/api/user/apoio?table=${table}${searchQuery}`, { cache: 'no-store' });
       const data = await res.json();
       if (res.ok && data.success) {
         setSupportList(data.list || []);
@@ -1297,10 +1294,9 @@ export default function NegociosPage() {
     }
   }, [supportSearch, supportTable, activeTab]);
 
-  // Reset search input and list when support table type changes
+  // Reset search input when support table type changes (list will reload via the fetch effect)
   useEffect(() => {
     setSupportSearch('');
-    setSupportList([]);
   }, [supportTable]);
 
   useEffect(() => {
