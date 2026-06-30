@@ -130,19 +130,23 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     }
 
     const handleTouchEnd = () => {
+        // Se não teve move, é um tap — deixar o click propagar normalmente
         if (!touchStartX || !touchEndX) return
         const distance = touchStartX - touchEndX
-        const isLeftSwipe = distance > MIN_SWIPE_DISTANCE
-        const isRightSwipe = distance < -MIN_SWIPE_DISTANCE
+        const absDistance = Math.abs(distance)
 
-        if (isLeftSwipe) {
+        if (absDistance > MIN_SWIPE_DISTANCE) {
+            // É um swipe — trocar foto
             setImageError(false)
-            setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
+            if (distance > 0) {
+                setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
+            } else {
+                setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
+            }
             justSwipedRef.current = true
-        } else if (isRightSwipe) {
-            setImageError(false)
-            setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
-            justSwipedRef.current = true
+        } else if (absDistance < 10) {
+            // Movimento mínimo — tratar como tap, abrir página
+            handleCardClick()
         }
     }
 
