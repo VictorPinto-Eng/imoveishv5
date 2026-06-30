@@ -114,61 +114,16 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     };
 
     // Touch swipe states and handlers for mobile gallery
-    const touchStartXRef = useRef<number | null>(null)
-    const touchEndXRef = useRef<number | null>(null)
-    const touchMovedRef = useRef(false)
-    const swipeTimestampRef = useRef(0)
     const imageWrapperRef = useRef<HTMLDivElement>(null)
-    const MIN_SWIPE_DISTANCE = 50
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-    const handleTouchStart = (e: React.TouchEvent) => {
-        touchStartXRef.current = e.targetTouches[0].clientX
-        touchEndXRef.current = null
-        touchMovedRef.current = false
-    }
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-        touchEndXRef.current = e.targetTouches[0].clientX
-        touchMovedRef.current = true
-    }
-
-    const handleTouchEnd = (e: React.TouchEvent) => {
-        if (touchStartXRef.current === null) return
-
-        if (!touchMovedRef.current) {
-            // Tap limpo — nenhum movimento. Navegar imediatamente.
-            const target = e.target as HTMLElement
-            if (target.closest('button, a, [role="button"]')) return
-            e.preventDefault()
-            router.push(buildPropertyUrl(imovel))
-            return
-        }
-
-        // Houve movimento — determinar se é swipe ou micro-tremor
-        const endX = touchEndXRef.current
-        if (endX === null) return
-
-        const distance = touchStartXRef.current - endX
-        const absDistance = Math.abs(distance)
-
-        if (absDistance > MIN_SWIPE_DISTANCE) {
-            // Swipe real — trocar foto
-            e.preventDefault()
-            setImageError(false)
-            if (distance > 0) {
-                setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
-            } else {
-                setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
-            }
-            // Marca timestamp para bloquear APENAS o click sintético na imageWrapper
-            swipeTimestampRef.current = Date.now()
-        } else {
-            // Micro-movimento (< 50px) — tratar como tap
-            const target = e.target as HTMLElement
-            if (target.closest('button, a, [role="button"]')) return
-            e.preventDefault()
-            router.push(buildPropertyUrl(imovel))
-        }
+    const handleScroll = () => {
+        const el = scrollContainerRef.current
+        if (!el) return
+        const slideWidth = el.offsetWidth
+        if (slideWidth === 0) return
+        const index = Math.round(el.scrollLeft / slideWidth)
+        setCurrentImageIndex(index)
     }
 
   // Format price
@@ -202,31 +157,26 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
   const nextImage = (e?: React.MouseEvent) => {
     e?.preventDefault()
     e?.stopPropagation()
-    setImageError(false)
-    setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
+    const el = scrollContainerRef.current
+    if (!el) return
+    const slideWidth = el.offsetWidth
+    const nextIndex = Math.min(currentImageIndex + 1, (imagens_urls.length || 1) - 1)
+    el.scrollTo({ left: nextIndex * slideWidth, behavior: 'smooth' })
   }
 
   const prevImage = (e?: React.MouseEvent) => {
     e?.preventDefault()
     e?.stopPropagation()
-    setImageError(false)
-    setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
+    const el = scrollContainerRef.current
+    if (!el) return
+    const slideWidth = el.offsetWidth
+    const prevIndex = Math.max(currentImageIndex - 1, 0)
+    el.scrollTo({ left: prevIndex * slideWidth, behavior: 'smooth' })
   }
 
   const isRental = !!imovel.is_locacao
 
-    const handleCardClick = (e: React.MouseEvent) => {
-        // Bloquear APENAS o click sintético que vem da imageWrapper logo após um swipe
-        if (
-            swipeTimestampRef.current &&
-            Date.now() - swipeTimestampRef.current < 400 &&
-            imageWrapperRef.current &&
-            imageWrapperRef.current.contains(e.target as Node)
-        ) {
-            swipeTimestampRef.current = 0
-            return
-        }
-        swipeTimestampRef.current = 0
+    const handleCardClick = () => {
         router.push(buildPropertyUrl(imovel))
     }
 
@@ -296,9 +246,6 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
       <div
         ref={imageWrapperRef}
         className={styles.imageWrapper}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         <button 
             className={styles.shareBtnFloating} 
@@ -318,8 +265,9 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
 
         {imagens_urls && imagens_urls.length > 0 && !imageError ? (
             <div
-                className={styles.carouselTrack}
-                style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+                ref={scrollContainerRef}
+                className={styles.carouselScroll}
+                onScroll={handleScroll}
             >
                 {imagens_urls.map((url, idx) => (
                     <div key={idx} className={styles.carouselSlide}>
