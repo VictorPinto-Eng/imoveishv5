@@ -471,10 +471,14 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
               </div>
             </div>
           ) : (
-            <div className={styles.priceValue} style={{ margin: '0.25rem 0' }}>
-              <strong className={styles.priceMainVal}>{priceFormatted}</strong>
-              {isRental && <span className={styles.priceLabel}>aluguel</span>}
-              {!isRental && <span className={styles.priceLabel}>venda</span>}
+            <div
+              className={styles.priceValue}
+              style={{ margin: '0.25rem 0' }}
+            >
+              {isRental
+                ? <span className={styles.pricePrefix}><strong className={styles.priceMainVal}>{priceFormatted}</strong>/mês</span>
+                : <strong className={styles.priceMainVal}>{priceFormatted}</strong>
+              }
             </div>
           )}
 

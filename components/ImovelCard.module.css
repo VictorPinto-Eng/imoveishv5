@@ -432,10 +432,10 @@
 }
 
 .priceValue {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #64748b;
+  text-align: center;
 }
 
 .pricePrefix {
@@ -445,17 +445,9 @@
 }
 
 .priceMainVal {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.02em;
-}
-
-.priceLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: lowercase;
 }
 
 .cardFooter {
