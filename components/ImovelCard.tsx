@@ -114,29 +114,46 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     };
 
     // Touch swipe states and handlers for mobile gallery
-    const [touchStartX, setTouchStartX] = useState<number | null>(null)
-    const [touchEndX, setTouchEndX] = useState<number | null>(null)
+    const touchStartXRef = useRef<number | null>(null)
+    const touchEndXRef = useRef<number | null>(null)
+    const touchMovedRef = useRef(false)
     const justSwipedRef = useRef(false)
     const MIN_SWIPE_DISTANCE = 50
 
     const handleTouchStart = (e: React.TouchEvent) => {
-        setTouchStartX(e.targetTouches[0].clientX)
-        setTouchEndX(null)
-        justSwipedRef.current = false
+        touchStartXRef.current = e.targetTouches[0].clientX
+        touchEndXRef.current = null
+        touchMovedRef.current = false
     }
 
     const handleTouchMove = (e: React.TouchEvent) => {
-        setTouchEndX(e.targetTouches[0].clientX)
+        touchEndXRef.current = e.targetTouches[0].clientX
+        touchMovedRef.current = true
     }
 
-    const handleTouchEnd = () => {
-        // Se não teve move, é um tap — deixar o click propagar normalmente
-        if (!touchStartX || !touchEndX) return
-        const distance = touchStartX - touchEndX
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (touchStartXRef.current === null) return
+
+        if (!touchMovedRef.current) {
+            // Tap limpo — nenhum movimento. Navegar imediatamente.
+            const target = e.target as HTMLElement
+            if (target.closest('button, a, [role="button"]')) return
+            e.preventDefault()
+            justSwipedRef.current = false
+            router.push(buildPropertyUrl(imovel))
+            return
+        }
+
+        // Houve movimento — determinar se é swipe ou micro-tremor
+        const endX = touchEndXRef.current
+        if (endX === null) return
+
+        const distance = touchStartXRef.current - endX
         const absDistance = Math.abs(distance)
 
         if (absDistance > MIN_SWIPE_DISTANCE) {
-            // É um swipe — trocar foto
+            // Swipe real — trocar foto
+            e.preventDefault()
             setImageError(false)
             if (distance > 0) {
                 setCurrentImageIndex((prev) => (prev + 1) % (imagens_urls.length || 1))
@@ -144,9 +161,13 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                 setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
             }
             justSwipedRef.current = true
-        } else if (absDistance < 10) {
-            // Movimento mínimo — tratar como tap, abrir página
-            handleCardClick()
+        } else {
+            // Micro-movimento (< 50px) — tratar como tap
+            const target = e.target as HTMLElement
+            if (target.closest('button, a, [role="button"]')) return
+            e.preventDefault()
+            justSwipedRef.current = false
+            router.push(buildPropertyUrl(imovel))
         }
     }
 
