@@ -46,7 +46,9 @@ export async function GET(
         return new NextResponse(fileBuffer, {
             headers: {
                 'Content-Type': contentType,
+                'Content-Length': fileBuffer.length.toString(),
                 'Cache-Control': 'public, max-age=31536000, immutable',
+                'Access-Control-Allow-Origin': '*',
             },
         });
     } catch (error) {

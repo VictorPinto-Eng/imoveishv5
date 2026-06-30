@@ -72,7 +72,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const description = `${imovel.custom_fields?.bairro || ''}, ${imovel.custom_fields?.cidade || ''} - ${imovel.dormitorios || 0} Qtos, ${imovel.area_util || imovel.area_terreno || 0}m²`
     const rawImage = imovel.foto_capa || imovel.imagens_urls?.[0] || ''
     const ogImage = rawImage.startsWith('http') ? rawImage : (rawImage ? `${baseUrl}${rawImage.startsWith('/') ? '' : '/'}${rawImage}` : '')
-    const images = ogImage ? [ogImage] : []
 
     return {
         title,
@@ -83,15 +82,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         openGraph: {
             title,
             description,
-            images,
+            images: ogImage ? [{
+                url: ogImage,
+                width: 1200,
+                height: 630,
+                alt: title,
+            }] : [],
             url: canonicalUrl,
             type: 'website',
+            siteName: 'HV5 Imóveis',
         },
         twitter: {
             card: 'summary_large_image',
             title,
             description,
-            images,
+            images: ogImage ? [ogImage] : [],
         }
     }
 }
