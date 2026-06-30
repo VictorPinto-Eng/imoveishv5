@@ -408,9 +408,13 @@ function MeusImoveisContent() {
                 // Paralelizar: auth + empreendimentos ao mesmo tempo
                 const [meRes, empRes] = await Promise.all([
                     fetch('/api/auth/me'),
-                    fetch('/api/property/empreendimentos')
+                    fetch('/api/property/empreendimentos').catch(() => null)
                 ]);
 
+                if (!meRes.ok) {
+                    router.push('/');
+                    return;
+                }
                 const authData = await meRes.json();
                 if (!authData.authenticated) {
                     router.push('/');
@@ -419,14 +423,16 @@ function MeusImoveisContent() {
                 setIsAuthenticated(true);
                 setCurrentUser(authData.user);
 
-                // Processar empreendimentos
-                const empData = await empRes.json();
-                const list = empData.empreendimentos || [];
-                setEmpreendimentos(list);
-                if (empIdParam) {
-                    const targetEmp = list.find((e: any) => e.id.toString() === empIdParam);
-                    if (targetEmp) {
-                        setSelectedEmpreendimento(targetEmp);
+                // Processar empreendimentos (tolerante a falha)
+                if (empRes && empRes.ok) {
+                    const empData = await empRes.json();
+                    const list = empData.empreendimentos || [];
+                    setEmpreendimentos(list);
+                    if (empIdParam) {
+                        const targetEmp = list.find((e: any) => e.id.toString() === empIdParam);
+                        if (targetEmp) {
+                            setSelectedEmpreendimento(targetEmp);
+                        }
                     }
                 }
 

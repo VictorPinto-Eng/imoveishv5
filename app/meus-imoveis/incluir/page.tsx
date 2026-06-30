@@ -181,22 +181,30 @@ export default function IncluirImovelPage() {
         };
     }, []);
 
-
+    // Cleanup CEP debounce timer and abort controller on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceTimer.current) clearTimeout(debounceTimer.current);
+            if (abortControllerRef.current) abortControllerRef.current.abort();
+        };
+    }, []);
 
     useEffect(() => {
         const fetchUfs = async () => {
             // Tentar cache local primeiro
-            const cached = sessionStorage.getItem('ibge_ufs');
-            if (cached) {
-                setUfs(JSON.parse(cached));
-                return;
-            }
+            try {
+                const cached = sessionStorage.getItem('ibge_ufs');
+                if (cached) {
+                    setUfs(JSON.parse(cached));
+                    return;
+                }
+            } catch { /* fall through to fetch */ }
             try {
                 const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
                 const data = await res.json();
                 const mapped = data.map((uf: any) => ({ sigla: uf.sigla, nome: uf.nome }));
                 setUfs(mapped);
-                sessionStorage.setItem('ibge_ufs', JSON.stringify(mapped));
+                try { sessionStorage.setItem('ibge_ufs', JSON.stringify(mapped)); } catch {}
             } catch (error) {
                 console.error('Error fetching UFs:', error);
             }
@@ -213,17 +221,19 @@ export default function IncluirImovelPage() {
             }
             // Tentar cache local por UF
             const cacheKey = `ibge_cities_${selectedUf}`;
-            const cached = sessionStorage.getItem(cacheKey);
-            if (cached) {
-                setCities(JSON.parse(cached));
-                return;
-            }
+            try {
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) {
+                    setCities(JSON.parse(cached));
+                    return;
+                }
+            } catch { /* fall through to fetch */ }
             try {
                 const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios?orderBy=nome`);
                 const data = await res.json();
                 const mapped = data.map((c: any) => c.nome.toUpperCase());
                 setCities(mapped);
-                sessionStorage.setItem(cacheKey, JSON.stringify(mapped));
+                try { sessionStorage.setItem(cacheKey, JSON.stringify(mapped)); } catch {}
             } catch (error) {
                 console.error('Error fetching cities:', error);
             }
@@ -233,6 +243,7 @@ export default function IncluirImovelPage() {
 
     // Fetch Bairros when city changes (for CEP genérico autocomplete)
     useEffect(() => {
+        const controller = new AbortController();
         const fetchBairros = async () => {
             if (!selectedCity || !selectedUf) {
                 setBairrosList([]);
@@ -240,16 +251,19 @@ export default function IncluirImovelPage() {
                 return;
             }
             try {
-                const res = await fetch(`/api/property/bairros?uf=${selectedUf}&cidade=${encodeURIComponent(selectedCity)}`);
+                const res = await fetch(`/api/property/bairros?uf=${selectedUf}&cidade=${encodeURIComponent(selectedCity)}`, {
+                    signal: controller.signal
+                });
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) setBairrosList(data);
                 }
-            } catch (error) {
-                console.error('Error fetching bairros:', error);
+            } catch (error: any) {
+                if (error.name !== 'AbortError') console.error('Error fetching bairros:', error);
             }
         };
         fetchBairros();
+        return () => controller.abort();
     }, [selectedCity, selectedUf]);
 
     // Fetch all reference options in a single call (categories, operacoes, statuses, empreendimentos)

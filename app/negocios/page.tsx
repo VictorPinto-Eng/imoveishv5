@@ -15,7 +15,7 @@ import { fire, showLoading, close, showValidationMessage } from '@/lib/swal';
 type TabType = 'propostas' | 'leads' | 'cadastro' | 'clientes' | 'apoio';
 
 export default function NegociosPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('propostas');
+  const [activeTab, setActiveTab] = useState<TabType>('clientes');
   const [proposals, setProposals] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
   const [myProperties, setMyProperties] = useState<any[]>([]);
