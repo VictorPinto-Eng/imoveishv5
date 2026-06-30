@@ -117,7 +117,8 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
     const touchStartXRef = useRef<number | null>(null)
     const touchEndXRef = useRef<number | null>(null)
     const touchMovedRef = useRef(false)
-    const justSwipedRef = useRef(false)
+    const swipeTimestampRef = useRef(0)
+    const imageWrapperRef = useRef<HTMLDivElement>(null)
     const MIN_SWIPE_DISTANCE = 50
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -139,7 +140,6 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             const target = e.target as HTMLElement
             if (target.closest('button, a, [role="button"]')) return
             e.preventDefault()
-            justSwipedRef.current = false
             router.push(buildPropertyUrl(imovel))
             return
         }
@@ -160,13 +160,13 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
             } else {
                 setCurrentImageIndex((prev) => (prev - 1 + (imagens_urls.length || 1)) % (imagens_urls.length || 1))
             }
-            justSwipedRef.current = true
+            // Marca timestamp para bloquear APENAS o click sintético na imageWrapper
+            swipeTimestampRef.current = Date.now()
         } else {
             // Micro-movimento (< 50px) — tratar como tap
             const target = e.target as HTMLElement
             if (target.closest('button, a, [role="button"]')) return
             e.preventDefault()
-            justSwipedRef.current = false
             router.push(buildPropertyUrl(imovel))
         }
     }
@@ -215,12 +215,18 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
 
   const isRental = !!imovel.is_locacao
 
-    const handleCardClick = () => {
-        // Não navegar se acabou de fazer swipe nas fotos
-        if (justSwipedRef.current) {
-            justSwipedRef.current = false
+    const handleCardClick = (e: React.MouseEvent) => {
+        // Bloquear APENAS o click sintético que vem da imageWrapper logo após um swipe
+        if (
+            swipeTimestampRef.current &&
+            Date.now() - swipeTimestampRef.current < 400 &&
+            imageWrapperRef.current &&
+            imageWrapperRef.current.contains(e.target as Node)
+        ) {
+            swipeTimestampRef.current = 0
             return
         }
+        swipeTimestampRef.current = 0
         router.push(buildPropertyUrl(imovel))
     }
 
@@ -287,7 +293,8 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
 
     return (
         <article className={styles.card} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
-      <div 
+      <div
+        ref={imageWrapperRef}
         className={styles.imageWrapper}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
