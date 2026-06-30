@@ -185,10 +185,18 @@ export default function IncluirImovelPage() {
 
     useEffect(() => {
         const fetchUfs = async () => {
+            // Tentar cache local primeiro
+            const cached = sessionStorage.getItem('ibge_ufs');
+            if (cached) {
+                setUfs(JSON.parse(cached));
+                return;
+            }
             try {
                 const res = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
                 const data = await res.json();
-                setUfs(data.map((uf: any) => ({ sigla: uf.sigla, nome: uf.nome })));
+                const mapped = data.map((uf: any) => ({ sigla: uf.sigla, nome: uf.nome }));
+                setUfs(mapped);
+                sessionStorage.setItem('ibge_ufs', JSON.stringify(mapped));
             } catch (error) {
                 console.error('Error fetching UFs:', error);
             }
@@ -203,10 +211,19 @@ export default function IncluirImovelPage() {
                 setCities([]);
                 return;
             }
+            // Tentar cache local por UF
+            const cacheKey = `ibge_cities_${selectedUf}`;
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+                setCities(JSON.parse(cached));
+                return;
+            }
             try {
                 const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios?orderBy=nome`);
                 const data = await res.json();
-                setCities(data.map((c: any) => c.nome.toUpperCase()));
+                const mapped = data.map((c: any) => c.nome.toUpperCase());
+                setCities(mapped);
+                sessionStorage.setItem(cacheKey, JSON.stringify(mapped));
             } catch (error) {
                 console.error('Error fetching cities:', error);
             }
@@ -235,64 +252,21 @@ export default function IncluirImovelPage() {
         fetchBairros();
     }, [selectedCity, selectedUf]);
 
-    // Fetch Categories for Step 3
+    // Fetch all reference options in a single call (categories, operacoes, statuses, empreendimentos)
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchOptions = async () => {
             try {
-                const res = await fetch('/api/property/categories');
+                const res = await fetch('/api/property/options');
                 const data = await res.json();
-                setCategories(data);
+                if (data.categories) setCategories(data.categories);
+                if (data.operacoes) setOperacoes(data.operacoes);
+                if (data.statuses) setPropertyStatuses(data.statuses);
+                if (data.empreendimentos) setEmpreendimentos(data.empreendimentos);
             } catch (error) {
-                console.error('Error fetching categories:', error);
+                console.error('Error fetching property options:', error);
             }
         };
-        fetchCategories();
-    }, []);
-    
-    // Fetch Operacoes
-    useEffect(() => {
-        const fetchOperacoes = async () => {
-            try {
-                const res = await fetch('/api/property/operacoes');
-                const data = await res.json();
-                if (Array.isArray(data)) setOperacoes(data);
-            } catch (error) {
-                console.error('Error fetching operacoes:', error);
-            }
-        };
-        fetchOperacoes();
-    }, []);
-
-    // Fetch Statuses
-    useEffect(() => {
-        const fetchStatuses = async () => {
-            try {
-                const res = await fetch('/api/property/status');
-                const data = await res.json();
-                if (Array.isArray(data)) setPropertyStatuses(data);
-            } catch (error) {
-                console.error('Error fetching statuses:', error);
-            }
-        };
-        fetchStatuses();
-    }, []);
-
-    // Fetch Empreendimentos
-    useEffect(() => {
-        const fetchEmps = async () => {
-            try {
-                const res = await fetch('/api/property/empreendimentos');
-                const data = await res.json();
-                if (data.empreendimentos && Array.isArray(data.empreendimentos)) {
-                    setEmpreendimentos(data.empreendimentos);
-                } else if (Array.isArray(data)) {
-                    setEmpreendimentos(data);
-                }
-            } catch (error) {
-                console.error('Error fetching empreendimentos:', error);
-            }
-        };
-        fetchEmps();
+        fetchOptions();
     }, []);
 
     // Fetch Property Types when Finalidade changes

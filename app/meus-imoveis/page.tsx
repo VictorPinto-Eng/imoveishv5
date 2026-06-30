@@ -403,25 +403,14 @@ function MeusImoveisContent() {
                     setListMode(modeParam);
                 }
 
-                // Fetch empreendimentos once
-                fetch('/api/property/empreendimentos')
-                    .then(res => res.json())
-                    .then(data => {
-                        const list = data.empreendimentos || [];
-                        setEmpreendimentos(list);
-                        if (empIdParam) {
-                            const targetEmp = list.find((e: any) => e.id.toString() === empIdParam);
-                            if (targetEmp) {
-                                setSelectedEmpreendimento(targetEmp);
-                            }
-                        }
-                    })
-                    .catch(err => console.error('Error fetching empreendimentos:', err));
-
                 const returnId = searchParams.get('id');
-                console.log('>>> INIT: PARÂMETRO DA URL CAPTURADO ?id=', returnId);
 
-                const meRes = await fetch('/api/auth/me');
+                // Paralelizar: auth + empreendimentos ao mesmo tempo
+                const [meRes, empRes] = await Promise.all([
+                    fetch('/api/auth/me'),
+                    fetch('/api/property/empreendimentos')
+                ]);
+
                 const authData = await meRes.json();
                 if (!authData.authenticated) {
                     router.push('/');
@@ -429,6 +418,18 @@ function MeusImoveisContent() {
                 }
                 setIsAuthenticated(true);
                 setCurrentUser(authData.user);
+
+                // Processar empreendimentos
+                const empData = await empRes.json();
+                const list = empData.empreendimentos || [];
+                setEmpreendimentos(list);
+                if (empIdParam) {
+                    const targetEmp = list.find((e: any) => e.id.toString() === empIdParam);
+                    if (targetEmp) {
+                        setSelectedEmpreendimento(targetEmp);
+                    }
+                }
+
                 await fetchMyImoveis(returnId);
             } catch (error) {
                 console.error('Init error:', error);
