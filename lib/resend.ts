@@ -99,7 +99,7 @@ export async function sendPropertyContactEmail(
 }
 
 export async function sendPasswordResetEmail(email: string, name: string, token: string) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://imoveis.hv5.com.br';
   const resetLink = `${appUrl}/recuperar-senha?token=${token}`;
   try {
     const result = await resend.emails.send({
@@ -136,7 +136,7 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
 }
 
 export async function sendCreciStatusEmail(email: string, name: string, approved: boolean) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://imoveis.hv5.com.br';
   const loginLink = `${appUrl}`;
 
   const subject = approved 
@@ -192,7 +192,7 @@ export async function sendCreciStatusEmail(email: string, name: string, approved
 }
 
 export async function sendCpfStatusEmail(email: string, name: string, approved: boolean) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.hv5.com.br';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://imoveis.hv5.com.br';
   const profileLink = `${appUrl}/meu-perfil`;
 
   const subject = approved 
