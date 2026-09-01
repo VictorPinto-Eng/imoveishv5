@@ -43,6 +43,10 @@ tmp/
 # OS files
 .DS_Store
 Thumbs.db
+
+# IDE/Editor
+.vscode/
+.idea/
 # Uploads
 public/uploads/*
 
