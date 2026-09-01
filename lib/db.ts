@@ -31,18 +31,27 @@ const pool = new Pool({
   statement_timeout: 30000,      // Aborta queries que excedam 30s
 });
 
-// Wrapper para logar erros de query no servidor
-export const query = async (text: string, params?: any[]) => {
-  try {
-    return await pool.query(text, params);
-  } catch (error: any) {
-    console.error("❌ Erro na Query do Banco:", {
-      message: error.message,
-      code: error.code,
-      query: text.substring(0, 100) + "..."
-    });
-    throw error;
+// Wrapper para logar erros de query no servidor e fazer retry automático em caso de falha de conexão fria
+export const query = async (text: string, params?: any[], retries = 2) => {
+  let lastError: any;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await pool.query(text, params);
+    } catch (error: any) {
+      lastError = error;
+      console.warn(`⚠️ Tentativa ${attempt}/${retries} falhou na Query do Banco:`, error.message);
+      if (attempt < retries) {
+        // Aguarda 300ms antes de tentar novamente (conecta o pool frio)
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
   }
+  console.error("❌ Erro definitivo na Query do Banco após retries:", {
+    message: lastError?.message,
+    code: lastError?.code,
+    query: text.substring(0, 100) + "..."
+  });
+  throw lastError;
 };
 
 // Helper para transações — garante COMMIT ou ROLLBACK automático
@@ -62,3 +71,10 @@ export async function withTransaction<T>(fn: (client: { query: (text: string, pa
 }
 
 export default pool;
+
+// Warm-up inicial do pool de conexões para evitar "cold start" na primeira requisição do cliente
+pool.query('SELECT 1').then(() => {
+  console.log('✅ Pool de conexões PostgreSQL aquecido com sucesso.');
+}).catch(err => {
+  console.warn('⚠️ Aviso no warm-up do PostgreSQL (será re-tentado na primeira query):', err.message);
+});
