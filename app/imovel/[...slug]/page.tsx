@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const imovel = await getCachedImovel(id)
     if (!imovel) return { title: 'Imóvel não encontrado' }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://imoveis.hv5.com.br'
+    const baseUrl = 'https://imoveis.hv5.com.br'
     const canonicalUrl = `${baseUrl}${buildPropertyUrl(imovel)}`
 
     const title = `${imovel.operacao_nome || 'Imóvel'} - ${imovel.tipo_nome || 'Detalhes'} | HV5`
@@ -169,7 +169,7 @@ export default async function ImovelDetail({ params }: { params: Promise<{ slug:
     const address = [imovel.logradouro, cf.bairro, cf.cidade].filter(Boolean).join(' - ')
     const locationTitle = [cf.bairro, cf.cidade].filter(Boolean).join(', ')
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://imoveis.hv5.com.br'
+    const baseUrl = 'https://imoveis.hv5.com.br'
 
     const jsonLd = {
         '@context': 'https://schema.org',
