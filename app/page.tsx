@@ -3,7 +3,7 @@ import Footer from '@/components/Footer'
 import HomeHero from '@/components/home/HomeHero'
 import HomeBenefits from '@/components/home/HomeBenefits'
 import HomeFeatured from '@/components/home/HomeFeatured'
-import { getFeaturedImoveis, getRecentImoveis, getPriceUpdatedImoveis } from '@/lib/imoveis'
+import { getFeaturedImoveis, getRecentImoveis, getPriceUpdatedImoveis, getImoveis } from '@/lib/imoveis'
 import { Imovel } from '@/lib/imoveis'
 import { Metadata } from 'next'
 
@@ -15,16 +15,25 @@ export const metadata: Metadata = {
   },
 }
 
-// Revalidar a cada 60 segundos — garante que imagens recém-adicionadas apareçam rapidamente
-export const revalidate = 60
+// Força renderização dinâmica para nunca servir cache estático vazio na 1ª visita
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 export default async function Home() {
-  // Busca todas as fontes em paralelo
-  const [destaques, recentes, oportunidades] = await Promise.all([
+  // Busca todas as fontes em paralelo com retry garantido
+  let [destaques, recentes, oportunidades] = await Promise.all([
     getFeaturedImoveis(12),
     getRecentImoveis(6),
     getPriceUpdatedImoveis(6),
   ])
+
+  // Fallback de segurança absoluto: se vier tudo vazio, busca qualquer imóvel ativo na base
+  if (destaques.length === 0 && recentes.length === 0 && oportunidades.length === 0) {
+    const fallbackList = await getImoveis({})
+    if (fallbackList.imoveis && fallbackList.imoveis.length > 0) {
+      destaques = fallbackList.imoveis.slice(0, 12)
+    }
+  }
 
   // Mescla tudo em uma única lista, removendo duplicatas por ID
   const seen = new Set<string>()
