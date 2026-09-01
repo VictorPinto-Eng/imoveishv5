@@ -19,7 +19,7 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = { 
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://imoveis.hv5.com.br'),
     icons: { icon: '/icone_5_navegador.png?v=4' },
     title: {
         default: 'HV5 Imóveis | Compra, Venda e Aluguel em Pernambuco',
