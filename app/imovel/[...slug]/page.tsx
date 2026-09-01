@@ -84,8 +84,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             description,
             images: ogImage ? [{
                 url: ogImage,
+                secureUrl: ogImage,
                 width: 1200,
                 height: 630,
+                type: ogImage.endsWith('.png') ? 'image/png' : (ogImage.endsWith('.jpg') || ogImage.endsWith('.jpeg') ? 'image/jpeg' : 'image/webp'),
                 alt: title,
             }] : [],
             url: canonicalUrl,
