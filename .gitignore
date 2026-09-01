@@ -58,6 +58,9 @@ Dockerfile
 docker-compose.yml
 Caddyfile
 
+# Scripts de deploy (server-specific)
+deploy.sh
+
 # Scratch scripts
 scratch/
 
