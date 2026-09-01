@@ -369,86 +369,117 @@ const BASE_SELECT = `
 `
 
 export async function getFeaturedImoveis(
-  limit = 6, 
-  excludeId?: string, 
+  limit = 6,
+  excludeId?: string,
   imbtpimovelId?: number,
   imbtpoperacaoId?: number,
   imbfinalidadeId?: number
 ) {
-  try {
-    const params: any[] = [limit]
-    let whereClause = `WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true ${SQL_DEDUP_EMP}`
-    
-    if (excludeId) {
-      params.push(excludeId)
-      whereClause += ` AND I.id != $${params.length}`
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const params: any[] = [limit]
+      let whereClause = `WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true ${SQL_DEDUP_EMP}`
+
+      if (excludeId) {
+        params.push(excludeId)
+        whereClause += ` AND I.id != $${params.length}`
+      }
+
+      if (imbtpimovelId) {
+        params.push(imbtpimovelId)
+        whereClause += ` AND COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) = $${params.length}`
+      }
+
+      if (imbtpoperacaoId) {
+        params.push(imbtpoperacaoId)
+        whereClause += ` AND I.imbtpoperacao_id = $${params.length}`
+      }
+
+      if (imbfinalidadeId) {
+        params.push(imbfinalidadeId)
+        whereClause += ` AND COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) = $${params.length}`
+      }
+
+      const res = await query(`
+        ${BASE_SELECT}
+        ${whereClause}
+        ORDER BY I.created_at DESC
+        LIMIT $1
+      `, params)
+
+      const items = parseImoveis(res.rows || [])
+      if (items.length > 0 || attempt === 2) {
+        return items
+      }
+      // Se veio vazio na 1ª tentativa, aguarda 300ms e tenta de novo (conexão fria)
+      await new Promise(resolve => setTimeout(resolve, 300))
+    } catch (error) {
+      if (attempt === 2) {
+        console.error('Error fetching featured imoveis:', error)
+        return []
+      }
+      await new Promise(resolve => setTimeout(resolve, 300))
     }
-
-    if (imbtpimovelId) {
-      params.push(imbtpimovelId)
-      whereClause += ` AND COALESCE(PL.imbtpimovel_id, PV.imbtpimovel_id) = $${params.length}`
-    }
-
-    if (imbtpoperacaoId) {
-      params.push(imbtpoperacaoId)
-      whereClause += ` AND I.imbtpoperacao_id = $${params.length}`
-    }
-
-    if (imbfinalidadeId) {
-      params.push(imbfinalidadeId)
-      whereClause += ` AND COALESCE(PL.imbfinalidade_id, PV.imbfinalidade_id) = $${params.length}`
-    }
-
-    const res = await query(`
-      ${BASE_SELECT}
-      ${whereClause}
-      ORDER BY I.created_at DESC
-      LIMIT $1
-    `, params)
-
-    return parseImoveis(res.rows || [])
-  } catch (error) {
-    console.error('Error fetching featured imoveis:', error)
-    return []
   }
+  return []
 }
 
 // Imóveis cadastrados nos últimos 30 dias
 export async function getRecentImoveis(limit = 6) {
-  try {
-    const res = await query(`
-      ${BASE_SELECT}
-      WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
-        ${SQL_DEDUP_EMP}
-        AND I.created_at >= NOW() - INTERVAL '30 days'
-      ORDER BY I.created_at DESC
-      LIMIT $1
-    `, [limit])
-    return parseImoveis(res.rows || [])
-  } catch (error) {
-    console.error('Error fetching recent imoveis:', error)
-    return []
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await query(`
+        ${BASE_SELECT}
+        WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
+          ${SQL_DEDUP_EMP}
+          AND I.created_at >= NOW() - INTERVAL '30 days'
+        ORDER BY I.created_at DESC
+        LIMIT $1
+      `, [limit])
+      const items = parseImoveis(res.rows || [])
+      if (items.length > 0 || attempt === 2) {
+        return items
+      }
+      await new Promise(resolve => setTimeout(resolve, 300))
+    } catch (error) {
+      if (attempt === 2) {
+        console.error('Error fetching recent imoveis:', error)
+        return []
+      }
+      await new Promise(resolve => setTimeout(resolve, 300))
+    }
   }
+  return []
 }
 
 // Imóveis com preço atualizado recentemente (excluindo recém-criados)
 export async function getPriceUpdatedImoveis(limit = 6) {
-  try {
-    const res = await query(`
-      ${BASE_SELECT}
-      WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
-        ${SQL_DEDUP_EMP}
-        AND I.updated_at IS NOT NULL
-        AND I.updated_at > I.created_at + INTERVAL '1 hour'
-        AND I.updated_at >= NOW() - INTERVAL '60 days'
-      ORDER BY I.updated_at DESC
-      LIMIT $1
-    `, [limit])
-    return parseImoveis(res.rows || [])
-  } catch (error) {
-    console.error('Error fetching price-updated imoveis:', error)
-    return []
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await query(`
+        ${BASE_SELECT}
+        WHERE I.tipo = 'produto' AND I.categoria = 'Imovel' AND I.ativo = true AND I.pub_site = true
+          ${SQL_DEDUP_EMP}
+          AND I.updated_at IS NOT NULL
+          AND I.updated_at > I.created_at + INTERVAL '1 hour'
+          AND I.updated_at >= NOW() - INTERVAL '60 days'
+        ORDER BY I.updated_at DESC
+        LIMIT $1
+      `, [limit])
+      const items = parseImoveis(res.rows || [])
+      if (items.length > 0 || attempt === 2) {
+        return items
+      }
+      await new Promise(resolve => setTimeout(resolve, 300))
+    } catch (error) {
+      if (attempt === 2) {
+        console.error('Error fetching price-updated imoveis:', error)
+        return []
+      }
+      await new Promise(resolve => setTimeout(resolve, 300))
+    }
   }
+  return []
 }
 
 export async function getImoveis(filters: ImovelFilters = {}) {
