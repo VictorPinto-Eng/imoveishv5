@@ -63,5 +63,20 @@ echo -e "${GREEN}==> Status do serviço${NC}"
 docker service ls
 docker service ps imoveishv5_web --no-trunc 2>/dev/null | head -5
 
+# Verificar saúde do serviço
+echo -e "${GREEN}==> Verificando saúde do serviço...${NC}"
+MAX_RETRIES=10
+RETRY_DELAY=3
+for ((i=1; i<=MAX_RETRIES; i++)); do
+    if curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000/api/health" | grep -q "200"; then
+        echo -e "${GREEN}==> Serviço está saudável!${NC}"
+        break
+    fi
+    if [ $i -eq $MAX_RETRIES ]; then
+        echo -e "${YELLOW}==> Aviso: Serviço não respondeu após $MAX_RETRIES tentativas${NC}"
+    fi
+    sleep $RETRY_DELAY
+done
+
 echo -e "${GREEN}==> Deploy concluído com sucesso!${NC}"
 echo -e "${YELLOW}    Logs: docker service logs -f imoveishv5_web${NC}"

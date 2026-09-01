@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
         userId = decoded.id;
       }
-    } catch (authError) {
+    } catch {
       // Ignore auth errors, just record as anonymous
     }
 
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
           leadId = leadRes.rows[0]?.id || null;
         }
       }
-    } catch (dbError: any) {
-      console.error('[Leads Proxy] Database insertion error (leads):', dbError?.message || dbError);
+    } catch (dbError: unknown) {
+      console.error('[Leads Proxy] Database insertion error (leads):', (dbError as Error)?.message || dbError);
 
       // Fallback: tentar sem user_id caso a coluna não exista
       if (!dbSaved && codigo && (leadEmail || whatsapp)) {
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
           `, [Number(codigo), leadName, leadEmail, whatsapp || null, mensagem || null]);
           dbSaved = true;
           leadId = fallbackRes.rows[0]?.id || null;
-        } catch (fallbackError: any) {
-          console.error('[Leads Proxy] Fallback insertion error:', fallbackError?.message || fallbackError);
+        } catch (fallbackError: unknown) {
+          console.error('[Leads Proxy] Fallback insertion error:', (fallbackError as Error)?.message || fallbackError);
         }
       }
     }
@@ -138,8 +138,8 @@ export async function POST(request: NextRequest) {
             [customerRes.rows[0].idcustomer, leadId]
           );
         }
-      } catch (linkError: any) {
-        console.error('[Leads Proxy] Error linking lead to customer:', linkError?.message || linkError);
+      } catch (linkError: unknown) {
+        console.error('[Leads Proxy] Error linking lead to customer:', (linkError as Error)?.message || linkError);
       }
     }
 
@@ -157,8 +157,8 @@ export async function POST(request: NextRequest) {
           )
         `, [Number(codigo), userId, leadName, leadEmail, whatsapp || null, mensagem || null, isWhatsappOrigin ? 'whatsapp' : 'contato']);
       }
-    } catch (atenError: any) {
-      console.error('[Leads Proxy] Atendimento insertion error:', atenError?.message || atenError);
+    } catch (atenError: unknown) {
+      console.error('[Leads Proxy] Atendimento insertion error:', (atenError as Error)?.message || atenError);
     }
 
     // Se não conseguiu salvar o lead no banco, informar o usuário (exceto WhatsApp anônimo)

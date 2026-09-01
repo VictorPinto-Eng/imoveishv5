@@ -61,7 +61,7 @@ export async function GET(
 
     return NextResponse.json(stats);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Error in /api/analytics/stats/[id]:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
