@@ -70,8 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     const title = `${imovel.operacao_nome || 'Imóvel'} - ${imovel.tipo_nome || 'Detalhes'} | HV5`
     const description = `${imovel.custom_fields?.bairro || ''}, ${imovel.custom_fields?.cidade || ''} - ${imovel.dormitorios || 0} Qtos, ${imovel.area_util || imovel.area_terreno || 0}m²`
-    const rawImage = imovel.foto_capa || imovel.imagens_urls?.[0] || ''
-    const ogImage = rawImage.startsWith('http') ? rawImage : (rawImage ? `${baseUrl}${rawImage.startsWith('/') ? '' : '/'}${rawImage}` : '')
+    const ogImage = `${baseUrl}/api/property/${id}/og-image`
     console.log(`📸 [OpenGraph Metadata] Imóvel ID ${id} | Título: "${title}" | Imagem OG: "${ogImage}"`)
 
     return {
