@@ -56,12 +56,18 @@ export async function POST(request: NextRequest) {
         const cleanPhone = whatsapp ? whatsapp.replace(/\D/g, '') : null;
         let existingLead;
         if (leadEmail) {
-          existingLead = await query(`
-            SELECT id FROM public.leads
-            WHERE LOWER(email) = LOWER($1)
-              ${cleanPhone ? `OR REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') = '${cleanPhone}'` : ''}
-            LIMIT 1
-          `, [leadEmail]);
+          existingLead = cleanPhone
+            ? await query(`
+              SELECT id FROM public.leads
+              WHERE LOWER(email) = LOWER($1)
+                OR REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') = $2
+              LIMIT 1
+            `, [leadEmail, cleanPhone])
+            : await query(`
+              SELECT id FROM public.leads
+              WHERE LOWER(email) = LOWER($1)
+              LIMIT 1
+            `, [leadEmail]);
         } else if (cleanPhone) {
           existingLead = await query(`
             SELECT id FROM public.leads

@@ -130,6 +130,26 @@ Exemplos:
 - [x] **SEC-20**: Token de verificação de email com expiração de 24h — coluna `verification_token_expires` adicionada, validada no verify, gravada no register e resend. ✅ *27/06/2026*
 - [x] **SEC-30**: Logout agora inclui `sameSite: 'strict'` no cookie cleared — consistente com login. ✅ *27/06/2026*
 
+### Pendências da Auditoria v3 (02/07/2026)
+
+#### 🚨 Prioridade Crítica (bloqueia Go-Live)
+- [x] **SEC-31**: SQL injection via string interpolation de `cleanPhone` em `app/api/leads/route.ts:62` — convertido para query parametrizada (`$2`). ✅ *01/09/2026*
+- [x] **SEC-32**: Documentos CRECI servidos sem autenticação em `app/uploads/[...path]/route.ts` — JWT obrigatório para paths `/documents/`, verificação via `jose/jwtVerify`. ✅ *01/09/2026*
+- [x] **SEC-33**: Analytics stats endpoint sem auth (`app/api/analytics/stats/[id]/route.ts`) — autenticação JWT obrigatória + ownership check (dono do imóvel ou admin). ✅ *01/09/2026*
+- [x] **SEC-34**: Audit-log endpoint POST sem auth (`app/api/analytics/audit-log/route.ts`) — actions públicas (view, click_whatsapp, etc.) com rate limiting, actions sensíveis exigem JWT válido. ✅ *01/09/2026*
+
+#### ⚠️ Prioridade Alta
+- [x] **SEC-35**: CORS `Access-Control-Allow-Origin: *` na rota de uploads expõe documentos pessoais — restringido para `NEXT_PUBLIC_APP_URL` em `/documents/`, cache control `private, no-cache`. ✅ *01/09/2026*
+- [ ] **SEC-36**: Upload de fotos empreendimentos sem validação de tipo/tamanho (`app/api/property/empreendimentos/[id]/photos/route.ts:75-82`) — adicionar mesma whitelist dos outros uploads.
+- [ ] **SEC-37**: Rate limit IP spoofável via `x-forwarded-for` sem validação de trusted proxy (`lib/rate-limit.ts:42`) — configurar trusted proxy, usar último hop confiável.
+
+#### ⚠️ Prioridade Média
+- [ ] **SEC-38**: Reset-password sem rate limiting (`app/api/auth/reset-password/route.ts`) — adicionar preset `email` (3/10min).
+- [ ] **SEC-39**: Sem revogação server-side no logout — JWT permanece válido por 24h após logout. Considerar blocklist ou reduzir expiry + refresh token.
+- [ ] **SEC-40**: Erro do Resend API vazado ao cliente (`app/api/auth/register/route.ts:128`) — retornar mensagem genérica, logar detalhes server-side.
+- [ ] **SEC-41**: Revalidate secret usa fallback para JWT_SECRET (`app/api/revalidate/route.ts:9`) — usar variável dedicada `REVALIDATE_SECRET`.
+- [ ] **SEC-42**: `is_admin` claim no JWT honrado em property routes por 24h após revogação (`app/api/property/[id]/route.ts:24`) — re-verificar admin no DB como `verify-admin.ts` já faz.
+
 ---
 
 ## 🟠 Performance (Débito Técnico)
@@ -185,6 +205,7 @@ Exemplos:
 - [x] **INFRA-01**: Dockerfile multi-stage (deps → build → runtime) com Node 20 Alpine, usuário não-root, standalone output. ✅ *21/06/2026*
 - [x] **INFRA-02**: `docker-compose.yml` com volume persistente para uploads, healthcheck e variáveis via `.env`. ✅ *21/06/2026*
 - [x] **INFRA-03**: GitHub Actions CI — TypeScript check + build em push/PR para main e develop. ✅ *21/06/2026*
+- [x] **INFRA-04**: Script `deploy.sh` para deploy automatizado em produção via Docker Swarm — git pull, build sem cache, push para registry local, update service com rollback seguro. ✅ *01/09/2026*
 - [x] **INFRA-04**: GitHub Actions CD — deploy automático via SSH no push para main (git pull + docker-compose rebuild). ✅ *21/06/2026*
 - [x] **INFRA-05**: Caddy reverse proxy com SSL automático (Let's Encrypt), gzip/zstd, headers de segurança, cache para assets. ✅ *21/06/2026*
 - [x] **INFRA-06**: `output: 'standalone'` no `next.config.ts` — build gera pacote mínimo para deploy sem node_modules completo. ✅ *21/06/2026*
