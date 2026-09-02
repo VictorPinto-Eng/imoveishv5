@@ -586,11 +586,12 @@ export default function ImovelCard({ imovel, showStatus = false, onFavoriteToggl
                     origin="card"
                 />
 
-                <ShareModal 
+                <ShareModal
                     isOpen={isShareModalOpen}
                     onClose={() => setIsShareModalOpen(false)}
                     propertyId={imovel.id}
                     propertyTitle={nome}
+                    shareUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}${buildPropertyUrl(imovel)}`}
                 />
       </div>
       {showPhone && (
