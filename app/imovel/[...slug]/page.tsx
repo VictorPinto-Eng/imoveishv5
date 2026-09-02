@@ -72,8 +72,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const baseUrl = `${proto}://${host}`
     const canonicalUrl = `${baseUrl}${buildPropertyUrl(imovel)}`
 
-    const title = `${imovel.operacao_nome || 'Imóvel'} - ${imovel.tipo_nome || 'Detalhes'} | HV5`
-    const description = `${imovel.custom_fields?.bairro || ''}, ${imovel.custom_fields?.cidade || ''} - ${imovel.dormitorios || 0} Qtos, ${imovel.area_util || imovel.area_terreno || 0}m²`
+    const cf = imovel.custom_fields || {}
+    const propertyName = imovel.nome || `${imovel.operacao_nome || 'Imóvel'} - ${imovel.tipo_nome || 'Detalhes'}`
+    const title = `${propertyName} | HV5`
+
+    const locationStr = [cf.bairro, cf.cidade].filter(Boolean).join(', ')
+    const priceFormatted = imovel.preco_base
+        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(imovel.preco_base)
+        : (imovel.vrtotal ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(imovel.vrtotal) : '')
+
+    const descParts = [
+        locationStr,
+        imovel.dormitorios ? `${imovel.dormitorios} Qtos` : '',
+        (imovel.area_util || imovel.area_terreno || imovel.emp_min_area) ? `${imovel.area_util || imovel.area_terreno || imovel.emp_min_area}m²` : '',
+        priceFormatted ? `Por ${priceFormatted}` : ''
+    ].filter(Boolean)
+
+    const description = descParts.length > 0 ? descParts.join(' - ') : 'Confira os detalhes deste imóvel na HV5 Imóveis.'
     const ogImage = `${baseUrl}/api/property/${id}/og-image.jpg`
     console.log(`📸 [OpenGraph Metadata] Imóvel ID ${id} | Título: "${title}" | Imagem OG: "${ogImage}"`)
 
