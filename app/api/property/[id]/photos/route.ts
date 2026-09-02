@@ -7,6 +7,7 @@ import { writeFile, mkdir, unlink } from 'fs/promises';
 import { join } from 'path';
 import crypto from 'crypto';
 import { JWT_SECRET } from '@/lib/auth-config';
+import { generateOgCover } from '@/lib/image-optimizer';
 
 // Helper to check ownership
 async function checkOwnership(imovelId: string, userId: number, isAdmin = false) {
@@ -139,11 +140,20 @@ export async function POST(
         const isFirst = parseInt(countRes.rows[0]?.count || '0') === 0;
 
         const insertRes = await query(`
-            INSERT INTO produtos_servicos_midia 
+            INSERT INTO produtos_servicos_midia
             (produto_servico_id, url_referencia, ordem_exibicao, foto_principal)
             VALUES ($1, $2, $3, $4)
             RETURNING *
         `, [imovelId, fileUrl, nextOrder, isFirst]);
+
+        if (isFirst) {
+            try {
+                const coverPath = join(uploadDir, 'cover_og.jpg');
+                await generateOgCover(buffer, coverPath);
+            } catch (err) {
+                console.error('[OG Cover] Erro ao gerar cover_og.jpg:', err);
+            }
+        }
 
         // Invalida cache da home e busca para que as novas fotos apareçam imediatamente
         revalidatePath('/');
@@ -234,6 +244,24 @@ export async function PATCH(
         if (setPrincipal) {
             await query('UPDATE produtos_servicos_midia SET foto_principal = FALSE WHERE produto_servico_id = $1', [imovelId]);
             await query('UPDATE produtos_servicos_midia SET foto_principal = TRUE WHERE id = $1 AND produto_servico_id = $2', [photoId, imovelId]);
+
+            try {
+                const photoRes = await query('SELECT url_referencia FROM produtos_servicos_midia WHERE id = $1', [photoId]);
+                const photoUrl = photoRes.rows[0]?.url_referencia;
+                if (photoUrl) {
+                    const filename = photoUrl.split('/').pop();
+                    const isDocker = process.platform === 'linux';
+                    const baseDir = isDocker ? '/app/public/uploads/imoveis' : join(process.cwd(), 'public', 'uploads', 'imoveis');
+                    const sourcePath = join(baseDir, imovelId, filename);
+
+                    const { readFile } = await import('fs/promises');
+                    const fileBuffer = await readFile(sourcePath);
+                    const coverPath = join(baseDir, imovelId, 'cover_og.jpg');
+                    await generateOgCover(fileBuffer, coverPath);
+                }
+            } catch (coverErr) {
+                console.error('[OG Cover] Erro ao atualizar cover_og.jpg no setPrincipal:', coverErr);
+            }
         }
 
         if (legenda !== undefined || categoria !== undefined || privada !== undefined) {
