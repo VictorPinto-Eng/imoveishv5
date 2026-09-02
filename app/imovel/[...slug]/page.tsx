@@ -42,6 +42,7 @@ import {
 import AnalyticsTracker from '@/components/AnalyticsTracker'
 import { Metadata } from 'next'
 import SafePropertyMap from '@/components/SafePropertyMap'
+import { headers } from 'next/headers'
 import { cache } from 'react'
 import { buildPropertyUrl } from '@/lib/property-url'
 
@@ -65,7 +66,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const imovel = await getCachedImovel(id)
     if (!imovel) return { title: 'Imóvel não encontrado' }
 
-    const baseUrl = 'https://imoveis.hv5.com.br'
+    const headersList = await headers()
+    const host = headersList.get('host') || process.env.NEXT_PUBLIC_APP_URL?.replace(/^https?:\/\//, '') || 'imoveis.hv5.com.br'
+    const proto = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${proto}://${host}`
     const canonicalUrl = `${baseUrl}${buildPropertyUrl(imovel)}`
 
     const title = `${imovel.operacao_nome || 'Imóvel'} - ${imovel.tipo_nome || 'Detalhes'} | HV5`
@@ -168,7 +172,10 @@ export default async function ImovelDetail({ params }: { params: Promise<{ slug:
     const address = [imovel.logradouro, cf.bairro, cf.cidade].filter(Boolean).join(' - ')
     const locationTitle = [cf.bairro, cf.cidade].filter(Boolean).join(', ')
 
-    const baseUrl = 'https://imoveis.hv5.com.br'
+    const headersList = await headers()
+    const host = headersList.get('host') || process.env.NEXT_PUBLIC_APP_URL?.replace(/^https?:\/\//, '') || 'imoveis.hv5.com.br'
+    const proto = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${proto}://${host}`
 
     const jsonLd = {
         '@context': 'https://schema.org',
