@@ -191,7 +191,8 @@ Exemplos:
 ### Forms e Validação
 - [ ] **ARCH-07**: Implementar React Hook Form + Zod nas páginas de formulário — atualmente useState individual por campo, onChange manual, validação espalhada em handleSave.
 
-### Organização do Repositório
+### Arquitetura de Subdomínios para Corretores (Parceiros / Franquias)
+- [ ] **ARCH-08**: Infraestrutura e roteamento multi-tenant por subdomínio (`corretor.imoveis.hv5.com.br`) — direcionamento automático de leads para o CRM do corretor parceiro mantendo a identidade visual e metadados OpenGraph dinâmicos. ✅ *Infraestrutura base de URL dinâmica implementada via headers em 02/09/2026*
 - [ ] **ARCH-08**: Organizar `components/` em subdiretórios por domínio (40+ arquivos flat): `components/forms/`, `components/modals/`, `components/maps/`, `components/cards/`, `components/layout/`.
 - [ ] **ARCH-09**: Criar diretório `types/` para interfaces/tipos compartilhados (atualmente inline em `lib/imoveis.ts`).
 - [x] **ARCH-10**: Removido diretório `scratch/` (55 arquivos de testes/debug). `tmp/` já não existia. ✅ *22/06/2026*
