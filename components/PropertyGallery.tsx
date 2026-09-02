@@ -5,6 +5,7 @@ import Image from 'next/image';
 import styles from './propertyGalleryMobileFixed.module.css';
 import { Camera, Image as ImageIcon, ChevronLeft, ChevronRight, Heart, Share2 } from 'lucide-react';
 import ImageLightbox from './ImageLightbox';
+import ShareModal from './ShareModal';
 
 interface PropertyGalleryProps {
     images: string[];
@@ -40,30 +41,11 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
         }
     };
 
-    const handleShare = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (typeof window !== 'undefined') {
-            const shareData = {
-                title: alt,
-                text: `Confira este imóvel no HV5: ${alt}`,
-                url: window.location.href,
-            };
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-            if (navigator.share) {
-                try {
-                    await navigator.share(shareData);
-                } catch (err) {
-                    console.log('Error sharing:', err);
-                }
-            } else {
-                try {
-                    await navigator.clipboard.writeText(window.location.href);
-                    alert('Link do imóvel copiado para a área de transferência!');
-                } catch (err) {
-                    console.log('Error copying link:', err);
-                }
-            }
-        }
+    const handleShare = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsShareModalOpen(true);
     };
 
     const openLightbox = (index: number) => {
@@ -186,7 +168,7 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
             </div>
 
             {isLightboxOpen && (
-                <ImageLightbox 
+                <ImageLightbox
                     images={images}
                     currentIndex={currentIndex}
                     onClose={() => setIsLightboxOpen(false)}
@@ -195,6 +177,13 @@ export default function PropertyGallery({ images, alt }: PropertyGalleryProps) {
                     onSelect={(index) => setCurrentIndex(index)}
                 />
             )}
+
+            <ShareModal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                propertyTitle={alt}
+                shareUrl={typeof window !== 'undefined' ? window.location.href : ''}
+            />
         </div>
     );
 }
