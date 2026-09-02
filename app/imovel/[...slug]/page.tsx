@@ -73,24 +73,37 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const canonicalUrl = `${baseUrl}${buildPropertyUrl(imovel)}`
 
     const cf = imovel.custom_fields || {}
-    const propertyName = imovel.nome || `${imovel.operacao_nome || 'Imóvel'} - ${imovel.tipo_nome || 'Detalhes'}`
-    const title = `${propertyName} | HV5`
+    const operacao = imovel.operacao_nome || 'Venda'
+    const tipo = imovel.tipo_nome || 'Imóvel'
+    const bairro = cf.bairro || imovel.bairro_nome || ''
+    const cidade = cf.cidade || imovel.cidade_nome || 'Pernambuco'
 
-    const locationStr = [cf.bairro, cf.cidade].filter(Boolean).join(', ')
-    const priceFormatted = imovel.preco_base
-        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(imovel.preco_base)
-        : (imovel.vrtotal ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(imovel.vrtotal) : '')
+    const locationText = [bairro, cidade].filter(Boolean).join(', ')
+
+    const title = imovel.nome && !imovel.nome.toLowerCase().includes('foto')
+        ? `${imovel.nome} | HV5 Imóveis`
+        : `${tipo} para ${operacao}${locationText ? ` em ${locationText}` : ''} | HV5 Imóveis`
+
+    const priceVal = imovel.preco_base || imovel.vrtotal || 0
+    const priceFormatted = priceVal > 0
+        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(priceVal)
+        : ''
+
+    const areaVal = imovel.area_util || imovel.area_terreno || imovel.emp_min_area || 0
+    const areaFormatted = areaVal > 0 ? `${areaVal}m²` : ''
 
     const descParts = [
-        locationStr,
-        imovel.dormitorios ? `${imovel.dormitorios} Qtos` : '',
-        (imovel.area_util || imovel.area_terreno || imovel.emp_min_area) ? `${imovel.area_util || imovel.area_terreno || imovel.emp_min_area}m²` : '',
-        priceFormatted ? `Por ${priceFormatted}` : ''
+        locationText,
+        imovel.dormitorios && Number(imovel.dormitorios) > 0 ? `${imovel.dormitorios} Quartos` : '',
+        areaFormatted,
+        priceFormatted ? `Valor: ${priceFormatted}` : ''
     ].filter(Boolean)
 
-    const description = descParts.length > 0 ? descParts.join(' - ') : 'Confira os detalhes deste imóvel na HV5 Imóveis.'
+    const description = descParts.length > 0
+        ? descParts.join(' • ')
+        : `Confira esta excelente oportunidade de ${operacao} na HV5 Imóveis.`
     const ogImage = `${baseUrl}/api/property/${id}/og-image.jpg`
-    console.log(`📸 [OpenGraph Metadata] Imóvel ID ${id} | Título: "${title}" | Imagem OG: "${ogImage}"`)
+    console.log(`📸 [OpenGraph Metadata] Imóvel ID ${id} | Título: "${title}" | Descrição: "${description}" | Imagem OG: "${ogImage}"`)
 
     return {
         title,
